@@ -22,6 +22,7 @@ COPY packages/types ./packages/types
 COPY database ./database
 COPY apps/api ./apps/api
 
+RUN pnpm --filter @t360/validation build
 RUN pnpm --filter @t360/database generate
 RUN pnpm --filter @t360/api build
 
