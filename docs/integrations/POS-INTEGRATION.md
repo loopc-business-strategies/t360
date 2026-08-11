@@ -12,6 +12,8 @@
 
 Do not assume the client’s existing POS. Do not claim “POS synced” without a real adapter.
 
+**Blocked inputs (required before coding a live adapter):** vendor name, API docs, export format, auth mechanism, webhooks. Until then, keep `POS_PROVIDER=mock`.
+
 ## Direction of truth (target)
 
 ```

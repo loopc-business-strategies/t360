@@ -9,7 +9,9 @@ Omnichannel retail platform connecting physical store, website, mobile apps, adm
 
 ## Current status
 
-**Phases 0–4 complete.** Phase 5 (Inventory) is **NO-GO** until approved — see [docs/roadmap/PHASE-GATE.md](docs/roadmap/PHASE-GATE.md).
+**Phases 0–16 complete.** Launch package ready. See [docs/roadmap/PHASE-GATE.md](docs/roadmap/PHASE-GATE.md).
+
+Remaining work is **operator go-live** (real provider secrets + cutover) and **live POS** (vendor-blocked). Post-roadmap CMS and staging kit are complete.
 
 ### Run locally
 
@@ -31,10 +33,9 @@ pnpm --filter @t360/admin dev    # :3001
 | Area | Document |
 |------|----------|
 | Design system | [docs/design/DESIGN-SYSTEM.md](docs/design/DESIGN-SYSTEM.md) |
-| Phase 2 result | [docs/design/PHASE-2-RESULT.md](docs/design/PHASE-2-RESULT.md) |
-| Phase 3 result | [docs/design/PHASE-3-RESULT.md](docs/design/PHASE-3-RESULT.md) |
-| Phase 4 result | [docs/design/PHASE-4-RESULT.md](docs/design/PHASE-4-RESULT.md) |
+| Phase results (2–16) | [docs/design/PHASE-2-RESULT.md](docs/design/PHASE-2-RESULT.md) … [PHASE-16-RESULT.md](docs/design/PHASE-16-RESULT.md) |
 | Catalogue API | [docs/api/CATALOGUE.md](docs/api/CATALOGUE.md) |
+| Go-live | [docs/launch/GO-LIVE.md](docs/launch/GO-LIVE.md) |
 | Foundation | [docs/architecture/FOUNDATION.md](docs/architecture/FOUNDATION.md) |
 | Product requirements | [docs/product/REQUIREMENTS.md](docs/product/REQUIREMENTS.md) |
 | Personas | [docs/product/PERSONAS.md](docs/product/PERSONAS.md) |
@@ -53,14 +54,14 @@ pnpm --filter @t360/admin dev    # :3001
 | Roadmap | [docs/roadmap/ROADMAP.md](docs/roadmap/ROADMAP.md) |
 | Phase gate | [docs/roadmap/PHASE-GATE.md](docs/roadmap/PHASE-GATE.md) |
 
-## Stack (in progress)
+## Stack
 
 - **Web / Admin:** Next.js, TypeScript, Tailwind, `@t360/ui`
-- **Mobile:** Flutter design system widgets
-- **API (Phase 3+):** NestJS modular monolith
-- **Data (Phase 3+):** PostgreSQL + Prisma, Redis + BullMQ
+- **Mobile:** Flutter customer app
+- **API:** NestJS modular monolith + BullMQ worker
+- **Data:** PostgreSQL + Prisma, Redis + BullMQ
 - **Hosting:** Vercel (web/admin) + Railway project `t360` (API/workers/Postgres/Redis)
 
 ## Development rule
 
-Build phase by phase. Do not start the next phase until acceptance criteria for the current phase are met and documented.
+Roadmap phases are complete. For ops changes, follow [PHASE-GATE.md](docs/roadmap/PHASE-GATE.md) and [GO-LIVE.md](docs/launch/GO-LIVE.md). Do not mark mocked production providers as live.

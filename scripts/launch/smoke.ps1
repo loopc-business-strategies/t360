@@ -12,7 +12,7 @@ function Assert-Smoke {
   try {
     $body = Invoke-RestMethod -Uri $url -Method Get -TimeoutSec 15
   } catch {
-    Write-Error "SMOKE FAIL: GET $url — $_"
+    Write-Error "SMOKE FAIL: GET $url - $_"
     exit 1
   }
   $json = $body | ConvertTo-Json -Compress -Depth 10
