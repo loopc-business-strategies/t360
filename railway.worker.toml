@@ -1,0 +1,8 @@
+# Worker service config — no HTTP healthcheck (BullMQ process only).
+[build]
+builder = "DOCKERFILE"
+dockerfilePath = "apps/api/Dockerfile"
+
+[deploy]
+startCommand = "node dist/src/worker.js"
+restartPolicyType = "ON_FAILURE"
