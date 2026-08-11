@@ -1,0 +1,29 @@
+{
+  "name": "t360",
+  "private": true,
+  "packageManager": "pnpm@9.15.0",
+  "scripts": {
+    "dev": "turbo run dev",
+    "build": "turbo run build",
+    "lint": "turbo run lint",
+    "typecheck": "turbo run typecheck",
+    "test": "pnpm --filter @t360/api test",
+    "dev:web": "pnpm --filter @t360/web dev",
+    "dev:admin": "pnpm --filter @t360/admin dev",
+    "dev:api": "pnpm --filter @t360/api dev",
+    "worker": "pnpm --filter @t360/api worker",
+    "prisma:generate": "pnpm --filter @t360/database generate",
+    "prisma:migrate": "pnpm --filter @t360/database migrate",
+    "prisma:seed": "pnpm --filter @t360/database seed",
+    "docker:up": "docker compose up -d",
+    "docker:down": "docker compose down",
+    "test:e2e:smoke": "playwright test",
+    "csv:dry-run": "node scripts/launch/csv-dry-run.mjs",
+    "preflight:env": "node scripts/launch/preflight-env.mjs"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.51.0",
+    "turbo": "^2.3.3",
+    "typescript": "^5.7.2"
+  }
+}

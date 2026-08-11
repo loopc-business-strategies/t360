@@ -1,0 +1,10 @@
+export interface MediaAsset {
+  url: string;
+  publicId?: string;
+}
+
+export interface MediaStorage {
+  uploadFromUrl(url: string, publicId?: string): Promise<MediaAsset>;
+}
+
+export const MEDIA_STORAGE = Symbol("MEDIA_STORAGE");

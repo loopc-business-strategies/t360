@@ -1,0 +1,90 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: t360-postgres
+    restart: unless-stopped
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: t360
+      POSTGRES_PASSWORD: t360
+      POSTGRES_DB: t360
+    volumes:
+      - t360_pg_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U t360 -d t360"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  redis:
+    image: redis:7-alpine
+    container_name: t360-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - t360_redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  api:
+    profiles: ["app"]
+    build:
+      context: .
+      dockerfile: apps/api/Dockerfile
+    container_name: t360-api
+    restart: unless-stopped
+    ports:
+      - "4000:4000"
+    environment:
+      NODE_ENV: production
+      PORT: 4000
+      DATABASE_URL: postgresql://t360:t360@postgres:5432/t360?schema=public
+      REDIS_URL: redis://redis:6379
+      CORS_ORIGINS: http://localhost:3000,http://localhost:3001
+      JWT_ACCESS_SECRET: docker-dev-access-secret-change-me-32c
+      JWT_REFRESH_SECRET: docker-dev-refresh-secret-change-me-32
+      PAYMENT_PROVIDER: mock
+      NOTIFICATION_PROVIDER: mock
+      AI_PROVIDER: mock
+      POS_PROVIDER: mock
+      ALLOW_MOCK_PROVIDERS: "1"
+      APP_VERSION: docker-local
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  worker:
+    profiles: ["app"]
+    build:
+      context: .
+      dockerfile: apps/api/Dockerfile
+    container_name: t360-worker
+    restart: unless-stopped
+    command: ["node", "dist/src/worker.js"]
+    environment:
+      NODE_ENV: production
+      DATABASE_URL: postgresql://t360:t360@postgres:5432/t360?schema=public
+      REDIS_URL: redis://redis:6379
+      JWT_ACCESS_SECRET: docker-dev-access-secret-change-me-32c
+      JWT_REFRESH_SECRET: docker-dev-refresh-secret-change-me-32
+      PAYMENT_PROVIDER: mock
+      NOTIFICATION_PROVIDER: mock
+      AI_PROVIDER: mock
+      POS_PROVIDER: mock
+      ALLOW_MOCK_PROVIDERS: "1"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+volumes:
+  t360_pg_data:
+  t360_redis_data:

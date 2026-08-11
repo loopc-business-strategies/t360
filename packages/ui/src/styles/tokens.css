@@ -1,0 +1,30 @@
+:root {
+  --tharagai-wine: #6e1b28;
+  --tharagai-brass: #b8952a;
+  --tharagai-ink: #14110f;
+  --tharagai-linen: #f5f2ec;
+  --tharagai-teal: #1f4d4a;
+  --tharagai-muted: #6b6560;
+  --tharagai-border: #ddd6cb;
+  --tharagai-surface-elevated: #fffcf8;
+  --tharagai-danger: #9b1c1c;
+  --tharagai-success: #1f6b4a;
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+}
+
+.tharagai-surface {
+  background-color: var(--tharagai-linen);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120' viewBox='0 0 120 120'%3E%3Cg fill='%23cfc7bb' fill-opacity='0.18'%3E%3Cpath d='M0 0h2v120H0zm20 0h1v120h-1zm20 0h2v120h-2zm20 0h1v120h-1zm20 0h2v120h-2zm20 0h1v120h-1z'/%3E%3Cpath d='M0 0h120v2H0zm0 20h120v1H0zm0 20h120v2H0zm0 20h120v1H0zm0 20h120v2H0zm0 20h120v1H0z'/%3E%3C/g%3E%3C/svg%3E");
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

@@ -1,0 +1,514 @@
+import { PrismaClient } from "@prisma/client";
+import * as argon2 from "argon2";
+
+const prisma = new PrismaClient();
+
+const PERMISSIONS = [
+  "products.read",
+  "products.create",
+  "products.update",
+  "products.delete",
+  "categories.manage",
+  "brands.manage",
+  "inventory.read",
+  "inventory.update",
+  "inventory.transfer",
+  "inventory.adjust",
+  "orders.read",
+  "orders.update",
+  "orders.cancel",
+  "customers.read",
+  "customers.update",
+  "payments.read",
+  "payments.refund",
+  "shipments.read",
+  "shipments.update",
+  "coupons.manage",
+  "offers.manage",
+  "loyalty.manage",
+  "reviews.moderate",
+  "reports.read",
+  "staff.manage",
+  "roles.manage",
+  "settings.manage",
+  "integrations.manage",
+  "audit.read",
+  "cms.manage",
+  "ai.admin",
+  "whatsapp.manage",
+  "notifications.manage",
+  "support.manage",
+  "branches.manage",
+];
+
+const ROLES: Record<string, { name: string; permissions: string[] | "*" }> = {
+  SuperAdmin: { name: "Super Admin / Owner", permissions: "*" },
+  Manager: {
+    name: "Manager",
+    permissions: [
+      "products.read",
+      "inventory.read",
+      "inventory.update",
+      "orders.read",
+      "orders.update",
+      "customers.read",
+      "reports.read",
+      "shipments.read",
+      "shipments.update",
+    ],
+  },
+  InventoryManager: {
+    name: "Inventory Manager",
+    permissions: [
+      "products.read",
+      "inventory.read",
+      "inventory.update",
+      "inventory.transfer",
+      "inventory.adjust",
+    ],
+  },
+  SalesStaff: {
+    name: "Sales Staff",
+    permissions: ["products.read", "inventory.read", "orders.read", "orders.update", "customers.read"],
+  },
+  MarketingStaff: {
+    name: "Marketing Staff",
+    permissions: [
+      "coupons.manage",
+      "offers.manage",
+      "cms.manage",
+      "customers.read",
+      "reports.read",
+      "notifications.manage",
+      "whatsapp.manage",
+    ],
+  },
+  CustomerSupport: {
+    name: "Customer Support",
+    permissions: ["customers.read", "orders.read", "support.manage", "reviews.moderate"],
+  },
+  DeliveryStaff: {
+    name: "Delivery Staff",
+    permissions: ["shipments.read", "shipments.update", "orders.read"],
+  },
+  Accountant: {
+    name: "Accountant",
+    permissions: ["payments.read", "payments.refund", "orders.read", "reports.read"],
+  },
+  SystemAdministrator: {
+    name: "System Administrator",
+    permissions: ["settings.manage", "integrations.manage", "audit.read", "roles.manage", "staff.manage"],
+  },
+};
+
+async function main() {
+  for (const code of PERMISSIONS) {
+    await prisma.permission.upsert({
+      where: { code },
+      create: { code, description: code },
+      update: {},
+    });
+  }
+
+  const allPermissions = await prisma.permission.findMany();
+  const byCode = Object.fromEntries(allPermissions.map((p) => [p.code, p]));
+
+  for (const [code, def] of Object.entries(ROLES)) {
+    const role = await prisma.role.upsert({
+      where: { code },
+      create: { code, name: def.name },
+      update: { name: def.name },
+    });
+
+    const permissionCodes = def.permissions === "*" ? PERMISSIONS : def.permissions;
+    for (const permCode of permissionCodes) {
+      const permission = byCode[permCode];
+      if (!permission) continue;
+      await prisma.rolePermission.upsert({
+        where: {
+          roleId_permissionId: { roleId: role.id, permissionId: permission.id },
+        },
+        create: { roleId: role.id, permissionId: permission.id },
+        update: {},
+      });
+    }
+  }
+
+  const email = process.env.SEED_ADMIN_EMAIL ?? "owner@tharagai.local";
+  const password = process.env.SEED_ADMIN_PASSWORD ?? "TharagaiOwner!123";
+  const passwordHash = await argon2.hash(password);
+
+  const user = await prisma.user.upsert({
+    where: { email },
+    create: {
+      email,
+      passwordHash,
+      status: "active",
+      employee: {
+        create: { name: "Tharagai Owner" },
+      },
+    },
+    update: {
+      passwordHash,
+      status: "active",
+    },
+  });
+
+  const superAdmin = await prisma.role.findUniqueOrThrow({ where: { code: "SuperAdmin" } });
+  await prisma.userRole.upsert({
+    where: { userId_roleId: { userId: user.id, roleId: superAdmin.id } },
+    create: { userId: user.id, roleId: superAdmin.id },
+    update: {},
+  });
+
+  await prisma.systemSetting.upsert({
+    where: { key: "business.name" },
+    create: { key: "business.name", value: "Tharagai Readymades" },
+    update: { value: "Tharagai Readymades" },
+  });
+
+  await prisma.systemSetting.upsert({
+    where: { key: "storefront.hero" },
+    create: {
+      key: "storefront.hero",
+      value: {
+        imageUrl:
+          "https://images.unsplash.com/photo-1583391733956-3750e0ff4e8b?auto=format&fit=crop&w=1800&q=80",
+        en: {
+          headline: "Readymades for every celebration",
+          support:
+            "Premium family fashion from Pudukkottai — discover sarees, wedding wear, and everyday elegance.",
+        },
+        ta: {
+          headline: "எல்லா கொண்டாட்டங்களுக்கும் ரெடிமேட்ஸ்",
+          support:
+            "புதுக்கோட்டையிலிருந்து உயர்தர குடும்ப ஆடைகள் — புடவைகள், திருமண உடைகள், அன்றாட நேர்த்தி.",
+        },
+      },
+    },
+    update: {},
+  });
+
+  for (const [key, value] of [
+    ["commerce.codEnabled", true],
+    ["commerce.shippingFee", 49],
+    ["commerce.freeShippingAbove", 999],
+    ["loyalty.earnPerRupee", 1],
+    ["loyalty.redeemValuePerPoint", 0.25],
+    ["loyalty.maxRedeemPercent", 20],
+    ["marketing.abandonedCartEnabled", true],
+    ["marketing.abandonedCartDelayHours", 24],
+    ["marketing.abandonedCartMaxReminders", 1],
+    ["ai.enabled", true],
+  ] as const) {
+    await prisma.systemSetting.upsert({
+      where: { key },
+      create: { key, value },
+      update: { value },
+    });
+  }
+
+  await prisma.coupon.upsert({
+    where: { code: "WELCOME10" },
+    create: {
+      code: "WELCOME10",
+      type: "percent",
+      value: 10,
+      minOrder: 499,
+      maxUses: 1000,
+      perCustomerLimit: 1,
+      active: true,
+    },
+    update: { active: true },
+  });
+  await prisma.coupon.upsert({
+    where: { code: "FLAT100" },
+    create: {
+      code: "FLAT100",
+      type: "fixed",
+      value: 100,
+      minOrder: 999,
+      maxUses: 500,
+      perCustomerLimit: 2,
+      active: true,
+    },
+    update: { active: true },
+  });
+
+  const templates: Array<{
+    code: string;
+    channel: string;
+    locale: string;
+    subject?: string;
+    body: string;
+  }> = [
+    {
+      code: "order.confirmed",
+      channel: "email",
+      locale: "en",
+      subject: "Order {{number}} confirmed",
+      body: "Your order {{number}} is confirmed. Total ₹{{total}}.",
+    },
+    {
+      code: "order.confirmed",
+      channel: "sms",
+      locale: "en",
+      body: "THARAGAI: Order {{number}} confirmed. Total ₹{{total}}.",
+    },
+    {
+      code: "order.confirmed",
+      channel: "push",
+      locale: "en",
+      subject: "Order confirmed",
+      body: "Order {{number}} confirmed",
+    },
+    {
+      code: "order.confirmed",
+      channel: "whatsapp",
+      locale: "en",
+      body: "Order {{number}} confirmed. Total ₹{{total}}.",
+    },
+    {
+      code: "order.shipped",
+      channel: "email",
+      locale: "en",
+      subject: "Order {{number}} on the way",
+      body: "Order {{number}} is packed / out for delivery.",
+    },
+    {
+      code: "order.shipped",
+      channel: "sms",
+      locale: "en",
+      body: "THARAGAI: Order {{number}} is on the way.",
+    },
+    {
+      code: "order.shipped",
+      channel: "push",
+      locale: "en",
+      subject: "On the way",
+      body: "Order {{number}} shipped",
+    },
+    {
+      code: "order.shipped",
+      channel: "whatsapp",
+      locale: "en",
+      body: "Order {{number}} is on the way.",
+    },
+    {
+      code: "order.delivered",
+      channel: "email",
+      locale: "en",
+      subject: "Order {{number}} delivered",
+      body: "Your order {{number}} was delivered. Thank you!",
+    },
+    {
+      code: "order.delivered",
+      channel: "sms",
+      locale: "en",
+      body: "THARAGAI: Order {{number}} delivered. Thank you!",
+    },
+    {
+      code: "order.delivered",
+      channel: "push",
+      locale: "en",
+      subject: "Delivered",
+      body: "Order {{number}} delivered",
+    },
+    {
+      code: "order.delivered",
+      channel: "whatsapp",
+      locale: "en",
+      body: "Order {{number}} delivered. Thank you!",
+    },
+    {
+      code: "order.cancelled",
+      channel: "email",
+      locale: "en",
+      subject: "Order {{number}} cancelled",
+      body: "Order {{number}} was cancelled.",
+    },
+    {
+      code: "order.cancelled",
+      channel: "sms",
+      locale: "en",
+      body: "THARAGAI: Order {{number}} cancelled.",
+    },
+    {
+      code: "order.cancelled",
+      channel: "push",
+      locale: "en",
+      subject: "Cancelled",
+      body: "Order {{number}} cancelled",
+    },
+    {
+      code: "order.cancelled",
+      channel: "whatsapp",
+      locale: "en",
+      body: "Order {{number}} cancelled.",
+    },
+    {
+      code: "auth.otp",
+      channel: "sms",
+      locale: "en",
+      body: "Your THARAGAI OTP is {{code}}",
+    },
+    {
+      code: "order.confirmed",
+      channel: "sms",
+      locale: "ta",
+      body: "தராகை: ஆர்டர் {{number}} உறுதி. மொத்தம் ₹{{total}}.",
+    },
+    {
+      code: "campaign.broadcast",
+      channel: "email",
+      locale: "en",
+      subject: "{{subject}}",
+      body: "{{body}}",
+    },
+    {
+      code: "campaign.broadcast",
+      channel: "sms",
+      locale: "en",
+      body: "THARAGAI: {{body}}",
+    },
+    {
+      code: "campaign.broadcast",
+      channel: "push",
+      locale: "en",
+      subject: "{{subject}}",
+      body: "{{body}}",
+    },
+    {
+      code: "campaign.broadcast",
+      channel: "whatsapp",
+      locale: "en",
+      body: "{{body}}",
+    },
+    {
+      code: "cart.abandoned",
+      channel: "email",
+      locale: "en",
+      subject: "You left items in your bag",
+      body: "Your Tharagai bag is waiting. Complete checkout when ready.",
+    },
+    {
+      code: "cart.abandoned",
+      channel: "sms",
+      locale: "en",
+      body: "THARAGAI: Your bag is waiting — complete checkout anytime.",
+    },
+    {
+      code: "cart.abandoned",
+      channel: "push",
+      locale: "en",
+      subject: "Bag waiting",
+      body: "Complete your Tharagai checkout",
+    },
+    {
+      code: "cart.abandoned",
+      channel: "whatsapp",
+      locale: "en",
+      body: "Your Tharagai bag is waiting. Complete checkout when ready.",
+    },
+  ];
+
+  for (const t of templates) {
+    await prisma.notificationTemplate.upsert({
+      where: {
+        code_channel_locale: { code: t.code, channel: t.channel, locale: t.locale },
+      },
+      create: t,
+      update: { subject: t.subject ?? null, body: t.body, active: true },
+    });
+  }
+
+  const segment = await prisma.segment.upsert({
+    where: { id: "00000000-0000-4000-8000-000000000101" },
+    create: {
+      id: "00000000-0000-4000-8000-000000000101",
+      name: "Repeat buyers",
+      rules: { minOrders: 2, minSpend: 1000, hasMobile: true },
+      active: true,
+    },
+    update: { active: true, rules: { minOrders: 2, minSpend: 1000, hasMobile: true } },
+  });
+
+  await prisma.campaign.upsert({
+    where: { id: "00000000-0000-4000-8000-000000000102" },
+    create: {
+      id: "00000000-0000-4000-8000-000000000102",
+      name: "Welcome festival draft",
+      status: "draft",
+      channels: ["email", "sms"],
+      segmentId: segment.id,
+      couponCode: "WELCOME10",
+      subject: "Festival picks for you",
+      body: "Discover new arrivals at Tharagai. Use WELCOME10 at checkout.",
+    },
+    update: { status: "draft" },
+  });
+
+  await prisma.socialPost.upsert({
+    where: { id: "00000000-0000-4000-8000-000000000103" },
+    create: {
+      id: "00000000-0000-4000-8000-000000000103",
+      platform: "instagram",
+      title: "New silk arrivals",
+      body: "Fresh silk collection in-store and online. #Tharagai #Pudukkottai",
+      status: "draft",
+    },
+    update: { status: "draft" },
+  });
+
+  await prisma.integration.upsert({
+    where: { provider_kind: { provider: "mock", kind: "pos" } },
+    create: {
+      provider: "mock",
+      kind: "pos",
+      status: "ready",
+      credentialsRef: "mock://local",
+      syncCursor: {},
+      config: { label: "Mock POS adapter" },
+    },
+    update: { status: "ready" },
+  });
+
+  await prisma.searchSynonym.upsert({
+    where: { term: "saree" },
+    create: {
+      term: "saree",
+      aliases: ["sari", "புடவை", "pudavai"],
+      locale: "en",
+      active: true,
+    },
+    update: { aliases: ["sari", "புடவை", "pudavai"], active: true },
+  });
+  await prisma.searchSynonym.upsert({
+    where: { term: "shirt" },
+    create: {
+      term: "shirt",
+      aliases: ["shirts", "சட்டை"],
+      locale: "en",
+      active: true,
+    },
+    update: { aliases: ["shirts", "சட்டை"], active: true },
+  });
+
+  const { seedCatalogue } = await import("./seed-catalogue");
+  await seedCatalogue(prisma);
+  const { seedInventory } = await import("./seed-inventory");
+  await seedInventory(prisma);
+
+  console.log("Seed complete.");
+  console.log(`SuperAdmin: ${email}`);
+  console.log(`Password: ${password} (local/dev only — change in production)`);
+}
+
+main()
+  .catch((e) => {
+    console.error(e);
+    process.exit(1);
+  })
+  .finally(async () => {
+    await prisma.$disconnect();
+  });

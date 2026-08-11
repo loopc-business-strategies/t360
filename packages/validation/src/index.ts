@@ -1,0 +1,334 @@
+import { z } from "zod";
+
+export const otpRequestSchema = z.object({
+  mobile: z
+    .string()
+    .regex(/^\+91[6-9]\d{9}$/, "Mobile must be E.164 Indian format +91XXXXXXXXXX"),
+});
+
+export const otpVerifySchema = z.object({
+  mobile: z
+    .string()
+    .regex(/^\+91[6-9]\d{9}$/, "Mobile must be E.164 Indian format +91XXXXXXXXXX"),
+  code: z.string().regex(/^\d{6}$/, "OTP must be 6 digits"),
+});
+
+export const adminLoginSchema = z.object({
+  email: z.string().email(),
+  password: z.string().min(8),
+  mfaCode: z.string().length(6).optional(),
+});
+
+export const refreshSchema = z.object({
+  refreshToken: z.string().min(20),
+});
+
+export type OtpRequestInput = z.infer<typeof otpRequestSchema>;
+export type OtpVerifyInput = z.infer<typeof otpVerifySchema>;
+export type AdminLoginInput = z.infer<typeof adminLoginSchema>;
+export type RefreshInput = z.infer<typeof refreshSchema>;
+
+export const slugSchema = z
+  .string()
+  .min(1)
+  .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, "Invalid slug");
+
+export const categoryCreateSchema = z.object({
+  name: z.string().min(1).max(120),
+  slug: slugSchema.optional(),
+  parentId: z.string().uuid().optional().nullable(),
+  sortOrder: z.number().int().optional(),
+  status: z.enum(["active", "inactive"]).optional(),
+});
+
+export const brandCreateSchema = z.object({
+  name: z.string().min(1).max(120),
+  slug: slugSchema.optional(),
+  logoUrl: z.string().url().optional().nullable(),
+  status: z.enum(["active", "inactive"]).optional(),
+});
+
+export const variantInputSchema = z.object({
+  sku: z.string().min(1).max(64),
+  barcode: z.string().max(64).optional().nullable(),
+  price: z.number().positive(),
+  cost: z.number().nonnegative().optional().nullable(),
+  salePrice: z.number().positive().optional().nullable(),
+  attributes: z.record(z.string()).optional(),
+  status: z.enum(["active", "inactive"]).optional(),
+});
+
+export const productCreateSchema = z.object({
+  name: z.string().min(1).max(200),
+  slug: slugSchema.optional(),
+  description: z.string().max(5000).optional(),
+  status: z.enum(["draft", "published", "archived"]).optional(),
+  categoryId: z.string().uuid(),
+  brandId: z.string().uuid().optional().nullable(),
+  variants: z.array(variantInputSchema).min(1),
+  imageUrls: z.array(z.string().url()).optional(),
+  attributeValues: z
+    .array(z.object({ attributeCode: z.string(), value: z.string() }))
+    .optional(),
+});
+
+export const productUpdateSchema = productCreateSchema.partial().extend({
+  categoryId: z.string().uuid().optional(),
+  variants: z.array(variantInputSchema).optional(),
+});
+
+export const productListQuerySchema = z.object({
+  q: z.string().optional(),
+  category: z.string().optional(),
+  brand: z.string().optional(),
+  minPrice: z.coerce.number().optional(),
+  maxPrice: z.coerce.number().optional(),
+  size: z.string().optional(),
+  colour: z.string().optional(),
+  sort: z.enum(["relevance", "newest", "price_asc", "price_desc"]).optional(),
+  page: z.coerce.number().int().min(1).optional(),
+  pageSize: z.coerce.number().int().min(1).max(100).optional(),
+  status: z.enum(["draft", "published", "archived"]).optional(),
+  availability: z.enum(["in_stock", "any"]).optional(),
+  branch: z.string().optional(),
+});
+
+export type ProductCreateInput = z.infer<typeof productCreateSchema>;
+export type ProductListQuery = z.infer<typeof productListQuerySchema>;
+
+export const customerProfileUpdateSchema = z.object({
+  name: z.string().min(1).max(120).optional(),
+  gender: z.string().max(40).optional().nullable(),
+  dateOfBirth: z.string().datetime().optional().nullable(),
+});
+
+export const addressCreateSchema = z.object({
+  label: z.string().min(1).max(40).optional(),
+  name: z.string().min(1).max(120),
+  phone: z.string().min(8).max(20),
+  line1: z.string().min(1).max(200),
+  line2: z.string().max(200).optional(),
+  city: z.string().min(1).max(100),
+  state: z.string().min(1).max(100),
+  pincode: z.string().regex(/^\d{6}$/, "Indian pincode must be 6 digits"),
+  isDefault: z.boolean().optional(),
+});
+
+export const addressUpdateSchema = addressCreateSchema.partial();
+
+export const wishlistAddSchema = z.object({
+  variantId: z.string().uuid(),
+});
+
+export type CustomerProfileUpdateInput = z.infer<typeof customerProfileUpdateSchema>;
+export type AddressCreateInput = z.infer<typeof addressCreateSchema>;
+export type AddressUpdateInput = z.infer<typeof addressUpdateSchema>;
+export type WishlistAddInput = z.infer<typeof wishlistAddSchema>;
+
+export const cartItemAddSchema = z.object({
+  variantId: z.string().uuid(),
+  qty: z.number().int().positive().max(50),
+  branchId: z.string().uuid().optional().nullable(),
+});
+
+export const cartItemUpdateSchema = z.object({
+  qty: z.number().int().positive().max(50),
+});
+
+export const createOrderSchema = z.object({
+  fulfillment: z.enum(["DELIVERY", "PICKUP"]),
+  paymentMethod: z.enum(["RAZORPAY", "COD"]),
+  addressId: z.string().uuid().optional(),
+  branchId: z.string().uuid().optional(),
+  couponCode: z.string().min(2).max(40).optional(),
+  loyaltyPointsToRedeem: z.number().int().nonnegative().optional(),
+});
+
+export const orderStatusUpdateSchema = z.object({
+  status: z.enum([
+    "Pending",
+    "PaymentPending",
+    "Confirmed",
+    "Processing",
+    "Packed",
+    "ReadyForPickup",
+    "OutForDelivery",
+    "Delivered",
+    "Cancelled",
+    "ReturnRequested",
+    "Returned",
+    "RefundPending",
+    "Refunded",
+  ]),
+  note: z.string().max(500).optional(),
+});
+
+export const pickupVerifySchema = z.object({
+  pickupCode: z.string().min(4).max(16),
+});
+
+export const couponCreateSchema = z.object({
+  code: z.string().min(2).max(40),
+  type: z.enum(["percent", "fixed"]),
+  value: z.number().positive(),
+  minOrder: z.number().nonnegative().optional(),
+  maxUses: z.number().int().positive().optional().nullable(),
+  perCustomerLimit: z.number().int().positive().optional(),
+  startsAt: z.string().datetime().optional().nullable(),
+  endsAt: z.string().datetime().optional().nullable(),
+  active: z.boolean().optional(),
+});
+
+export const couponUpdateSchema = couponCreateSchema.partial();
+
+export const couponValidateSchema = z.object({
+  code: z.string().min(2).max(40),
+  subtotal: z.number().nonnegative(),
+});
+
+export const employeeCreateSchema = z.object({
+  name: z.string().min(2).max(120),
+  email: z.string().email(),
+  password: z.string().min(8).optional(),
+  branchId: z.string().uuid().optional().nullable(),
+  roleCodes: z.array(z.string()).optional(),
+});
+
+export const employeeUpdateSchema = z.object({
+  name: z.string().min(2).max(120).optional(),
+  branchId: z.string().uuid().optional().nullable(),
+  status: z.string().optional(),
+});
+
+export const employeeRolesSchema = z.object({
+  roleCodes: z.array(z.string()).min(1),
+});
+
+export const loyaltyAdjustSchema = z.object({
+  delta: z.number().int(),
+  reason: z.string().min(2).max(200),
+});
+
+export const adminCustomerUpdateSchema = z.object({
+  name: z.string().min(1).max(120).optional(),
+  gender: z.string().max(40).optional().nullable(),
+});
+
+export const notificationPrefsUpdateSchema = z.object({
+  marketingEmail: z.boolean().optional(),
+  marketingSms: z.boolean().optional(),
+  marketingPush: z.boolean().optional(),
+  marketingWhatsapp: z.boolean().optional(),
+});
+
+export const deviceTokenSchema = z.object({
+  token: z.string().min(10).max(512),
+  platform: z.enum(["android", "ios", "web"]),
+});
+
+export const segmentRulesSchema = z.object({
+  minOrders: z.number().int().nonnegative().optional(),
+  minSpend: z.number().nonnegative().optional(),
+  hasMobile: z.boolean().optional(),
+});
+
+export const segmentCreateSchema = z.object({
+  name: z.string().min(2).max(120),
+  rules: segmentRulesSchema,
+  active: z.boolean().optional(),
+});
+
+export const segmentUpdateSchema = segmentCreateSchema.partial();
+
+export const campaignCreateSchema = z.object({
+  name: z.string().min(2).max(120),
+  channels: z.array(z.enum(["email", "sms", "push", "whatsapp"])).min(1),
+  segmentId: z.string().uuid().optional().nullable(),
+  couponCode: z.string().max(40).optional().nullable(),
+  subject: z.string().max(200).optional().nullable(),
+  body: z.string().min(2).max(4000),
+  scheduledAt: z.string().datetime().optional().nullable(),
+  status: z.enum(["draft", "scheduled", "running", "completed", "cancelled"]).optional(),
+});
+
+export const campaignUpdateSchema = campaignCreateSchema.partial();
+
+export const abandonedCartSettingsSchema = z.object({
+  enabled: z.boolean().optional(),
+  delayHours: z.number().positive().max(720).optional(),
+  maxReminders: z.number().int().positive().max(5).optional(),
+});
+
+export const socialPostCreateSchema = z.object({
+  platform: z.enum(["instagram", "facebook", "whatsapp_status"]),
+  title: z.string().min(2).max(200),
+  body: z.string().min(2).max(4000),
+  mediaUrl: z.string().url().optional().nullable(),
+  status: z.enum(["draft", "ready", "archived"]).optional(),
+});
+
+export const socialPostUpdateSchema = socialPostCreateSchema.partial();
+
+export const aiChatSchema = z.object({
+  conversationId: z.string().uuid().optional().nullable(),
+  message: z.string().min(1).max(4000),
+});
+
+export const posIntegrationUpdateSchema = z.object({
+  status: z.enum(["disabled", "ready", "error"]).optional(),
+  config: z.record(z.unknown()).optional().nullable(),
+});
+
+export const posInventoryCsvImportSchema = z.object({
+  csv: z.string().min(1).max(500_000),
+});
+
+export const posWebhookSchema = z.object({
+  eventId: z.string().min(1).max(200),
+  type: z.enum(["inventory.adjust", "inventory.set"]).default("inventory.adjust"),
+  sku: z.string().max(80).optional().nullable(),
+  barcode: z.string().max(80).optional().nullable(),
+  branchCode: z.string().min(1).max(40),
+  qtyDelta: z.number().int().optional(),
+  physicalQty: z.number().int().nonnegative().optional(),
+});
+
+export const searchSynonymCreateSchema = z.object({
+  term: z.string().min(1).max(80),
+  aliases: z.array(z.string().min(1).max(80)).min(1).max(40),
+  locale: z.enum(["en", "ta", "any"]).optional(),
+  active: z.boolean().optional(),
+});
+
+export const searchSynonymUpdateSchema = searchSynonymCreateSchema.partial();
+
+export const searchSuggestQuerySchema = z.object({
+  q: z.string().min(1).max(120),
+  limit: z.coerce.number().int().min(1).max(20).optional(),
+});
+
+export const storefrontLocaleCopySchema = z.object({
+  headline: z.string().min(1).max(200),
+  support: z.string().min(1).max(1000),
+  ctaLabel: z.string().min(1).max(80).optional(),
+});
+
+export const storefrontHeroSchema = z.object({
+  imageUrl: z.string().url().max(2000),
+  en: storefrontLocaleCopySchema,
+  ta: storefrontLocaleCopySchema,
+});
+
+export const storefrontUpdateSchema = z.object({
+  hero: storefrontHeroSchema,
+});
+
+export type CartItemAddInput = z.infer<typeof cartItemAddSchema>;
+export type CreateOrderInput = z.infer<typeof createOrderSchema>;
+export type CouponCreateInput = z.infer<typeof couponCreateSchema>;
+export type SegmentRules = z.infer<typeof segmentRulesSchema>;
+export type AiChatInput = z.infer<typeof aiChatSchema>;
+export type PosWebhookInput = z.infer<typeof posWebhookSchema>;
+export type SearchSynonymCreateInput = z.infer<typeof searchSynonymCreateSchema>;
+export type StorefrontHeroInput = z.infer<typeof storefrontHeroSchema>;
+export type StorefrontUpdateInput = z.infer<typeof storefrontUpdateSchema>;

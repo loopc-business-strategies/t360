@@ -1,0 +1,52 @@
+# t360 — local ignores (Phase 0–1 baseline)
+
+# Secrets & env
+.env
+.env.*
+!.env.example
+apps/api/.env
+database/.env
+
+
+# Dependencies & builds
+node_modules/
+.pnpm-store/
+dist/
+build/
+.next/
+.turbo/
+coverage/
+*.tsbuildinfo
+
+# Flutter
+apps/mobile/.dart_tool/
+apps/mobile/build/
+apps/mobile/.flutter-plugins-dependencies
+apps/mobile/.packages
+apps/mobile/.flutter-plugins
+apps/mobile/**/Generated.xcconfig
+apps/mobile/**/flutter_export_environment.sh
+
+# Next
+apps/*/.next/
+apps/*/next-env.d.ts
+
+
+# IDE / OS
+.idea/
+.vscode/
+*.swp
+.DS_Store
+Thumbs.db
+
+# Logs & debug
+*.log
+npm-debug.log*
+sentry-credentials.json
+service-account*.json
+
+# Playwright
+/test-results/
+/playwright-report/
+/blob-report/
+/playwright/.cache/

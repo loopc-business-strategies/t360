@@ -1,0 +1,12 @@
+# Railway hints for API + worker (same Dockerfile).
+# Create two services from this repo; set root directory / Dockerfile path to apps/api/Dockerfile.
+# Worker service: override start command to `node dist/src/worker.js`.
+
+[build]
+builder = "DOCKERFILE"
+dockerfilePath = "apps/api/Dockerfile"
+
+[deploy]
+restartPolicyType = "ON_FAILURE"
+healthcheckPath = "/api/v1/health"
+healthcheckTimeout = 30

@@ -1,0 +1,10 @@
+@import "@t360/ui/styles.css";
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body {
+  color: var(--tharagai-ink);
+  font-family: var(--font-figtree), system-ui, sans-serif;
+}
