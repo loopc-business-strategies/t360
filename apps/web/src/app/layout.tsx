@@ -15,20 +15,78 @@ const newsreader = Newsreader({
   display: "swap",
 });
 
+function resolveSiteUrl(): string {
+  const explicit = process.env.NEXT_PUBLIC_SITE_URL?.trim();
+  if (explicit) return explicit.replace(/\/$/, "");
+  const prodHost = process.env.VERCEL_PROJECT_PRODUCTION_URL?.trim();
+  if (prodHost) return `https://${prodHost.replace(/\/$/, "")}`;
+  const vercelHost = process.env.VERCEL_URL?.trim();
+  if (vercelHost) return `https://${vercelHost.replace(/\/$/, "")}`;
+  if (process.env.NODE_ENV === "production") return "https://t360-web.vercel.app";
+  return "http://localhost:3000";
+}
+
+const siteUrl = resolveSiteUrl();
+
 export const metadata: Metadata = {
+  metadataBase: new URL(siteUrl),
   title: {
     default: "THARAGAI Readymades — Pudukkottai",
     template: "%s · THARAGAI",
   },
   description:
-    "Premium family fashion from Pudukkottai — sarees, wedding wear, and everyday elegance.",
-  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000"),
+    "Official THARAGAI Readymades storefront from Pudukkottai — sarees, wedding wear, and everyday elegance. Customer accounts use mobile OTP for this store only.",
+  applicationName: "THARAGAI Readymades",
+  authors: [{ name: "THARAGAI Readymades" }],
+  creator: "THARAGAI Readymades",
+  publisher: "THARAGAI Readymades",
+  openGraph: {
+    type: "website",
+    locale: "en_IN",
+    url: siteUrl,
+    siteName: "THARAGAI Readymades",
+    title: "THARAGAI Readymades — Pudukkottai",
+    description:
+      "Official family fashion storefront from Pudukkottai. Shop sarees, wedding wear, and everyday elegance.",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "THARAGAI Readymades — Pudukkottai",
+    description:
+      "Official family fashion storefront from Pudukkottai. Shop sarees, wedding wear, and everyday elegance.",
+  },
+  robots: {
+    index: true,
+    follow: true,
+  },
+  verification: process.env.GOOGLE_SITE_VERIFICATION
+    ? { google: process.env.GOOGLE_SITE_VERIFICATION }
+    : undefined,
+};
+
+const organizationJsonLd = {
+  "@context": "https://schema.org",
+  "@type": "Organization",
+  name: "THARAGAI Readymades",
+  url: siteUrl,
+  description:
+    "Official THARAGAI Readymades ecommerce storefront from Pudukkottai — sarees, wedding wear, and everyday elegance.",
+  address: {
+    "@type": "PostalAddress",
+    addressLocality: "Pudukkottai",
+    addressRegion: "Tamil Nadu",
+    addressCountry: "IN",
+  },
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en" className={`${figtree.variable} ${newsreader.variable}`}>
       <body className="tharagai-surface antialiased">
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationJsonLd) }}
+        />
         <Providers>{children}</Providers>
       </body>
     </html>

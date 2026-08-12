@@ -1,9 +1,10 @@
 "use client";
 
+import * as React from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { Button } from "@t360/ui";
-import { setAdminToken } from "../lib/api";
+import { getAdminToken, setAdminToken } from "../lib/api";
 
 const nav = [
   { href: "/", label: "Dashboard", exact: true },
@@ -33,8 +34,29 @@ const nav = [
 export function AdminShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
+  const [ready, setReady] = React.useState(pathname === "/login");
+
+  React.useEffect(() => {
+    if (pathname === "/login") {
+      setReady(true);
+      return;
+    }
+    if (!getAdminToken()) {
+      router.replace("/login");
+      return;
+    }
+    setReady(true);
+  }, [pathname, router]);
 
   if (pathname === "/login") return <>{children}</>;
+
+  if (!ready) {
+    return (
+      <div className="flex min-h-screen items-center justify-center text-sm text-muted">
+        Redirecting to sign in…
+      </div>
+    );
+  }
 
   return (
     <div className="flex min-h-screen">

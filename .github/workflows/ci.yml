@@ -1,0 +1,58 @@
+name: CI
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9.15.0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+
+      - name: Install
+        run: pnpm install --frozen-lockfile
+
+      - name: Prisma generate
+        run: pnpm --filter @t360/database generate
+
+      - name: Typecheck
+        run: pnpm typecheck
+
+      - name: API unit tests
+        run: pnpm --filter @t360/api test
+
+      - name: Build API
+        run: pnpm --filter @t360/api build
+
+      - name: Build web
+        run: pnpm --filter @t360/web build
+
+      - name: Build admin
+        run: pnpm --filter @t360/admin build
+
+      - name: Playwright smoke (optional)
+        if: ${{ vars.PLAYWRIGHT_BASE_URL != '' }}
+        env:
+          PLAYWRIGHT_BASE_URL: ${{ vars.PLAYWRIGHT_BASE_URL }}
+          PLAYWRIGHT_ADMIN_URL: ${{ vars.PLAYWRIGHT_ADMIN_URL }}
+        run: |
+          pnpm exec playwright install --with-deps chromium
+          pnpm test:e2e:smoke
+
+  # Deploys: see .github/workflows/deploy.yml (secret-gated; docs/deployment/STAGING.md)

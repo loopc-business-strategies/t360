@@ -23,7 +23,7 @@ export default function LoginPage() {
         body: JSON.stringify({ email, password }),
       });
       setAdminToken(res.data.accessToken);
-      router.push("/products");
+      router.push("/");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Login failed");
     } finally {

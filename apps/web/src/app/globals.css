@@ -31,11 +31,48 @@ body {
   animation: kenburns 22s ease-out forwards;
 }
 
+/* Continuous slow zoom + pan (Style Lab sample feel) */
+@keyframes kenburns-plus {
+  from {
+    transform: scale(1) translate(0, 0);
+  }
+  to {
+    transform: scale(1.12) translate(-1.5%, -1%);
+  }
+}
+
+.hero-kenburns-plus {
+  animation: kenburns-plus 28s ease-in-out infinite alternate;
+  will-change: transform;
+}
+
+@keyframes text-mask-in {
+  from {
+    clip-path: inset(0 0 100% 0);
+    opacity: 0.35;
+  }
+  to {
+    clip-path: inset(0 0 0 0);
+    opacity: 1;
+  }
+}
+
+.text-mask-reveal {
+  animation: text-mask-in 0.95s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.lookbook-scroll {
+  scrollbar-width: thin;
+  -webkit-overflow-scrolling: touch;
+}
+
 @media (prefers-reduced-motion: reduce) {
   html {
     scroll-behavior: auto;
   }
-  .hero-kenburns {
-    animation: none;
+  .hero-kenburns,
+  .hero-kenburns-plus,
+  .text-mask-reveal {
+    animation: none !important;
   }
 }

@@ -33,4 +33,4 @@
 3. Follow [GO-LIVE.md](../launch/GO-LIVE.md) for production cutover.
 4. When POS vendor docs arrive, implement adapter per [POS-INTEGRATION.md](../integrations/POS-INTEGRATION.md) (post-roadmap #3).
 
-There is **no Phase 17**. CMS: [CMS.md](../api/CMS.md). Staging kit result: [POST-ROADMAP-STAGING-RESULT.md](../design/POST-ROADMAP-STAGING-RESULT.md).
+There is **no Phase 17**. CMS: [CMS.md](../api/CMS.md). Staging kit result: [POST-ROADMAP-STAGING-RESULT.md](../design/POST-ROADMAP-STAGING-RESULT.md). Domain deep-dives: [DOMAIN-DEEP-DIVES.md](../design/DOMAIN-DEEP-DIVES.md).

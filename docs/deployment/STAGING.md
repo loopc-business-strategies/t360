@@ -58,6 +58,29 @@ API_BASE="$STAGING_API_BASE" bash scripts/launch/smoke.sh
 
 Then continue [GO-LIVE.md](../launch/GO-LIVE.md) / [CUTOVER.md](../launch/CUTOVER.md).
 
+## Chrome “Dangerous site” / Google Safe Browsing
+
+If mobile Chrome shows a red **Dangerous site** interstitial on `*.vercel.app` (or a custom domain), that is **Google Safe Browsing**, not a Vercel outage. Code redeploys alone do not clear the flag — an operator must request a review after the site is clean.
+
+### Checklist
+
+1. Confirm status: [Safe Browsing site status](https://transparencyreport.google.com/safe-browsing/search) for the exact URL (e.g. `https://t360-web.vercel.app`).
+2. Google Search Console → add a **URL-prefix** property for that origin (e.g. `https://t360-web.vercel.app/`) → verify ownership (HTML tag or file upload works well on Vercel).
+3. Open **Security & Manual Actions → Security issues**. Note the category and any sample URLs.
+4. Ensure storefront copy is clearly branded (THARAGAI customer OTP login, privacy/terms links) and redeploy web if you just hardened trust signals.
+5. Click **Request a review**. Example text:
+
+   > This is the legitimate THARAGAI Readymades ecommerce storefront (Pudukkottai) hosted on Vercel. Customer sign-in uses mobile OTP for our own account pages only. There is no malware, phishing of third-party brands, or unwanted software. We believe this is a false positive on a new `*.vercel.app` host.
+
+6. Optional parallel report: [Safe Browsing error report](https://safebrowsing.google.com/safebrowsing/report_error/) → “I believe this isn’t a safety threat”.
+7. Expect **24–72 hours**. The interstitial clears after Google approves the review.
+
+### Longer-term
+
+Attach a **custom domain** in Vercel (when DNS is ready) so reputation is not shared with other `*.vercel.app` projects, then verify that domain in Search Console and repeat the review if needed.
+
+Full operator runbook: [SAFE-BROWSING.md](./SAFE-BROWSING.md).
+
 ## Local link (optional)
 
 Operators may also deploy from a linked machine:

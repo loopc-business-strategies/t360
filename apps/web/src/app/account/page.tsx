@@ -163,12 +163,19 @@ export default function AccountPage() {
   if (!token) {
     return (
       <main className="mx-auto max-w-md px-6 py-12">
-        <h1 className="font-display text-3xl">{t.accountTitle}</h1>
-        <p className="mt-2 text-sm text-muted">{t.accountLogin}</p>
-        <div className="mt-8 space-y-4">
-          <Input label={t.mobile} value={mobile} onChange={(e) => setMobile(e.target.value)} />
+        <p className="text-xs font-medium uppercase tracking-[0.14em] text-muted">{t.accountBrand}</p>
+        <h1 className="mt-3 font-display text-3xl">{t.accountTitle}</h1>
+        <p className="mt-3 text-sm leading-relaxed text-muted">{t.accountLogin}</p>
+        <div className="mt-8 space-y-4 border border-border bg-elevated p-5">
+          <Input label={t.mobile} value={mobile} onChange={(e) => setMobile(e.target.value)} autoComplete="tel" />
           {otpSent ? (
-            <Input label={t.otp} value={otp} onChange={(e) => setOtp(e.target.value)} />
+            <Input
+              label={t.otp}
+              value={otp}
+              onChange={(e) => setOtp(e.target.value)}
+              autoComplete="one-time-code"
+              inputMode="numeric"
+            />
           ) : null}
           {error ? <p className="text-sm text-wine">{error}</p> : null}
           {!otpSent ? (
@@ -181,6 +188,15 @@ export default function AccountPage() {
             </Button>
           )}
         </div>
+        <p className="mt-6 text-xs text-muted">
+          <a className="underline underline-offset-2" href="/policies/privacy">
+            {t.navPrivacy}
+          </a>
+          {" · "}
+          <a className="underline underline-offset-2" href="/policies/terms">
+            {t.navTerms}
+          </a>
+        </p>
       </main>
     );
   }

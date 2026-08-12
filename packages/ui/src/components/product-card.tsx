@@ -29,7 +29,7 @@ export function ProductCard({
   return (
     <article
       className={cn(
-        "group overflow-hidden rounded-lg border border-border bg-elevated shadow-none transition-all duration-300 hover:-translate-y-1 hover:border-brass/40 hover:shadow-soft",
+        "group overflow-hidden rounded-lg border border-border bg-elevated shadow-none transition-all duration-300 hover:-translate-y-2 hover:border-brass/50 hover:shadow-soft",
         className,
       )}
     >
@@ -38,7 +38,7 @@ export function ProductCard({
         <img
           src={imageUrl}
           alt={imageAlt}
-          className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-[1.03]"
+          className="h-full w-full object-cover transition-transform duration-500 ease-out group-hover:scale-[1.08]"
         />
       </div>
       <div className="flex flex-col gap-2 p-4">
