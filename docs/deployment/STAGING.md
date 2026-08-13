@@ -8,27 +8,38 @@ Operator guide for secret-gated deploys. Workflow: [`.github/workflows/deploy.ym
 2. Two Vercel projects: customer **web** and **admin** (see `apps/web/vercel.json`, `apps/admin/vercel.json`).
 3. GitHub repo Environments: **`staging`** and **`production`** (Settings → Environments). Enable **required reviewers** on `production`.
 
-## Secrets (repository or environment)
+## Secrets (repository)
 
 | Secret | Purpose |
 |--------|---------|
-| `VERCEL_TOKEN` | Vercel deploy token |
-| `VERCEL_ORG_ID` | Vercel team/org id |
-| `VERCEL_PROJECT_ID_WEB` | Web project id |
-| `VERCEL_PROJECT_ID_ADMIN` | Admin project id |
+| `VERCEL_TOKEN` | Vercel deploy token (Account → Settings → Tokens) |
+
+If Actions fails with `token provided via --token argument is not valid`, create a new token and run:
+
+```bash
+gh secret set VERCEL_TOKEN -R loopc-business-strategies/t360
+```
+
 | `RAILWAY_TOKEN` | Railway API token |
-| `RAILWAY_API_SERVICE` | Railway api service name or id |
-| `RAILWAY_WORKER_SERVICE` | Railway worker service name or id |
 
 If `VERCEL_TOKEN` or `RAILWAY_TOKEN` is missing, deploy jobs **skip** (exit success) so default CI stays green.
 
-## Variables (GitHub Environment / repo vars)
+## Variables (repository)
 
 | Variable | Purpose |
 |----------|---------|
-| `STAGING_API_BASE` | e.g. `https://api-staging.example.com/api/v1` — post-deploy smoke |
+| `VERCEL_ORG_ID` | Vercel team/org id (e.g. `team_…`) |
+| `VERCEL_PROJECT_ID_WEB` | `t360-web` project id (`prj_…`) |
+| `VERCEL_PROJECT_ID_ADMIN` | `t360-admin` project id (`prj_…`) |
+| `RAILWAY_API_SERVICE` | Railway api service name (e.g. `api`) |
+| `RAILWAY_WORKER_SERVICE` | Railway worker service name (e.g. `worker`) |
+| `STAGING_API_BASE` | e.g. `https://api-staging-7912.up.railway.app/api/v1` — post-deploy smoke |
 | `PROD_API_BASE` | Production API base for smoke |
 | `PLAYWRIGHT_BASE_URL` / `PLAYWRIGHT_ADMIN_URL` | Optional E2E in CI |
+
+Do **not** put ORG/PROJECT IDs or Railway service names in Actions **secrets** — [`deploy.yml`](../../.github/workflows/deploy.yml) reads them from `vars.*`.
+
+Canonical Vercel apps: **`t360-web`** and **`t360-admin`** (Git-linked to this repo). Do not create a generic project named `web`.
 
 ## Triggers
 

@@ -1,5 +1,5 @@
-# Deploy — secret-gated. Without VERCEL_TOKEN + RAILWAY_TOKEN, jobs are skipped (CI stays green).
-# See docs/deployment/STAGING.md for GitHub Environments and secret names.
+# Deploy — gated on VERCEL_TOKEN + RAILWAY_TOKEN secrets.
+# ORG/PROJECT IDs and Railway service names come from repository vars (see STAGING.md).
 
 name: Deploy
 
@@ -77,8 +77,8 @@ jobs:
         working-directory: apps/web
         env:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
-          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
-          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID_WEB }}
+          VERCEL_ORG_ID: ${{ vars.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ vars.VERCEL_PROJECT_ID_WEB }}
         run: |
           npx vercel@latest pull --yes --environment=preview --token="$VERCEL_TOKEN"
           npx vercel@latest build --token="$VERCEL_TOKEN"
@@ -89,8 +89,8 @@ jobs:
         working-directory: apps/admin
         env:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
-          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
-          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID_ADMIN }}
+          VERCEL_ORG_ID: ${{ vars.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ vars.VERCEL_PROJECT_ID_ADMIN }}
         run: |
           npx vercel@latest pull --yes --environment=preview --token="$VERCEL_TOKEN"
           npx vercel@latest build --token="$VERCEL_TOKEN"
@@ -102,16 +102,16 @@ jobs:
           RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
         run: |
           npm i -g @railway/cli
-          railway up --service "${{ secrets.RAILWAY_API_SERVICE }}" --environment staging --detach || \
-          railway up --service "${{ secrets.RAILWAY_API_SERVICE }}" --detach
+          railway up --service "${{ vars.RAILWAY_API_SERVICE }}" --environment staging --detach || \
+          railway up --service "${{ vars.RAILWAY_API_SERVICE }}" --detach
 
       - name: Deploy worker to Railway (staging)
         if: steps.gate.outputs.skip == 'false'
         env:
           RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
         run: |
-          railway up --service "${{ secrets.RAILWAY_WORKER_SERVICE }}" --environment staging --detach || \
-          railway up --service "${{ secrets.RAILWAY_WORKER_SERVICE }}" --detach
+          railway up --service "${{ vars.RAILWAY_WORKER_SERVICE }}" --environment staging --detach || \
+          railway up --service "${{ vars.RAILWAY_WORKER_SERVICE }}" --detach
 
       - name: Post-deploy smoke
         if: steps.gate.outputs.skip == 'false' && vars.STAGING_API_BASE != ''
@@ -172,8 +172,8 @@ jobs:
         working-directory: apps/web
         env:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
-          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
-          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID_WEB }}
+          VERCEL_ORG_ID: ${{ vars.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ vars.VERCEL_PROJECT_ID_WEB }}
         run: |
           npx vercel@latest pull --yes --environment=production --token="$VERCEL_TOKEN"
           npx vercel@latest build --prod --token="$VERCEL_TOKEN"
@@ -184,8 +184,8 @@ jobs:
         working-directory: apps/admin
         env:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
-          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
-          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID_ADMIN }}
+          VERCEL_ORG_ID: ${{ vars.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ vars.VERCEL_PROJECT_ID_ADMIN }}
         run: |
           npx vercel@latest pull --yes --environment=production --token="$VERCEL_TOKEN"
           npx vercel@latest build --prod --token="$VERCEL_TOKEN"
@@ -197,16 +197,16 @@ jobs:
           RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
         run: |
           npm i -g @railway/cli
-          railway up --service "${{ secrets.RAILWAY_API_SERVICE }}" --environment production --detach || \
-          railway up --service "${{ secrets.RAILWAY_API_SERVICE }}" --detach
+          railway up --service "${{ vars.RAILWAY_API_SERVICE }}" --environment production --detach || \
+          railway up --service "${{ vars.RAILWAY_API_SERVICE }}" --detach
 
       - name: Deploy worker to Railway (production)
         if: steps.gate.outputs.skip == 'false'
         env:
           RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
         run: |
-          railway up --service "${{ secrets.RAILWAY_WORKER_SERVICE }}" --environment production --detach || \
-          railway up --service "${{ secrets.RAILWAY_WORKER_SERVICE }}" --detach
+          railway up --service "${{ vars.RAILWAY_WORKER_SERVICE }}" --environment production --detach || \
+          railway up --service "${{ vars.RAILWAY_WORKER_SERVICE }}" --detach
 
       - name: Post-deploy smoke
         if: steps.gate.outputs.skip == 'false' && vars.PROD_API_BASE != ''
