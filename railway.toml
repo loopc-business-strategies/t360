@@ -9,4 +9,4 @@ dockerfilePath = "apps/api/Dockerfile"
 [deploy]
 restartPolicyType = "ON_FAILURE"
 healthcheckPath = "/api/v1/health"
-healthcheckTimeout = 30
+healthcheckTimeout = 120
