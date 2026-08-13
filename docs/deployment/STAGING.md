@@ -5,6 +5,8 @@ Operator guide for secret-gated deploys. Workflow: [`.github/workflows/deploy.ym
 ## Prerequisites
 
 1. Railway project **`t360`** with Postgres, Redis, **api** + **worker** services (Dockerfile `apps/api/Dockerfile`; worker CMD `node dist/src/worker.js`). See [railway.toml](../../railway.toml).
+   - **api** `preDeployCommand` runs `prisma migrate deploy` via the `database/` package bin (`cd /app/database && ./node_modules/.bin/prisma …`). Do **not** point at repo-root `node_modules/.bin/prisma` (pnpm does not put it there).
+   - **worker** must not set the same preDeploy (no HTTP migrate step; use [`railway.worker.toml`](../../railway.worker.toml)).
 2. Two Vercel projects: customer **web** and **admin** (see `apps/web/vercel.json`, `apps/admin/vercel.json`).
 3. GitHub repo Environments: **`staging`** and **`production`** (Settings → Environments). Enable **required reviewers** on `production`.
 
