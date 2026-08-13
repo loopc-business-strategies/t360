@@ -80,8 +80,9 @@ jobs:
           VERCEL_ORG_ID: ${{ vars.VERCEL_ORG_ID }}
           VERCEL_PROJECT_ID: ${{ vars.VERCEL_PROJECT_ID_WEB }}
         run: |
-          npx vercel@latest pull --yes --environment=preview --token="$VERCEL_TOKEN"
-          npx vercel@latest build --token="$VERCEL_TOKEN"
+          # Use production env for build so preview placeholders cannot break next build.
+          npx vercel@latest pull --yes --environment=production --token="$VERCEL_TOKEN"
+          npx vercel@latest build --prod --token="$VERCEL_TOKEN"
           npx vercel@latest deploy --prebuilt --token="$VERCEL_TOKEN"
 
       - name: Deploy admin to Vercel (staging)
@@ -92,8 +93,8 @@ jobs:
           VERCEL_ORG_ID: ${{ vars.VERCEL_ORG_ID }}
           VERCEL_PROJECT_ID: ${{ vars.VERCEL_PROJECT_ID_ADMIN }}
         run: |
-          npx vercel@latest pull --yes --environment=preview --token="$VERCEL_TOKEN"
-          npx vercel@latest build --token="$VERCEL_TOKEN"
+          npx vercel@latest pull --yes --environment=production --token="$VERCEL_TOKEN"
+          npx vercel@latest build --prod --token="$VERCEL_TOKEN"
           npx vercel@latest deploy --prebuilt --token="$VERCEL_TOKEN"
 
       - name: Deploy API to Railway (staging)

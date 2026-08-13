@@ -1,5 +1,24 @@
-const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000/api/v1";
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
+function resolvePublicUrl(raw: string | undefined, fallback: string): string {
+  const value = raw?.trim().replace(/\/$/, "");
+  if (!value) return fallback;
+  try {
+    const withProtocol = value.includes("://") ? value : `https://${value}`;
+    const parsed = new URL(withProtocol);
+    if (parsed.protocol === "http:" || parsed.protocol === "https:") return withProtocol;
+  } catch {
+    /* fall through */
+  }
+  return fallback;
+}
+
+const API_URL = resolvePublicUrl(
+  process.env.NEXT_PUBLIC_API_URL,
+  "http://localhost:4000/api/v1",
+);
+const SITE_URL = resolvePublicUrl(
+  process.env.NEXT_PUBLIC_SITE_URL,
+  process.env.NODE_ENV === "production" ? "https://t360-web.vercel.app" : "http://localhost:3000",
+);
 
 export type ApiSuccess<T> = {
   success: true;

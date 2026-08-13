@@ -15,15 +15,41 @@ const newsreader = Newsreader({
   display: "swap",
 });
 
+function isHttpUrl(value: string): boolean {
+  try {
+    const parsed = new URL(value);
+    return parsed.protocol === "http:" || parsed.protocol === "https:";
+  } catch {
+    return false;
+  }
+}
+
 function resolveSiteUrl(): string {
-  const explicit = process.env.NEXT_PUBLIC_SITE_URL?.trim();
-  if (explicit) return explicit.replace(/\/$/, "");
-  const prodHost = process.env.VERCEL_PROJECT_PRODUCTION_URL?.trim();
-  if (prodHost) return `https://${prodHost.replace(/\/$/, "")}`;
-  const vercelHost = process.env.VERCEL_URL?.trim();
-  if (vercelHost) return `https://${vercelHost.replace(/\/$/, "")}`;
-  if (process.env.NODE_ENV === "production") return "https://t360-web.vercel.app";
-  return "http://localhost:3000";
+  const fallback =
+    process.env.NODE_ENV === "production" ? "https://t360-web.vercel.app" : "http://localhost:3000";
+
+  const candidates: string[] = [];
+  const explicit = process.env.NEXT_PUBLIC_SITE_URL?.trim().replace(/\/$/, "");
+  if (explicit) candidates.push(explicit);
+
+  const prodHost = process.env.VERCEL_PROJECT_PRODUCTION_URL?.trim().replace(/\/$/, "");
+  if (prodHost) {
+    candidates.push(prodHost.startsWith("http") ? prodHost : `https://${prodHost}`);
+  }
+
+  const vercelHost = process.env.VERCEL_URL?.trim().replace(/\/$/, "");
+  if (vercelHost) {
+    candidates.push(vercelHost.startsWith("http") ? vercelHost : `https://${vercelHost}`);
+  }
+
+  for (const candidate of candidates) {
+    if (isHttpUrl(candidate)) return candidate;
+    if (!candidate.includes("://") && isHttpUrl(`https://${candidate}`)) {
+      return `https://${candidate}`;
+    }
+  }
+
+  return fallback;
 }
 
 const siteUrl = resolveSiteUrl();
