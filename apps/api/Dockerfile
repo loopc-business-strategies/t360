@@ -1,5 +1,8 @@
 # syntax=docker/dockerfile:1
 FROM node:20-bookworm-slim AS base
+RUN apt-get update -y \
+  && apt-get install -y --no-install-recommends openssl ca-certificates \
+  && rm -rf /var/lib/apt/lists/*
 RUN corepack enable && corepack prepare pnpm@9.15.0 --activate
 WORKDIR /app
 
@@ -36,6 +39,11 @@ COPY --from=build /app/apps/api ./apps/api
 COPY --from=build /app/packages/validation ./packages/validation
 COPY --from=build /app/packages/types ./packages/types
 COPY --from=build /app/database ./database
+
+# Stable entrypoint for Railway preDeploy (pnpm does not hoist prisma to /app/node_modules/.bin)
+RUN cp /app/apps/api/scripts/predeploy-migrate.sh /app/predeploy-migrate.sh \
+  && chmod +x /app/predeploy-migrate.sh \
+  && node -e "require.resolve('prisma/package.json',{paths:['/app/database']})"
 
 WORKDIR /app/apps/api
 EXPOSE 4000

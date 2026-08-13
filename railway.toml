@@ -7,8 +7,8 @@ builder = "DOCKERFILE"
 dockerfilePath = "apps/api/Dockerfile"
 
 [deploy]
-# pnpm puts the Prisma CLI under database/, not repo-root node_modules/.bin
-preDeployCommand = ["cd /app/database && ./node_modules/.bin/prisma migrate deploy --schema=./prisma/schema.prisma"]
+# Prefer image script (resolves Prisma under /app/database pnpm layout)
+preDeployCommand = ["/bin/sh", "/app/predeploy-migrate.sh"]
 restartPolicyType = "ON_FAILURE"
 healthcheckPath = "/api/v1/health"
 healthcheckTimeout = 120
