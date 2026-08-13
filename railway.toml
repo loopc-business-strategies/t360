@@ -7,8 +7,9 @@ builder = "DOCKERFILE"
 dockerfilePath = "apps/api/Dockerfile"
 
 [deploy]
-# Prefer image script (resolves Prisma under /app/database pnpm layout)
-preDeployCommand = ["/bin/sh", "/app/predeploy-migrate.sh"]
+# Prefer image script (resolves Prisma under /app/database pnpm layout).
+# Railway accepts a single shell command string (not argv arrays).
+preDeployCommand = ["/bin/sh /app/predeploy-migrate.sh"]
 restartPolicyType = "ON_FAILURE"
 healthcheckPath = "/api/v1/health"
 healthcheckTimeout = 120
