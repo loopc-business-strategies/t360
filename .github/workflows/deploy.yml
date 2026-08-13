@@ -74,19 +74,18 @@ jobs:
 
       - name: Deploy web to Vercel (staging)
         if: steps.gate.outputs.skip == 'false'
-        working-directory: apps/web
         env:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
           VERCEL_ORG_ID: ${{ vars.VERCEL_ORG_ID }}
           VERCEL_PROJECT_ID: ${{ vars.VERCEL_PROJECT_ID_WEB }}
         run: |
+          # Run from repo root — project Root Directory is already apps/web.
           npx vercel@latest pull --yes --environment=preview --token="$VERCEL_TOKEN"
           npx vercel@latest build --token="$VERCEL_TOKEN"
           npx vercel@latest deploy --prebuilt --token="$VERCEL_TOKEN"
 
       - name: Deploy admin to Vercel (staging)
         if: steps.gate.outputs.skip == 'false'
-        working-directory: apps/admin
         env:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
           VERCEL_ORG_ID: ${{ vars.VERCEL_ORG_ID }}
@@ -169,7 +168,6 @@ jobs:
 
       - name: Deploy web to Vercel (production)
         if: steps.gate.outputs.skip == 'false'
-        working-directory: apps/web
         env:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
           VERCEL_ORG_ID: ${{ vars.VERCEL_ORG_ID }}
@@ -181,7 +179,6 @@ jobs:
 
       - name: Deploy admin to Vercel (production)
         if: steps.gate.outputs.skip == 'false'
-        working-directory: apps/admin
         env:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
           VERCEL_ORG_ID: ${{ vars.VERCEL_ORG_ID }}
