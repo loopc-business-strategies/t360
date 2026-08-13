@@ -1,1 +1,1 @@
-https://REPLACE_WITH_PRODUCTION_WEB/policies/privacy
+https://t360-web.vercel.app/policies/privacy

@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -174,33 +175,37 @@ class _AccountScreenState extends ConsumerState<AccountScreen> {
                   .updatePrefs({'marketingWhatsapp': v});
             },
           ),
-          TharagaiButton(
-            label: t.registerDevice,
-            variant: TharagaiButtonVariant.outline,
-            onPressed: () async {
-              try {
-                await ref.read(notificationsRepositoryProvider).registerDevice(
-                      token: 'dev-stub-${DateTime.now().millisecondsSinceEpoch}',
-                      platform: 'android',
-                    );
-                setState(() => _error = null);
-              } catch (e) {
-                setState(() => _error = e.toString());
-              }
-            },
-          ),
-          const SizedBox(height: 8),
+          if (!kReleaseMode) ...[
+            TharagaiButton(
+              label: t.registerDevice,
+              variant: TharagaiButtonVariant.outline,
+              onPressed: () async {
+                try {
+                  await ref.read(notificationsRepositoryProvider).registerDevice(
+                        token: 'dev-stub-${DateTime.now().millisecondsSinceEpoch}',
+                        platform: 'android',
+                      );
+                  setState(() => _error = null);
+                } catch (e) {
+                  setState(() => _error = e.toString());
+                }
+              },
+            ),
+            const SizedBox(height: 8),
+          ],
           TharagaiButton(
             label: t.localeToggle,
             variant: TharagaiButtonVariant.outline,
             onPressed: () => ref.read(localeProvider.notifier).toggle(),
           ),
-          const SizedBox(height: 8),
-          TharagaiButton(
-            label: t.gallery,
-            variant: TharagaiButtonVariant.outline,
-            onPressed: () => context.push('/gallery'),
-          ),
+          if (!kReleaseMode) ...[
+            const SizedBox(height: 8),
+            TharagaiButton(
+              label: t.gallery,
+              variant: TharagaiButtonVariant.outline,
+              onPressed: () => context.push('/gallery'),
+            ),
+          ],
           const SizedBox(height: 24),
           Text(t.addresses, style: Theme.of(context).textTheme.titleMedium),
           for (final a in _addresses)

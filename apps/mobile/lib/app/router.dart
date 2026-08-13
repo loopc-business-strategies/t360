@@ -1,7 +1,8 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import '../core/providers.dart';
+
 import '../features/ai/presentation/ai_chat_screen.dart';
 import '../features/account/presentation/account_screen.dart';
 import '../features/auth/presentation/auth_screen.dart';
@@ -13,6 +14,7 @@ import '../features/checkout/presentation/checkout_screen.dart';
 import '../features/gallery/design_gallery_screen.dart';
 import '../features/orders/presentation/orders_screen.dart';
 import '../features/wishlist/presentation/wishlist_screen.dart';
+import '../core/providers.dart';
 import 'shell.dart';
 
 final _rootKey = GlobalKey<NavigatorState>();
@@ -27,6 +29,9 @@ final goRouterProvider = Provider<GoRouter>((ref) {
     redirect: (context, state) {
       if (auth.booting) return null;
       final loggingIn = state.matchedLocation.startsWith('/auth');
+      if (kReleaseMode && state.matchedLocation.startsWith('/gallery')) {
+        return '/';
+      }
       final needsAuth = state.matchedLocation.startsWith('/checkout') ||
           state.matchedLocation.startsWith('/orders') ||
           state.matchedLocation.startsWith('/ai');

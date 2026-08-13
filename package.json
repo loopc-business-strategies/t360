@@ -19,7 +19,8 @@
     "docker:down": "docker compose down",
     "test:e2e:smoke": "playwright test",
     "csv:dry-run": "node scripts/launch/csv-dry-run.mjs",
-    "preflight:env": "node scripts/launch/preflight-env.mjs"
+    "preflight:env": "node scripts/launch/preflight-env.mjs",
+    "build:mobile:apk": "powershell -ExecutionPolicy Bypass -File scripts/launch/build-mobile-apk.ps1"
   },
   "devDependencies": {
     "@playwright/test": "^1.51.0",

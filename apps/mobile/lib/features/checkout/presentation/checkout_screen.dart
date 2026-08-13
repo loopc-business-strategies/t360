@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -120,12 +121,21 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
         if (mounted) context.go('/orders/$orderId');
         return;
       }
-      if (_provider == 'mock' || (order['checkout'] is Map && (order['checkout'] as Map)['provider'] == 'mock')) {
+      final checkoutMap =
+          order['checkout'] is Map ? order['checkout'] as Map : null;
+      final isMock = _provider == 'mock' || checkoutMap?['provider'] == 'mock';
+      if (isMock) {
+        if (kReleaseMode) {
+          throw Exception(
+            'Mock payments are disabled in release builds. '
+            'Configure a live payment provider on the API.',
+          );
+        }
         await ref.read(ordersRepositoryProvider).mockComplete(orderId);
         if (mounted) context.go('/orders/$orderId');
         return;
       }
-      final checkout = order['checkout'] as Map?;
+      final checkout = checkoutMap;
       if (checkout == null) {
         throw Exception('Missing checkout payload');
       }
@@ -239,7 +249,9 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
             spacing: 8,
             children: [
               ChoiceChip(
-                label: Text(_provider == 'mock' ? t.payMock : t.payOnline),
+                label: Text(
+                  (!kReleaseMode && _provider == 'mock') ? t.payMock : t.payOnline,
+                ),
                 selected: _payment == 'RAZORPAY',
                 onSelected: (_) => setState(() => _payment = 'RAZORPAY'),
               ),

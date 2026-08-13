@@ -10,5 +10,6 @@ Replace this skeleton with brand-approved marketing copy before store submit.
 
 **Keywords (optional):** fashion, saree, readymades, Pudukkottai, wedding wear
 
-**Support email:** support@example.com *(replace)*  
-**Privacy:** https://www.example.com/policies/privacy *(replace with production web)*
+**Support email:** support@example.com *(replace with client address)*  
+**Privacy:** https://t360-web.vercel.app/policies/privacy  
+*(Update to custom domain when attached to Vercel `t360-web`.)*
