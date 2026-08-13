@@ -20,7 +20,7 @@ If Actions fails with `token provided via --token argument is not valid`, create
 gh secret set VERCEL_TOKEN -R loopc-business-strategies/t360
 ```
 
-| `RAILWAY_TOKEN` | Railway API token |
+| `RAILWAY_TOKEN` | Railway **Account/Workspace** token (Account → Tokens). Workflow maps it to `RAILWAY_API_TOKEN` for the CLI. Do not use a Project token here unless you change the workflow to set `RAILWAY_TOKEN` instead. |
 
 If `VERCEL_TOKEN` or `RAILWAY_TOKEN` is missing, deploy jobs **skip** (exit success) so default CI stays green.
 
@@ -31,6 +31,7 @@ If `VERCEL_TOKEN` or `RAILWAY_TOKEN` is missing, deploy jobs **skip** (exit succ
 | `VERCEL_ORG_ID` | Vercel team/org id (e.g. `team_…`) |
 | `VERCEL_PROJECT_ID_WEB` | `t360-web` project id (`prj_…`) |
 | `VERCEL_PROJECT_ID_ADMIN` | `t360-admin` project id (`prj_…`) |
+| `RAILWAY_PROJECT_ID` | Railway project id for `t360` |
 | `RAILWAY_API_SERVICE` | Railway api service name (e.g. `api`) |
 | `RAILWAY_WORKER_SERVICE` | Railway worker service name (e.g. `worker`) |
 | `STAGING_API_BASE` | e.g. `https://api-staging-7912.up.railway.app/api/v1` — post-deploy smoke |
