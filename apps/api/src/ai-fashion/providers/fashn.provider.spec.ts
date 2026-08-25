@@ -114,4 +114,28 @@ describe("FashnProvider error mapping", () => {
     const body = JSON.parse((fetchMock.mock.calls[0][1] as RequestInit).body as string);
     expect(body.model_name).toBe("product-to-model");
   });
+
+  it("submits image-to-video with duration and resolution", async () => {
+    process.env.FASHN_API_KEY = "test-key";
+    const fetchMock = jest.fn().mockResolvedValue({
+      ok: true,
+      status: 200,
+      headers: { get: () => null },
+      json: async () => ({ id: "vid-1", error: null }),
+    });
+    global.fetch = fetchMock as unknown as typeof fetch;
+
+    const provider = new FashnProvider();
+    const result = await provider.generateVideo({
+      imageUrl: "https://example.com/still.jpg",
+      duration: 5,
+      resolution: "720p",
+    });
+    expect(result.jobId).toBe("vid-1");
+    const body = JSON.parse((fetchMock.mock.calls[0][1] as RequestInit).body as string);
+    expect(body.model_name).toBe("image-to-video");
+    expect(body.inputs.image).toBe("https://example.com/still.jpg");
+    expect(body.inputs.duration).toBe(5);
+    expect(body.inputs.resolution).toBe("720p");
+  });
 });

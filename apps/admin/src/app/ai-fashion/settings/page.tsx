@@ -21,6 +21,7 @@ type Settings = {
   productToModelEnabled?: boolean;
   virtualTryOnEnabled?: boolean;
   modelCreationEnabled?: boolean;
+  videoEnabled?: boolean;
   requireApproval?: boolean;
   maxImagesPerJob?: number;
   maxConcurrentJobs?: number;
@@ -73,6 +74,7 @@ export default function AiFashionSettingsPage() {
           productToModelEnabled: form.productToModelEnabled,
           virtualTryOnEnabled: form.virtualTryOnEnabled,
           modelCreationEnabled: form.modelCreationEnabled,
+          videoEnabled: form.videoEnabled,
           requireApproval: form.requireApproval,
           maxImagesPerJob: form.maxImagesPerJob,
           maxConcurrentJobs: form.maxConcurrentJobs,
@@ -165,6 +167,14 @@ export default function AiFashionSettingsPage() {
         <label className="flex items-center gap-2 text-sm">
           <input
             type="checkbox"
+            checked={Boolean(form.videoEnabled)}
+            onChange={(e) => setForm((f) => ({ ...f, videoEnabled: e.target.checked }))}
+          />
+          Image → Video enabled (uses FASHN credits)
+        </label>
+        <label className="flex items-center gap-2 text-sm">
+          <input
+            type="checkbox"
             checked={Boolean(form.autoGenerateOnCreate)}
             onChange={(e) => setForm((f) => ({ ...f, autoGenerateOnCreate: e.target.checked }))}
           />
@@ -212,7 +222,7 @@ export default function AiFashionSettingsPage() {
         />
         <Select
           label="Default quality"
-          value={form.defaultGenerationMode ?? "balanced"}
+          value={form.defaultGenerationMode ?? "fast"}
           onValueChange={(v) => setForm((f) => ({ ...f, defaultGenerationMode: v }))}
           options={[
             { value: "fast", label: "Fast" },

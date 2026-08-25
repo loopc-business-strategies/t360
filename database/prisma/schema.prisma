@@ -301,6 +301,8 @@ model ProductImage {
   url       String
   publicId  String?
   alt       String   @default("")
+  /// image | video
+  mediaType String   @default("image")
   sortOrder Int      @default(0)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

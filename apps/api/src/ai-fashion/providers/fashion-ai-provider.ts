@@ -52,6 +52,14 @@ export type CreateModelInput = {
   seed?: number;
 };
 
+export type ImageToVideoInput = {
+  imageUrl: string;
+  prompt?: string;
+  duration?: 5 | 10;
+  resolution?: "480p" | "720p" | "1080p";
+  endImageUrl?: string;
+};
+
 export class FashionProviderError extends Error {
   constructor(
     public readonly code: string,
@@ -77,7 +85,7 @@ export interface FashionAIProvider {
   virtualTryOn(input: VirtualTryOnInput): Promise<FashionRunResult>;
   createModel(input: CreateModelInput): Promise<FashionRunResult>;
   removeBackground(input: { imageUrl: string }): Promise<FashionRunResult>;
-  generateVideo(input: { imageUrl: string; duration?: 5 | 10 }): Promise<FashionRunResult>;
+  generateVideo(input: ImageToVideoInput): Promise<FashionRunResult>;
   getJobStatus(jobId: string): Promise<FashionJobResult>;
 }
 

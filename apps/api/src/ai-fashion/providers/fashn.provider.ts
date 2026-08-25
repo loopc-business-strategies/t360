@@ -6,6 +6,7 @@ import {
   FashionJobStatus,
   FashionProviderError,
   FashionRunResult,
+  ImageToVideoInput,
   ProductToModelInput,
   ProviderCapabilityError,
   VirtualTryOnInput,
@@ -107,8 +108,14 @@ export class FashnProvider implements FashionAIProvider {
     throw new ProviderCapabilityError("removeBackground");
   }
 
-  async generateVideo(_input: { imageUrl: string; duration?: 5 | 10 }): Promise<FashionRunResult> {
-    throw new ProviderCapabilityError("generateVideo");
+  async generateVideo(input: ImageToVideoInput): Promise<FashionRunResult> {
+    return this.run("image-to-video", {
+      image: input.imageUrl,
+      prompt: input.prompt,
+      duration: input.duration ?? 5,
+      resolution: input.resolution ?? "720p",
+      end_image: input.endImageUrl,
+    });
   }
 
   async getJobStatus(jobId: string): Promise<FashionJobResult> {

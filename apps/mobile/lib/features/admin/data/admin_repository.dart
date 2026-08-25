@@ -47,11 +47,74 @@ class AdminRepository {
   Future<Map<String, dynamic>> aiJob(String id) =>
       _api.get('/admin/ai-fashion/jobs/$id', map: (d) => d as Map<String, dynamic>);
 
-  Future<List<dynamic>> aiJobs({String? productId}) => _api.get(
+  Future<List<dynamic>> aiJobs({String? productId, int page = 1, int pageSize = 30, String? status}) =>
+      _api.get(
         '/admin/ai-fashion/jobs',
-        query: {'pageSize': 30, if (productId != null) 'productId': productId},
+        query: {
+          'page': page,
+          'pageSize': pageSize,
+          'productId': ?productId,
+          'status': ?status,
+        },
         map: (d) => d as List<dynamic>,
       );
+
+  Future<Map<String, dynamic>> aiUsage({int days = 30}) => _api.get(
+        '/admin/ai-fashion/usage',
+        query: {'days': days},
+        map: (d) => d as Map<String, dynamic>,
+      );
+
+  Future<Map<String, dynamic>> createAiModel(Map<String, dynamic> body) =>
+      _api.post('/admin/ai-fashion/models', data: body, map: (d) => d as Map<String, dynamic>);
+
+  Future<Map<String, dynamic>> generateAiModel(Map<String, dynamic> body) =>
+      _api.post('/admin/ai-fashion/models/generate', data: body, map: (d) => d as Map<String, dynamic>);
+
+  Future<void> deleteAiModel(String id) =>
+      _api.delete('/admin/ai-fashion/models/$id', map: (_) => true);
+
+  Future<List<dynamic>> employees() =>
+      _api.get('/admin/employees', map: (d) => d as List<dynamic>);
+
+  Future<Map<String, dynamic>> createEmployee(Map<String, dynamic> body) =>
+      _api.post('/admin/employees', data: body, map: (d) => d as Map<String, dynamic>);
+
+  Future<Map<String, dynamic>> updateEmployee(String id, Map<String, dynamic> body) =>
+      _api.patch('/admin/employees/$id', data: body, map: (d) => d as Map<String, dynamic>);
+
+  Future<Map<String, dynamic>> setEmployeeRoles(String id, List<String> roleCodes) =>
+      _api.post(
+        '/admin/employees/$id/roles',
+        data: {'roleCodes': roleCodes},
+        map: (d) => d as Map<String, dynamic>,
+      );
+
+  Future<List<dynamic>> roles() =>
+      _api.get('/admin/roles', map: (d) => d as List<dynamic>);
+
+  Future<List<dynamic>> permissions() =>
+      _api.get('/admin/roles/permissions', map: (d) => d as List<dynamic>);
+
+  Future<Map<String, dynamic>> updateRolePermissions(String id, List<String> permissionCodes) =>
+      _api.patch(
+        '/admin/roles/$id/permissions',
+        data: {'permissionCodes': permissionCodes},
+        map: (d) => d as Map<String, dynamic>,
+      );
+
+  Future<List<dynamic>> auditLogs({int take = 50, String? q, String? action}) => _api.get(
+        '/audit',
+        query: {
+          'take': take,
+          if (q != null && q.isNotEmpty) 'q': q,
+          if (action != null && action.isNotEmpty) 'action': action,
+        },
+        map: (d) => d as List<dynamic>,
+      );
+
+  Future<List<dynamic>> brands() =>
+      _api.get('/admin/brands', map: (d) => d as List<dynamic>);
 
   Future<Map<String, dynamic>> approveJob(String id, String as) => _api.post(
         '/admin/ai-fashion/jobs/$id/approve',

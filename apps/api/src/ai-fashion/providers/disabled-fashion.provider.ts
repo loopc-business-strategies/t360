@@ -5,6 +5,7 @@ import {
   FashionJobResult,
   FashionProviderError,
   FashionRunResult,
+  ImageToVideoInput,
   ProductToModelInput,
   VirtualTryOnInput,
 } from "./fashion-ai-provider";
@@ -41,7 +42,7 @@ export class DisabledFashionAiProvider implements FashionAIProvider {
     this.fail();
   }
 
-  async generateVideo(_input: { imageUrl: string; duration?: 5 | 10 }): Promise<FashionRunResult> {
+  async generateVideo(_input: ImageToVideoInput): Promise<FashionRunResult> {
     this.fail();
   }
 

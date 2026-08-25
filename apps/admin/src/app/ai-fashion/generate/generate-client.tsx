@@ -27,6 +27,7 @@ type Job = {
   outputImageUrl?: string | null;
   error?: string | null;
   warning?: string;
+  mediaKind?: string;
 };
 
 export default function GenerateClient() {
@@ -51,7 +52,7 @@ export default function GenerateClient() {
   const [background, setBackground] = React.useState("studio");
   const [numImages, setNumImages] = React.useState("1");
   const [resolution, setResolution] = React.useState("1k");
-  const [generationMode, setGenerationMode] = React.useState("balanced");
+  const [generationMode, setGenerationMode] = React.useState("fast");
   const [customPrompt, setCustomPrompt] = React.useState("");
   const [jobId, setJobId] = React.useState<string | null>(null);
   const [error, setError] = React.useState<string | null>(null);
@@ -305,12 +306,21 @@ export default function GenerateClient() {
               </div>
               {jobData.error ? <p className="text-sm text-danger">{jobData.error}</p> : null}
               {jobData.outputImageUrl ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img
-                  src={jobData.outputImageUrl}
-                  alt="Generated"
-                  className="max-h-[480px] w-full rounded-md object-contain"
-                />
+                jobData.type === "IMAGE_TO_VIDEO" || jobData.mediaKind === "video" ? (
+                  <video
+                    src={jobData.outputImageUrl}
+                    className="max-h-[480px] w-full rounded-md"
+                    controls
+                    playsInline
+                  />
+                ) : (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    src={jobData.outputImageUrl}
+                    alt="Generated"
+                    className="max-h-[480px] w-full rounded-md object-contain"
+                  />
+                )
               ) : null}
               {jobData.status === "COMPLETED" ? (
                 <div className="flex flex-wrap gap-2">
@@ -320,6 +330,34 @@ export default function GenerateClient() {
                   <Button type="button" variant="outline" onClick={() => approve.mutate("primary")}>
                     Use as primary
                   </Button>
+                  {jobData.type !== "IMAGE_TO_VIDEO" && jobData.mediaKind !== "video" ? (
+                    <Button
+                      type="button"
+                      variant="outline"
+                      disabled={generate.isPending}
+                      onClick={() => {
+                        if (!productId || !jobId) return;
+                        setError(null);
+                        apiFetch<Job>("/admin/ai-fashion/generate", {
+                          method: "POST",
+                          body: JSON.stringify({
+                            type: "IMAGE_TO_VIDEO",
+                            sourceJobId: jobId,
+                            productId,
+                            duration: 5,
+                            videoResolution: "720p",
+                          }),
+                        })
+                          .then((res) => {
+                            setJobId(res.data.id);
+                            qc.invalidateQueries({ queryKey: ["ai-fashion-dashboard"] });
+                          })
+                          .catch((err: Error) => setError(err.message));
+                      }}
+                    >
+                      Generate video
+                    </Button>
+                  ) : null}
                 </div>
               ) : null}
               {jobData.status === "FAILED" ? (

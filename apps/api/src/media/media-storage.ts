@@ -4,7 +4,11 @@ export interface MediaAsset {
 }
 
 export interface MediaStorage {
-  uploadFromUrl(url: string, publicId?: string): Promise<MediaAsset>;
+  uploadFromUrl(
+    url: string,
+    publicId?: string,
+    opts?: { resourceType?: "image" | "video" | "auto" },
+  ): Promise<MediaAsset>;
   uploadBuffer?(
     buffer: Buffer,
     opts?: { publicId?: string; mimeType?: string; folder?: string },

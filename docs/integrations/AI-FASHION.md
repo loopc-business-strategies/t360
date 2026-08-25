@@ -46,13 +46,15 @@ To add another provider: implement `FashionAIProvider`, register in `ai-fashion.
 ## Environment variables
 
 ```env
-FASHION_AI_PROVIDER=disabled   # or fashn
+FASHION_AI_PROVIDER=fashn   # Path A: stills via FASHN; use disabled when no key
 FASHN_API_KEY=
 
 CLOUDINARY_CLOUD_NAME=
 CLOUDINARY_API_KEY=
 CLOUDINARY_API_SECRET=
 ```
+
+Path A defaults (stills only, low cost): `videoEnabled=false`, `defaultGenerationMode=fast`, `defaultResolution=1k`, tighter daily/monthly limits. Video stays off until you enable it in Admin settings.
 
 - Secrets stay server-side only.
 - If provider is `disabled` or key missing, the API returns a clear configuration error (no fake success).

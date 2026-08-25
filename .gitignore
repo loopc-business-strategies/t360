@@ -50,3 +50,6 @@ service-account*.json
 /playwright-report/
 /blob-report/
 /playwright/.cache/
+
+# Vercel local
+.vercel/

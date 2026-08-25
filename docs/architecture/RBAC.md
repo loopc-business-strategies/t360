@@ -11,27 +11,57 @@ User ──< UserRole >── Role ──< RolePermission >── Permission
 - **UserRole:** assigns one or more roles to a user.
 - Frontend may hide controls; **API always enforces**.
 
+## Canonical live permission vocabulary
+
+Do **not** rename production codes without a migration. Preferred “view” wording maps to existing `.read` / `.manage` codes:
+
+| Preferred / docs wording | Live seed code |
+| --- | --- |
+| products.view | `products.read` |
+| inventory.view | `inventory.read` |
+| orders.view | `orders.read` |
+| customers.view | `customers.read` |
+| users.* | `staff.manage` (+ `roles.manage` for role assign) |
+| roles.view / update | `roles.manage` |
+| audit_logs.view | `audit.read` |
+| settings.view / update | `settings.manage` |
+| ai_usage.view | `ai_fashion.view` (usage endpoint) |
+| system_settings.* | `settings.manage` |
+
+AI Fashion granular codes (live):
+
+```
+ai_fashion.view | generate | approve | retry | delete
+ai_models.view | create | update | delete
+ai_settings.view | update
+```
+
+Legacy `ai.fashion` is a **compatibility alias** for studio workflow only (`view/generate/approve/retry` + `ai_models.view/create/update`). It does **not** grant `ai_settings.*` or delete permissions.
+
 ## Seed roles (initial)
 
 | Role | Intent |
 |------|--------|
 | SuperAdmin / Owner | Full access |
 | Manager | Branch operations |
+| ProductManager | Catalog + AI generate/approve |
+| SalesManager | Orders/customers/reports |
 | InventoryManager | Stock, transfers, barcodes |
 | SalesStaff | Lookup, pack, pickup verify, limited order updates |
-| MarketingStaff | Coupons, offers, campaigns, social drafts |
+| MarketingStaff | Coupons, offers, campaigns, AI studio (not settings) |
 | CustomerSupport | Tickets, customer/order read, return assist |
 | DeliveryStaff | Delivery assignments/status |
 | Accountant | Payments, refunds, financial reports |
-| SystemAdministrator | Integrations, health, settings, audit |
+| SystemAdministrator | Integrations, health, settings, audit, AI settings |
 
 Customer end-users are not granted admin permissions; customer APIs use “self” ownership checks instead.
 
-## Permission catalogue (representative)
+## Permission catalogue (live baseline)
 
 ```
+dashboard.view
 products.read | products.create | products.update | products.delete
-categories.* | brands.*
+categories.manage | brands.manage
 inventory.read | inventory.update | inventory.transfer | inventory.adjust
 orders.read | orders.update | orders.cancel
 customers.read | customers.update
@@ -45,20 +75,22 @@ settings.manage
 integrations.manage
 audit.read
 cms.manage
-ai.admin
-whatsapp.manage
-support.manage
+ai.admin | ai.fashion
+ai_fashion.* | ai_models.* | ai_settings.*
+whatsapp.manage | notifications.manage
+support.manage | branches.manage
 ```
-
-Exact matrix is finalized in Phase 3 seed data; this list is the architecture baseline.
 
 ## Enforcement
 
-- NestJS guards: JWT auth → load permissions → `@RequirePermissions('inventory.update')`.
-- Optional CASL ability layer for complex object-level rules (e.g. branch-scoped manager).
+- NestJS guards: JWT auth → load permissions → `@RequirePermissions(...)` (AND) or `@RequireAnyPermissions(...)` (OR).
 - Branch scoping: managers/staff may be limited to assigned branches.
-- Staff mode UI only requests staff-safe routes; backend still checks permissions.
+- Staff mobile UI only requests staff-safe routes; backend still checks permissions (`feature.mobile_admin.enabled` + `X-T360-Client: mobile-admin`).
 
 ## Audit
 
-Sensitive permission uses (role changes, refunds, stock adjust, settings) write `AuditLog`.
+Sensitive permission uses (role changes, refunds, stock adjust, settings, AI approve/settings) write `AuditLog`. Metadata must never include passwords, API keys, or tokens.
+
+## Mobile Reject UX
+
+There is no separate “Rejected” job status. Mobile **Reject** maps to `DELETE /admin/ai-fashion/jobs/:id` (cancel in-flight or delete finished), matching web cancel/delete.

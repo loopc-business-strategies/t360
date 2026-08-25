@@ -365,21 +365,47 @@ export const aiFashionGenerationTypeSchema = z.enum([
   "IMAGE_TO_VIDEO",
 ]);
 
-export const aiFashionGenerateSchema = z.object({
-  productId: z.string().uuid(),
-  productImageId: z.string().uuid().optional(),
-  inputImageUrl: z.string().url().optional(),
-  type: z.enum(["PRODUCT_TO_MODEL", "VIRTUAL_TRY_ON"]).default("PRODUCT_TO_MODEL"),
-  modelId: z.string().uuid().optional().nullable(),
-  personImageUrl: z.string().url().optional(),
-  gender: z.enum(["male", "female", "unisex"]).optional(),
-  pose: z.enum(["standing", "casual", "fashion", "custom"]).optional(),
-  background: z.enum(["studio", "white", "outdoor", "custom"]).optional(),
-  customPrompt: z.string().max(1000).optional(),
-  numImages: z.number().int().min(1).max(4).optional(),
-  resolution: z.enum(["1k", "2k", "4k"]).optional(),
-  generationMode: z.enum(["fast", "balanced", "quality"]).optional(),
-});
+export const aiFashionGenerateSchema = z
+  .object({
+    productId: z.string().uuid().optional(),
+    productImageId: z.string().uuid().optional(),
+    inputImageUrl: z.string().url().optional(),
+    sourceJobId: z.string().uuid().optional(),
+    type: z
+      .enum(["PRODUCT_TO_MODEL", "VIRTUAL_TRY_ON", "IMAGE_TO_VIDEO"])
+      .default("PRODUCT_TO_MODEL"),
+    modelId: z.string().uuid().optional().nullable(),
+    personImageUrl: z.string().url().optional(),
+    gender: z.enum(["male", "female", "unisex"]).optional(),
+    pose: z.enum(["standing", "casual", "fashion", "custom"]).optional(),
+    background: z.enum(["studio", "white", "outdoor", "custom"]).optional(),
+    customPrompt: z.string().max(1000).optional(),
+    numImages: z.number().int().min(1).max(4).optional(),
+    resolution: z.enum(["1k", "2k", "4k"]).optional(),
+    generationMode: z.enum(["fast", "balanced", "quality"]).optional(),
+    duration: z.union([z.literal(5), z.literal(10)]).optional(),
+    videoResolution: z.enum(["480p", "720p", "1080p"]).optional(),
+    endImageUrl: z.string().url().optional(),
+  })
+  .superRefine((val, ctx) => {
+    if (val.type === "IMAGE_TO_VIDEO") {
+      if (!val.sourceJobId && !val.productId && !val.inputImageUrl) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: "IMAGE_TO_VIDEO requires sourceJobId, productId, or inputImageUrl",
+          path: ["sourceJobId"],
+        });
+      }
+      return;
+    }
+    if (!val.productId) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "productId is required",
+        path: ["productId"],
+      });
+    }
+  });
 
 export const aiFashionApproveSchema = z.object({
   as: z.enum(["primary", "gallery"]),
@@ -428,6 +454,7 @@ export const aiFashionSettingsUpdateSchema = z.object({
   productToModelEnabled: z.boolean().optional(),
   virtualTryOnEnabled: z.boolean().optional(),
   modelCreationEnabled: z.boolean().optional(),
+  videoEnabled: z.boolean().optional(),
   requireApproval: z.boolean().optional(),
   maxImagesPerJob: z.number().int().min(1).max(4).optional(),
   maxConcurrentJobs: z.number().int().min(1).max(50).optional(),

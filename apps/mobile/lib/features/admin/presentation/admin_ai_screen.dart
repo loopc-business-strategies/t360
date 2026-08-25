@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import 'admin_home_screen.dart';
+import 'admin_video_preview.dart';
 
 class AdminAiScreen extends ConsumerStatefulWidget {
   const AdminAiScreen({super.key, this.productId});
@@ -27,7 +28,16 @@ class _AdminAiScreenState extends ConsumerState<AdminAiScreen> {
   Map<String, dynamic>? _job;
   String? _error;
   bool _busy = false;
+  bool _showAdvanced = false;
   Timer? _poll;
+
+  String _gender = 'female';
+  String _pose = 'standing';
+  String _background = 'studio';
+  int _numImages = 1;
+  String _resolution = '1k';
+  String _generationMode = 'fast';
+  final _customPrompt = TextEditingController();
 
   @override
   void initState() {
@@ -39,6 +49,7 @@ class _AdminAiScreenState extends ConsumerState<AdminAiScreen> {
   @override
   void dispose() {
     _poll?.cancel();
+    _customPrompt.dispose();
     super.dispose();
   }
 
@@ -47,6 +58,11 @@ class _AdminAiScreenState extends ConsumerState<AdminAiScreen> {
     try {
       final models = await repo.aiModels(activeOnly: true);
       final products = await repo.products();
+      Map<String, dynamic>? settings;
+      try {
+        settings = await repo.aiSettings();
+      } catch (_) {}
+
       Map<String, dynamic>? product;
       List<dynamic> history = [];
       if (_productId != null) {
@@ -60,8 +76,17 @@ class _AdminAiScreenState extends ConsumerState<AdminAiScreen> {
         _products = products;
         _product = product;
         _history = history;
+        if (settings != null) {
+          final defModel = settings['defaultModelId']?.toString();
+          if (_modelId == null && defModel != null && defModel.isNotEmpty) {
+            _modelId = defModel;
+          }
+          _numImages = (settings['defaultNumImages'] as num?)?.toInt() ?? _numImages;
+          _resolution = settings['defaultResolution']?.toString() ?? _resolution;
+          _generationMode = settings['defaultGenerationMode']?.toString() ?? _generationMode;
+        }
         final images = (product?['images'] as List?) ?? [];
-        if (images.isNotEmpty) {
+        if (images.isNotEmpty && _imageId == null) {
           _imageId = (images.first as Map)['id']?.toString();
         }
       });
@@ -74,6 +99,7 @@ class _AdminAiScreenState extends ConsumerState<AdminAiScreen> {
     _productId = id;
     _jobId = null;
     _job = null;
+    _imageId = null;
     await _load();
   }
 
@@ -84,12 +110,19 @@ class _AdminAiScreenState extends ConsumerState<AdminAiScreen> {
       _error = null;
     });
     try {
+      final prompt = _customPrompt.text.trim();
       final job = await ref.read(adminRepoProvider).generateAi({
         'productId': _productId,
         'productImageId': _imageId,
         'type': 'PRODUCT_TO_MODEL',
         'modelId': _modelId,
-        'numImages': 1,
+        if (_modelId == null) 'gender': _gender,
+        'pose': _pose,
+        'background': _background,
+        'numImages': _numImages,
+        'resolution': _resolution,
+        'generationMode': _generationMode,
+        if (prompt.isNotEmpty) 'customPrompt': prompt,
       });
       _jobId = job['id']?.toString();
       _job = job;
@@ -119,9 +152,32 @@ class _AdminAiScreenState extends ConsumerState<AdminAiScreen> {
   Future<void> _approve(String as) async {
     if (_jobId == null) return;
     await ref.read(adminRepoProvider).approveJob(_jobId!, as);
+    if (_productId != null) {
+      final product = await ref.read(adminRepoProvider).product(_productId!);
+      if (mounted) setState(() => _product = product);
+    }
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Saved to product')));
     }
+  }
+
+  Widget _dropdown({
+    required String label,
+    required String value,
+    required List<String> options,
+    required ValueChanged<String> onChanged,
+  }) {
+    return DropdownButtonFormField<String>(
+      key: ValueKey('$label-$value'),
+      initialValue: value,
+      decoration: InputDecoration(labelText: label),
+      items: options
+          .map((o) => DropdownMenuItem(value: o, child: Text(o)))
+          .toList(),
+      onChanged: (v) {
+        if (v != null) onChanged(v);
+      },
+    );
   }
 
   @override
@@ -134,6 +190,16 @@ class _AdminAiScreenState extends ConsumerState<AdminAiScreen> {
       appBar: AppBar(
         title: const Text('AI Fashion'),
         actions: [
+          IconButton(
+            onPressed: () => context.push('/admin/ai-usage'),
+            icon: const Icon(Icons.bar_chart_outlined),
+            tooltip: 'Usage',
+          ),
+          IconButton(
+            onPressed: () => context.push('/admin/ai-images'),
+            icon: const Icon(Icons.image_outlined),
+            tooltip: 'Images',
+          ),
           IconButton(
             onPressed: () => context.push('/admin/ai-models'),
             icon: const Icon(Icons.people_outline),
@@ -148,6 +214,7 @@ class _AdminAiScreenState extends ConsumerState<AdminAiScreen> {
         padding: const EdgeInsets.all(16),
         children: [
           DropdownButtonFormField<String?>(
+            key: ValueKey('product-$_productId'),
             initialValue: _productId,
             decoration: const InputDecoration(labelText: 'Product'),
             items: [
@@ -169,7 +236,7 @@ class _AdminAiScreenState extends ConsumerState<AdminAiScreen> {
               child: ListView.separated(
                 scrollDirection: Axis.horizontal,
                 itemCount: images.length,
-                separatorBuilder: (_, __) => const SizedBox(width: 8),
+                separatorBuilder: (_, _) => const SizedBox(width: 8),
                 itemBuilder: (context, i) {
                   final img = images[i] as Map;
                   final id = img['id']?.toString();
@@ -188,6 +255,7 @@ class _AdminAiScreenState extends ConsumerState<AdminAiScreen> {
             ),
           const SizedBox(height: 12),
           DropdownButtonFormField<String?>(
+            key: ValueKey('model-$_modelId'),
             initialValue: _modelId,
             decoration: const InputDecoration(labelText: 'AI Model'),
             items: [
@@ -202,6 +270,64 @@ class _AdminAiScreenState extends ConsumerState<AdminAiScreen> {
             ],
             onChanged: (v) => setState(() => _modelId = v),
           ),
+          if (_modelId == null) ...[
+            const SizedBox(height: 8),
+            _dropdown(
+              label: 'Gender',
+              value: _gender,
+              options: const ['female', 'male', 'unisex'],
+              onChanged: (v) => setState(() => _gender = v),
+            ),
+          ],
+          const SizedBox(height: 8),
+          SwitchListTile(
+            contentPadding: EdgeInsets.zero,
+            title: const Text('Advanced options'),
+            value: _showAdvanced,
+            onChanged: (v) => setState(() => _showAdvanced = v),
+          ),
+          if (_showAdvanced) ...[
+            _dropdown(
+              label: 'Pose',
+              value: _pose,
+              options: const ['standing', 'casual', 'fashion', 'custom'],
+              onChanged: (v) => setState(() => _pose = v),
+            ),
+            _dropdown(
+              label: 'Background',
+              value: _background,
+              options: const ['studio', 'white', 'outdoor', 'custom'],
+              onChanged: (v) => setState(() => _background = v),
+            ),
+            DropdownButtonFormField<int>(
+              key: ValueKey('num-$_numImages'),
+              initialValue: _numImages,
+              decoration: const InputDecoration(labelText: 'Images'),
+              items: const [
+                DropdownMenuItem(value: 1, child: Text('1')),
+                DropdownMenuItem(value: 2, child: Text('2')),
+                DropdownMenuItem(value: 4, child: Text('4')),
+              ],
+              onChanged: (v) => setState(() => _numImages = v ?? 1),
+            ),
+            _dropdown(
+              label: 'Resolution',
+              value: _resolution,
+              options: const ['1k', '2k', '4k'],
+              onChanged: (v) => setState(() => _resolution = v),
+            ),
+            _dropdown(
+              label: 'Quality',
+              value: _generationMode,
+              options: const ['fast', 'balanced', 'quality'],
+              onChanged: (v) => setState(() => _generationMode = v),
+            ),
+            TextField(
+              controller: _customPrompt,
+              decoration: const InputDecoration(labelText: 'Custom prompt'),
+              maxLines: 3,
+            ),
+          ],
           const SizedBox(height: 16),
           FilledButton(
             onPressed: _busy || _productId == null || _imageId == null ? null : _generate,
@@ -221,13 +347,50 @@ class _AdminAiScreenState extends ConsumerState<AdminAiScreen> {
               ),
             if (output != null) ...[
               const SizedBox(height: 12),
-              Image.network(output),
+              if (adminJobIsVideo(_job ?? {}))
+                AdminVideoPreview(url: output)
+              else
+                Image.network(output),
               const SizedBox(height: 8),
               Wrap(
                 spacing: 8,
                 children: [
                   FilledButton(onPressed: () => _approve('gallery'), child: const Text('Approve')),
                   OutlinedButton(onPressed: () => _approve('primary'), child: const Text('Set primary')),
+                  if (!adminJobIsVideo(_job ?? {}))
+                    OutlinedButton(
+                      onPressed: _busy || _jobId == null
+                          ? null
+                          : () async {
+                              setState(() {
+                                _busy = true;
+                                _error = null;
+                              });
+                              try {
+                                final job = await ref.read(adminRepoProvider).generateAi({
+                                  'type': 'IMAGE_TO_VIDEO',
+                                  'sourceJobId': _jobId,
+                                  'productId': _productId,
+                                  'duration': 5,
+                                  'videoResolution': '720p',
+                                });
+                                setState(() {
+                                  _jobId = job['id']?.toString();
+                                  _job = job;
+                                });
+                                _poll?.cancel();
+                                _poll = Timer.periodic(
+                                  const Duration(seconds: 3),
+                                  (_) => _refreshJob(),
+                                );
+                              } catch (e) {
+                                setState(() => _error = '$e');
+                              } finally {
+                                setState(() => _busy = false);
+                              }
+                            },
+                      child: const Text('Generate video'),
+                    ),
                 ],
               ),
             ],

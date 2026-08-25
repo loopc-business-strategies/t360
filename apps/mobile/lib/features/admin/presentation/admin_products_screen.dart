@@ -19,16 +19,37 @@ class _AdminProductsScreenState extends ConsumerState<AdminProductsScreen> {
   final _search = TextEditingController();
   String? _pendingPath;
   String? _attachProductId;
+  bool _showCreateForm = false;
+  String? _uploadedUrl;
+  bool _submitting = false;
+
+  final _name = TextEditingController();
+  final _sku = TextEditingController();
+  final _price = TextEditingController(text: '999');
+  final _size = TextEditingController(text: 'M');
+  final _colour = TextEditingController(text: 'Blue');
+  final _stock = TextEditingController();
+  String? _categoryId;
+  String? _brandId;
+  List<dynamic> _categories = [];
+  List<dynamic> _brands = [];
 
   @override
   void initState() {
     super.initState();
     _future = ref.read(adminRepoProvider).products();
+    _sku.text = 'MOB-${DateTime.now().millisecondsSinceEpoch}';
   }
 
   @override
   void dispose() {
     _search.dispose();
+    _name.dispose();
+    _sku.dispose();
+    _price.dispose();
+    _size.dispose();
+    _colour.dispose();
+    _stock.dispose();
     super.dispose();
   }
 
@@ -43,6 +64,8 @@ class _AdminProductsScreenState extends ConsumerState<AdminProductsScreen> {
     setState(() {
       _pendingPath = shot.path;
       _attachProductId = attachToProductId;
+      _showCreateForm = false;
+      _uploadedUrl = null;
     });
   }
 
@@ -71,33 +94,87 @@ class _AdminProductsScreenState extends ConsumerState<AdminProductsScreen> {
       }
 
       final cats = await repo.categories();
-      final firstCat = cats.isNotEmpty ? cats.first as Map<String, dynamic> : null;
-      final categoryId = firstCat?['id'] as String?;
-      if (categoryId == null) {
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Create a category in web admin first')),
-          );
-        }
-        return;
+      List<dynamic> brands = [];
+      try {
+        brands = await repo.brands();
+      } catch (_) {}
+
+      if (!mounted) return;
+      setState(() {
+        _uploadedUrl = url;
+        _categories = cats;
+        _brands = brands;
+        _categoryId = cats.isNotEmpty ? (cats.first as Map)['id']?.toString() : null;
+        _brandId = null;
+        _name.text = '';
+        _sku.text = 'MOB-${DateTime.now().millisecondsSinceEpoch}';
+        _showCreateForm = true;
+        _pendingPath = null;
+      });
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('$e')));
       }
-      final sku = 'MOB-${DateTime.now().millisecondsSinceEpoch}';
-      final product = await repo.createProduct({
-        'name': 'Mobile capture $sku',
+    }
+  }
+
+  Future<void> _submitProduct() async {
+    final url = _uploadedUrl;
+    final categoryId = _categoryId;
+    if (url == null || categoryId == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Category and image are required')),
+      );
+      return;
+    }
+    final name = _name.text.trim();
+    final sku = _sku.text.trim();
+    final price = double.tryParse(_price.text.trim());
+    if (name.isEmpty || sku.isEmpty || price == null || price <= 0) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Name, SKU, and valid price are required')),
+      );
+      return;
+    }
+
+    setState(() => _submitting = true);
+    try {
+      final product = await ref.read(adminRepoProvider).createProduct({
+        'name': name,
         'categoryId': categoryId,
+        if (_brandId != null) 'brandId': _brandId,
         'status': 'draft',
         'imageUrls': [url],
         'generateAiFashion': false,
         'variants': [
-          {'sku': sku, 'price': 999, 'attributes': {'size': 'M', 'colour': 'Blue'}},
+          {
+            'sku': sku,
+            'price': price,
+            'attributes': {
+              if (_size.text.trim().isNotEmpty) 'size': _size.text.trim(),
+              if (_colour.text.trim().isNotEmpty) 'colour': _colour.text.trim(),
+            },
+          },
         ],
       });
+      // Stock requires branch + inventory.adjust; create API has no stock on variant.
+      final stockNote = _stock.text.trim().isNotEmpty
+          ? ' Set stock in Inventory on web/mobile after create.'
+          : '';
       if (mounted) {
-        setState(() => _pendingPath = null);
+        setState(() {
+          _showCreateForm = false;
+          _uploadedUrl = null;
+          _submitting = false;
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Product created.$stockNote')),
+        );
         context.push('/admin/ai?productId=${product['id']}');
       }
     } catch (e) {
       if (mounted) {
+        setState(() => _submitting = false);
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('$e')));
       }
     }
@@ -165,6 +242,95 @@ class _AdminProductsScreenState extends ConsumerState<AdminProductsScreen> {
       );
     }
 
+    if (_showCreateForm && _uploadedUrl != null) {
+      return Scaffold(
+        appBar: AppBar(
+          title: const Text('New product'),
+          leading: IconButton(
+            icon: const Icon(Icons.close),
+            onPressed: () => setState(() {
+              _showCreateForm = false;
+              _uploadedUrl = null;
+            }),
+          ),
+        ),
+        body: ListView(
+          padding: const EdgeInsets.all(16),
+          children: [
+            AspectRatio(
+              aspectRatio: 1,
+              child: Image.network(_uploadedUrl!, fit: BoxFit.cover),
+            ),
+            const SizedBox(height: 16),
+            TextField(
+              controller: _name,
+              decoration: const InputDecoration(labelText: 'Name *'),
+            ),
+            TextField(
+              controller: _sku,
+              decoration: const InputDecoration(labelText: 'SKU *'),
+            ),
+            DropdownButtonFormField<String>(
+              key: ValueKey('cat-$_categoryId'),
+              initialValue: _categoryId,
+              decoration: const InputDecoration(labelText: 'Category *'),
+              items: _categories.map((c) {
+                final m = c as Map;
+                return DropdownMenuItem(
+                  value: m['id']?.toString(),
+                  child: Text(m['name']?.toString() ?? 'Category'),
+                );
+              }).toList(),
+              onChanged: (v) => setState(() => _categoryId = v),
+            ),
+            if (_brands.isNotEmpty)
+              DropdownButtonFormField<String?>(
+                key: ValueKey('brand-$_brandId'),
+                initialValue: _brandId,
+                decoration: const InputDecoration(labelText: 'Brand (optional)'),
+                items: [
+                  const DropdownMenuItem(value: null, child: Text('None')),
+                  ..._brands.map((b) {
+                    final m = b as Map;
+                    return DropdownMenuItem(
+                      value: m['id']?.toString(),
+                      child: Text(m['name']?.toString() ?? 'Brand'),
+                    );
+                  }),
+                ],
+                onChanged: (v) => setState(() => _brandId = v),
+              ),
+            TextField(
+              controller: _price,
+              decoration: const InputDecoration(labelText: 'Price *'),
+              keyboardType: const TextInputType.numberWithOptions(decimal: true),
+            ),
+            TextField(
+              controller: _size,
+              decoration: const InputDecoration(labelText: 'Size'),
+            ),
+            TextField(
+              controller: _colour,
+              decoration: const InputDecoration(labelText: 'Colour'),
+            ),
+            TextField(
+              controller: _stock,
+              decoration: const InputDecoration(
+                labelText: 'Stock (set via Inventory after create)',
+                helperText: 'Create API does not accept initial stock on variants',
+              ),
+              keyboardType: TextInputType.number,
+            ),
+            const SizedBox(height: 16),
+            FilledButton(
+              onPressed: _submitting ? null : _submitProduct,
+              child: Text(_submitting ? 'Creating…' : 'Create & open AI'),
+            ),
+          ],
+        ),
+      );
+    }
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Products'),
@@ -203,7 +369,7 @@ class _AdminProductsScreenState extends ConsumerState<AdminProductsScreen> {
                 if (items.isEmpty) return const Center(child: Text('No products'));
                 return ListView.separated(
                   itemCount: items.length,
-                  separatorBuilder: (_, __) => const Divider(height: 1),
+                  separatorBuilder: (_, _) => const Divider(height: 1),
                   itemBuilder: (context, i) {
                     final p = items[i] as Map;
                     final id = p['id']?.toString();

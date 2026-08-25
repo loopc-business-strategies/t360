@@ -15,14 +15,21 @@ type Job = {
   inputImageUrl: string;
   error?: string | null;
   approvedAs?: string | null;
+  mediaKind?: string;
   product?: { id: string; name: string } | null;
   model?: { id: string; name: string } | null;
 };
+
+function isVideoJob(j: Job) {
+  return j.type === "IMAGE_TO_VIDEO" || j.mediaKind === "video";
+}
 
 export default function AiFashionImagesPage() {
   const qc = useQueryClient();
   const [status, setStatus] = React.useState("all");
   const [preview, setPreview] = React.useState<Job | null>(null);
+  const [videoDuration, setVideoDuration] = React.useState("5");
+  const [videoRes, setVideoRes] = React.useState("720p");
 
   const list = useQuery({
     queryKey: ["ai-fashion-jobs", status],
@@ -57,6 +64,21 @@ export default function AiFashionImagesPage() {
     onSuccess: () => qc.invalidateQueries({ queryKey: ["ai-fashion-jobs"] }),
   });
 
+  const makeVideo = useMutation({
+    mutationFn: (source: Job) =>
+      apiFetch("/admin/ai-fashion/generate", {
+        method: "POST",
+        body: JSON.stringify({
+          type: "IMAGE_TO_VIDEO",
+          sourceJobId: source.id,
+          productId: source.product?.id,
+          duration: Number(videoDuration) === 10 ? 10 : 5,
+          videoResolution: videoRes,
+        }),
+      }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["ai-fashion-jobs"] }),
+  });
+
   return (
     <div className="space-y-6">
       <div>
@@ -65,18 +87,39 @@ export default function AiFashionImagesPage() {
       </div>
       <AiFashionNav />
 
-      <Select
-        label="Status"
-        value={status}
-        onValueChange={setStatus}
-        options={[
-          { value: "all", label: "All" },
-          { value: "QUEUED", label: "Queued" },
-          { value: "PROCESSING", label: "Processing" },
-          { value: "COMPLETED", label: "Completed" },
-          { value: "FAILED", label: "Failed" },
-        ]}
-      />
+      <div className="flex flex-wrap items-end gap-3">
+        <Select
+          label="Status"
+          value={status}
+          onValueChange={setStatus}
+          options={[
+            { value: "all", label: "All" },
+            { value: "QUEUED", label: "Queued" },
+            { value: "PROCESSING", label: "Processing" },
+            { value: "COMPLETED", label: "Completed" },
+            { value: "FAILED", label: "Failed" },
+          ]}
+        />
+        <Select
+          label="Video duration"
+          value={videoDuration}
+          onValueChange={setVideoDuration}
+          options={[
+            { value: "5", label: "5 seconds" },
+            { value: "10", label: "10 seconds" },
+          ]}
+        />
+        <Select
+          label="Video resolution"
+          value={videoRes}
+          onValueChange={setVideoRes}
+          options={[
+            { value: "480p", label: "480p" },
+            { value: "720p", label: "720p" },
+            { value: "1080p", label: "1080p" },
+          ]}
+        />
+      </div>
 
       {list.isLoading ? <LoadingState label="Loading…" /> : null}
       {list.isError ? (
@@ -87,17 +130,30 @@ export default function AiFashionImagesPage() {
           retryLabel="Retry"
         />
       ) : null}
+      {makeVideo.isError ? (
+        <p className="text-sm text-danger">{(makeVideo.error as Error).message}</p>
+      ) : null}
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {(list.data?.data ?? []).map((j) => (
           <Card key={j.id} className="overflow-hidden p-0">
             <div className="aspect-[3/4] bg-linen">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src={j.outputImageUrl || j.inputImageUrl}
-                alt=""
-                className="h-full w-full object-cover"
-              />
+              {isVideoJob(j) && j.outputImageUrl ? (
+                <video
+                  src={j.outputImageUrl}
+                  className="h-full w-full object-cover"
+                  muted
+                  playsInline
+                  controls
+                />
+              ) : (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={j.outputImageUrl || j.inputImageUrl}
+                  alt=""
+                  className="h-full w-full object-cover"
+                />
+              )}
             </div>
             <div className="space-y-2 p-3 text-sm">
               <div className="flex items-center justify-between gap-2">
@@ -128,6 +184,16 @@ export default function AiFashionImagesPage() {
                 <Button type="button" variant="outline" onClick={() => setPreview(j)}>
                   Preview
                 </Button>
+                {j.status === "COMPLETED" && !isVideoJob(j) ? (
+                  <Button
+                    type="button"
+                    variant="outline"
+                    disabled={makeVideo.isPending}
+                    onClick={() => makeVideo.mutate(j)}
+                  >
+                    Generate video
+                  </Button>
+                ) : null}
                 {j.status === "COMPLETED" && j.product ? (
                   <>
                     <Button type="button" onClick={() => approve.mutate({ id: j.id, as: "gallery" })}>
@@ -165,12 +231,21 @@ export default function AiFashionImagesPage() {
       <Modal open={Boolean(preview)} onOpenChange={(o) => !o && setPreview(null)} title="Preview">
         {preview ? (
           <div className="space-y-3">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src={preview.outputImageUrl || preview.inputImageUrl}
-              alt=""
-              className="max-h-[70vh] w-full object-contain"
-            />
+            {isVideoJob(preview) && preview.outputImageUrl ? (
+              <video
+                src={preview.outputImageUrl}
+                className="max-h-[70vh] w-full"
+                controls
+                playsInline
+              />
+            ) : (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={preview.outputImageUrl || preview.inputImageUrl}
+                alt=""
+                className="max-h-[70vh] w-full object-contain"
+              />
+            )}
             <p className="text-sm text-muted">
               {preview.product?.name ?? preview.type} · {preview.status}
             </p>

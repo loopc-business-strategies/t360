@@ -7,6 +7,7 @@ import {
   FashionAIProvider,
   FashionJobResult,
   FashionRunResult,
+  ImageToVideoInput,
   ProductToModelInput,
   ProviderCapabilityError,
   VirtualTryOnInput,
@@ -24,23 +25,23 @@ export class MockFashionAiProvider implements FashionAIProvider {
   }
 
   async productToModel(input: ProductToModelInput): Promise<FashionRunResult> {
-    return this.enqueue(input.productImageUrl);
+    return this.enqueue(input.productImageUrl, "png");
   }
 
   async virtualTryOn(input: VirtualTryOnInput): Promise<FashionRunResult> {
-    return this.enqueue(input.productImageUrl);
+    return this.enqueue(input.productImageUrl, "png");
   }
 
   async createModel(input: CreateModelInput): Promise<FashionRunResult> {
-    return this.enqueue(input.prompt);
+    return this.enqueue(input.prompt, "png");
   }
 
   async removeBackground(_input: { imageUrl: string }): Promise<FashionRunResult> {
     throw new ProviderCapabilityError("removeBackground");
   }
 
-  async generateVideo(_input: { imageUrl: string; duration?: 5 | 10 }): Promise<FashionRunResult> {
-    throw new ProviderCapabilityError("generateVideo");
+  async generateVideo(input: ImageToVideoInput): Promise<FashionRunResult> {
+    return this.enqueue(input.imageUrl, "mp4");
   }
 
   async getJobStatus(jobId: string): Promise<FashionJobResult> {
@@ -51,7 +52,7 @@ export class MockFashionAiProvider implements FashionAIProvider {
     return job;
   }
 
-  private async enqueue(seed: string): Promise<FashionRunResult> {
+  private async enqueue(seed: string, ext: "png" | "mp4"): Promise<FashionRunResult> {
     if (this.failNext) {
       this.failNext = false;
       const id = `mock_fail_${++this.counter}`;
@@ -64,8 +65,8 @@ export class MockFashionAiProvider implements FashionAIProvider {
     const id = `mock_${++this.counter}_${Buffer.from(seed).toString("base64url").slice(0, 8)}`;
     this.jobs.set(id, {
       status: "completed",
-      outputUrls: [`https://cdn.example.test/ai-fashion/${id}.png`],
-      creditsUsed: 1,
+      outputUrls: [`https://cdn.example.test/ai-fashion/${id}.${ext}`],
+      creditsUsed: ext === "mp4" ? 3 : 1,
     });
     if (this.delayMs > 0) {
       await new Promise((r) => setTimeout(r, this.delayMs));

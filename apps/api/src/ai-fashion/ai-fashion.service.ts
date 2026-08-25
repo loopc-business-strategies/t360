@@ -57,6 +57,7 @@ type FashionConfig = {
   productToModelEnabled: boolean;
   virtualTryOnEnabled: boolean;
   modelCreationEnabled: boolean;
+  videoEnabled: boolean;
   requireApproval: boolean;
   maxImagesPerJob: number;
   maxConcurrentJobs: number;
@@ -66,14 +67,15 @@ const DEFAULT_CONFIG: FashionConfig = {
   defaultNumImages: 1,
   defaultModelId: null,
   autoGenerateOnCreate: false,
-  dailyLimit: 50,
-  monthlyLimit: 500,
+  dailyLimit: 20,
+  monthlyLimit: 200,
   defaultResolution: "1k",
-  defaultGenerationMode: "balanced",
+  defaultGenerationMode: "fast",
   maintenanceMode: false,
   productToModelEnabled: true,
   virtualTryOnEnabled: true,
   modelCreationEnabled: true,
+  videoEnabled: false,
   requireApproval: true,
   maxImagesPerJob: 4,
   maxConcurrentJobs: 6,
@@ -160,6 +162,7 @@ export class AiFashionService {
       productToModelEnabled: input.productToModelEnabled ?? current.productToModelEnabled,
       virtualTryOnEnabled: input.virtualTryOnEnabled ?? current.virtualTryOnEnabled,
       modelCreationEnabled: input.modelCreationEnabled ?? current.modelCreationEnabled,
+      videoEnabled: input.videoEnabled ?? current.videoEnabled,
       requireApproval: input.requireApproval ?? current.requireApproval,
       maxImagesPerJob: input.maxImagesPerJob ?? current.maxImagesPerJob,
       maxConcurrentJobs: input.maxConcurrentJobs ?? current.maxConcurrentJobs,
@@ -182,19 +185,64 @@ export class AiFashionService {
   }
 
   async getUsage(days = 30) {
-    const since = new Date();
-    since.setDate(since.getDate() - days);
-    const rows = await this.prisma.aiFashionUsage.findMany({
-      where: { createdAt: { gte: since } },
-      orderBy: { createdAt: "desc" },
-      take: 200,
-    });
-    const creditsUsed = rows.reduce((sum, r) => sum + (r.creditsUsed ?? 0), 0);
-    const byStatus = rows.reduce<Record<string, number>>((acc, r) => {
-      acc[r.status] = (acc[r.status] ?? 0) + 1;
-      return acc;
-    }, {});
-    return { since: since.toISOString(), total: rows.length, creditsUsed, byStatus, items: rows };
+    const config = await this.readConfig();
+    const now = new Date();
+    const dayStart = new Date(now);
+    dayStart.setHours(0, 0, 0, 0);
+    const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+
+    const countBy = async (since: Date) => {
+      const [total, completed, failed, processing, queued] = await Promise.all([
+        this.prisma.aiFashionUsage.count({
+          where: { createdAt: { gte: since }, status: { not: "CANCELLED" } },
+        }),
+        this.prisma.aiFashionUsage.count({
+          where: { createdAt: { gte: since }, status: "COMPLETED" },
+        }),
+        this.prisma.aiFashionUsage.count({
+          where: { createdAt: { gte: since }, status: "FAILED" },
+        }),
+        this.prisma.aiFashionUsage.count({
+          where: { createdAt: { gte: since }, status: "PROCESSING" },
+        }),
+        this.prisma.aiFashionUsage.count({
+          where: { createdAt: { gte: since }, status: "QUEUED" },
+        }),
+      ]);
+      return { total, completed, failed, processing, queued };
+    };
+
+    const [today, month, recentRows] = await Promise.all([
+      countBy(dayStart),
+      countBy(monthStart),
+      this.prisma.aiFashionUsage.findMany({
+        where: {
+          createdAt: { gte: new Date(now.getTime() - days * 24 * 60 * 60 * 1000) },
+        },
+        orderBy: { createdAt: "desc" },
+        take: 100,
+      }),
+    ]);
+
+    const dailyLimit = config.dailyLimit;
+    const monthlyLimit = config.monthlyLimit;
+    const creditsUsed = recentRows.reduce((sum, r) => sum + (r.creditsUsed ?? 0), 0);
+
+    return {
+      today,
+      month,
+      limits: {
+        dailyLimit,
+        dailyRemaining: Math.max(0, dailyLimit - today.total),
+        monthlyLimit,
+        monthlyRemaining: Math.max(0, monthlyLimit - month.total),
+      },
+      /** Provider cost is unknown unless credits are present; never invent currency. */
+      creditsUsed,
+      since: dayStart.toISOString(),
+      windowDays: days,
+      items: recentRows,
+    };
   }
 
   // --- Models ---
@@ -346,8 +394,13 @@ export class AiFashionService {
   // --- Jobs ---
 
   async generate(input: AiFashionGenerateInput, userId: string) {
-    await this.assertReady(input.type ?? "PRODUCT_TO_MODEL");
+    const type = input.type ?? "PRODUCT_TO_MODEL";
+    await this.assertReady(type);
     await this.assertWithinLimits(userId);
+
+    if (type === "IMAGE_TO_VIDEO") {
+      return this.generateVideo(input, userId);
+    }
 
     const config = await this.readConfig();
     const requestedImages = input.numImages ?? config.defaultNumImages;
@@ -355,6 +408,13 @@ export class AiFashionService {
       throw new BadRequestException({
         code: "MAX_IMAGES",
         message: `Maximum images per job is ${config.maxImagesPerJob}`,
+      });
+    }
+
+    if (!input.productId) {
+      throw new BadRequestException({
+        code: "PRODUCT_REQUIRED",
+        message: "productId is required",
       });
     }
 
@@ -392,7 +452,7 @@ export class AiFashionService {
       throw new BadRequestException({ code: validation.code, message: validation.message });
     }
 
-    if (input.type === "VIRTUAL_TRY_ON" && !input.personImageUrl) {
+    if (type === "VIRTUAL_TRY_ON" && !input.personImageUrl) {
       throw new BadRequestException({
         code: "PERSON_IMAGE_REQUIRED",
         message: "personImageUrl is required for virtual try-on",
@@ -416,7 +476,7 @@ export class AiFashionService {
       where: {
         productId: product.id,
         inputImageUrl,
-        type: input.type,
+        type,
         modelId,
         status: { in: ["QUEUED", "PROCESSING"] },
       },
@@ -429,12 +489,12 @@ export class AiFashionService {
       });
     }
 
-    const prompt = this.buildProductPrompt(input);
+    const prompt = this.buildProductPrompt({ ...input, type, productId: product.id });
     const job = await this.prisma.aiGeneratedImage.create({
       data: {
         productId: product.id,
         modelId,
-        type: input.type,
+        type,
         status: "QUEUED",
         inputImageUrl,
         personImageUrl: input.personImageUrl ?? null,
@@ -449,6 +509,7 @@ export class AiFashionService {
           generationMode: input.generationMode ?? config.defaultGenerationMode,
           modelImageUrl,
           qualityWarning: validation.warning,
+          mediaKind: "image",
         } as Prisma.InputJsonValue,
         createdBy: userId,
       },
@@ -457,7 +518,7 @@ export class AiFashionService {
     await this.prisma.aiFashionUsage.create({
       data: {
         provider: this.provider.name,
-        generationType: input.type,
+        generationType: type,
         productId: product.id,
         userId,
         jobId: job.id,
@@ -471,7 +532,7 @@ export class AiFashionService {
       action: "ai_fashion.generate",
       entityType: "AiGeneratedImage",
       entityId: job.id,
-      metadata: { productId: product.id, type: input.type },
+      metadata: { productId: product.id, type },
     });
 
     const result = await this.getJob(job.id);
@@ -479,6 +540,122 @@ export class AiFashionService {
       ...result,
       warning: validation.warning,
     };
+  }
+
+  private async generateVideo(input: AiFashionGenerateInput, userId: string) {
+    const config = await this.readConfig();
+    let productId = input.productId ?? null;
+    let inputImageUrl = input.inputImageUrl;
+    let sourceJobId = input.sourceJobId ?? null;
+
+    if (sourceJobId) {
+      const source = await this.prisma.aiGeneratedImage.findUnique({ where: { id: sourceJobId } });
+      if (!source) {
+        throw new NotFoundException({ code: "SOURCE_JOB_NOT_FOUND", message: "Source job not found" });
+      }
+      if (source.status !== "COMPLETED" || !source.outputImageUrl) {
+        throw new BadRequestException({
+          code: "SOURCE_NOT_READY",
+          message: "Source job must be a completed still image",
+        });
+      }
+      if (source.type === "IMAGE_TO_VIDEO") {
+        throw new BadRequestException({
+          code: "INVALID_SOURCE",
+          message: "Cannot generate video from another video job",
+        });
+      }
+      inputImageUrl = source.outputImageUrl;
+      productId = productId ?? source.productId;
+    }
+
+    if (!inputImageUrl && productId && input.productImageId) {
+      const img = await this.prisma.productImage.findFirst({
+        where: { id: input.productImageId, productId },
+      });
+      if (!img) {
+        throw new BadRequestException({
+          code: "IMAGE_NOT_FOUND",
+          message: "Product image not found on this product",
+        });
+      }
+      if (img.mediaType === "video") {
+        throw new BadRequestException({
+          code: "INVALID_SOURCE",
+          message: "Cannot generate video from a video media item",
+        });
+      }
+      inputImageUrl = img.url;
+    }
+
+    if (!inputImageUrl && productId) {
+      const first = await this.prisma.productImage.findFirst({
+        where: { productId, mediaType: "image" },
+        orderBy: { sortOrder: "asc" },
+      });
+      inputImageUrl = first?.url;
+    }
+
+    if (!inputImageUrl) {
+      throw new BadRequestException({
+        code: "IMAGE_REQUIRED",
+        message: "A source still image is required for video generation",
+      });
+    }
+
+    if (productId) {
+      const product = await this.prisma.product.findFirst({
+        where: { id: productId, deletedAt: null },
+      });
+      if (!product) {
+        throw new NotFoundException({ code: "PRODUCT_NOT_FOUND", message: "Product not found" });
+      }
+    }
+
+    const duration = input.duration ?? 5;
+    const videoResolution = input.videoResolution ?? "720p";
+    const prompt = input.customPrompt?.trim() || null;
+
+    const job = await this.prisma.aiGeneratedImage.create({
+      data: {
+        productId,
+        type: "IMAGE_TO_VIDEO",
+        status: "QUEUED",
+        inputImageUrl,
+        provider: this.provider.name,
+        prompt,
+        params: {
+          mediaKind: "video",
+          duration,
+          videoResolution,
+          sourceJobId,
+          endImageUrl: input.endImageUrl,
+        } as Prisma.InputJsonValue,
+        createdBy: userId,
+      },
+    });
+
+    await this.prisma.aiFashionUsage.create({
+      data: {
+        provider: this.provider.name,
+        generationType: "IMAGE_TO_VIDEO",
+        productId,
+        userId,
+        jobId: job.id,
+        status: "QUEUED",
+      },
+    });
+
+    await this.queue.enqueue({ generatedImageId: job.id });
+    await this.audit.log({
+      actorId: userId,
+      action: "ai_fashion.generate_video",
+      entityType: "AiGeneratedImage",
+      entityId: job.id,
+      metadata: { productId, duration, videoResolution, sourceJobId },
+    });
+
+    return this.getJob(job.id);
   }
 
   /** Fire-and-forget helper for product create when generateAiFashion is requested or autoGenerateOnCreate is on */
@@ -578,7 +755,7 @@ export class AiFashionService {
       });
     }
     await this.assertReady(
-      job.type as "PRODUCT_TO_MODEL" | "VIRTUAL_TRY_ON" | "MODEL_CREATED",
+      job.type as "PRODUCT_TO_MODEL" | "VIRTUAL_TRY_ON" | "MODEL_CREATED" | "IMAGE_TO_VIDEO",
     );
     await this.assertWithinLimits(userId);
 
@@ -612,7 +789,7 @@ export class AiFashionService {
     if (job.status !== "COMPLETED" || !job.outputImageUrl) {
       throw new BadRequestException({
         code: "NOT_READY",
-        message: "Only completed generations with an output image can be approved",
+        message: "Only completed generations with an output can be approved",
       });
     }
     if (!job.productId) {
@@ -662,6 +839,10 @@ export class AiFashionService {
       );
     }
 
+    const jobParams = (job.params ?? {}) as Record<string, unknown>;
+    const mediaType =
+      job.type === "IMAGE_TO_VIDEO" || jobParams.mediaKind === "video" ? "video" : "image";
+
     const imageCount = await this.prisma.productImage.count({
       where: { productId: job.productId },
     });
@@ -671,7 +852,8 @@ export class AiFashionService {
         productId: job.productId,
         url: job.outputImageUrl,
         publicId: job.outputPublicId,
-        alt: "AI Fashion",
+        alt: mediaType === "video" ? "AI Fashion Video" : "AI Fashion",
+        mediaType,
         sortOrder,
       },
     });
@@ -753,6 +935,14 @@ export class AiFashionService {
           resolution,
           generationMode,
         });
+      } else if (job.type === "IMAGE_TO_VIDEO") {
+        run = await this.provider.generateVideo({
+          imageUrl: job.inputImageUrl,
+          prompt: job.prompt ?? undefined,
+          duration: (Number(params.duration) === 10 ? 10 : 5) as 5 | 10,
+          resolution: (params.videoResolution as "480p" | "720p" | "1080p") || "720p",
+          endImageUrl: (params.endImageUrl as string | undefined) || undefined,
+        });
       } else if (job.type === "VIRTUAL_TRY_ON") {
         if (!job.personImageUrl) {
           throw new FashionProviderError("IMAGE_INVALID", "Person image is required");
@@ -783,7 +973,8 @@ export class AiFashionService {
         data: { providerJobId: run.jobId },
       });
 
-      const status = await this.pollProvider(run.jobId);
+      const pollMs = job.type === "IMAGE_TO_VIDEO" ? 600_000 : 300_000;
+      const status = await this.pollProvider(run.jobId, pollMs);
       if (status.status !== "completed" || !status.outputUrls?.[0]) {
         throw new FashionProviderError(
           status.error?.code ?? "GENERATION_FAILED",
@@ -791,10 +982,18 @@ export class AiFashionService {
         );
       }
 
+      const isVideo = job.type === "IMAGE_TO_VIDEO" || params.mediaKind === "video";
       const folder = job.productId
         ? `t360/products/${job.productId}/ai-fashion/${job.id}`
         : `t360/ai-fashion/models/${job.id}`;
-      const asset = await this.media.uploadFromUrl(status.outputUrls[0], folder);
+      const asset = await this.media.uploadFromUrl(status.outputUrls[0], folder, {
+        resourceType: isVideo ? "video" : "image",
+      });
+
+      const nextParams = {
+        ...params,
+        mediaKind: isVideo ? "video" : (params.mediaKind ?? "image"),
+      };
 
       await this.prisma.aiGeneratedImage.update({
         where: { id: job.id },
@@ -802,6 +1001,7 @@ export class AiFashionService {
           status: "COMPLETED",
           outputImageUrl: asset.url,
           outputPublicId: asset.publicId,
+          params: nextParams as Prisma.InputJsonValue,
           completedAt: new Date(),
           error: null,
           errorDetail: null,
@@ -891,7 +1091,9 @@ export class AiFashionService {
     throw new FashionProviderError("TIMEOUT", "AI generation timed out. Please try again.");
   }
 
-  private async assertReady(mode?: "PRODUCT_TO_MODEL" | "VIRTUAL_TRY_ON" | "MODEL_CREATED") {
+  private async assertReady(
+    mode?: "PRODUCT_TO_MODEL" | "VIRTUAL_TRY_ON" | "MODEL_CREATED" | "IMAGE_TO_VIDEO",
+  ) {
     const enabledRow = await this.prisma.systemSetting.findUnique({
       where: { key: "ai.fashion.enabled" },
     });
@@ -932,6 +1134,12 @@ export class AiFashionService {
       throw new BadRequestException({
         code: "MODE_DISABLED",
         message: "AI Model creation is disabled.",
+      });
+    }
+    if (mode === "IMAGE_TO_VIDEO" && !config.videoEnabled) {
+      throw new BadRequestException({
+        code: "MODE_DISABLED",
+        message: "AI Fashion video generation is disabled. Enable it in AI Settings.",
       });
     }
 
@@ -1075,8 +1283,13 @@ export class AiFashionService {
     return bits.filter(Boolean).join(", ");
   }
 
-  private sanitizeJob<T extends { errorDetail?: string | null }>(job: T) {
+  private sanitizeJob<T extends { errorDetail?: string | null; params?: unknown; type?: string }>(
+    job: T,
+  ) {
     const { errorDetail: _detail, ...rest } = job;
-    return rest;
+    const params = (job.params ?? {}) as Record<string, unknown>;
+    const mediaKind =
+      job.type === "IMAGE_TO_VIDEO" || params.mediaKind === "video" ? "video" : "image";
+    return { ...rest, mediaKind };
   }
 }

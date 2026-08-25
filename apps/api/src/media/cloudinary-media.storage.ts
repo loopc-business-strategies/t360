@@ -22,14 +22,18 @@ export class CloudinaryMediaStorage implements MediaStorage {
     this.configured = true;
   }
 
-  async uploadFromUrl(url: string, publicId?: string): Promise<MediaAsset> {
+  async uploadFromUrl(
+    url: string,
+    publicId?: string,
+    opts?: { resourceType?: "image" | "video" | "auto" },
+  ): Promise<MediaAsset> {
     this.ensureConfigured();
     try {
       const result = await cloudinary.uploader.upload(url, {
         folder: publicId?.includes("/") ? undefined : "t360",
         public_id: publicId,
         overwrite: false,
-        resource_type: "image",
+        resource_type: opts?.resourceType ?? "image",
       });
       return {
         url: result.secure_url ?? result.url,

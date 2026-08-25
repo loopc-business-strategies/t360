@@ -19,10 +19,11 @@ function createService(overrides?: {
               defaultNumImages: 1,
               defaultModelId: null,
               autoGenerateOnCreate: false,
-              dailyLimit: 50,
-              monthlyLimit: 500,
+              dailyLimit: 20,
+              monthlyLimit: 200,
               defaultResolution: "1k",
-              defaultGenerationMode: "balanced",
+              defaultGenerationMode: "fast",
+              videoEnabled: false,
             },
           };
         }
@@ -34,7 +35,7 @@ function createService(overrides?: {
       findFirst: jest.fn().mockResolvedValue({
         id: "prod-1",
         deletedAt: null,
-        images: [{ id: "img-1", url: "https://cdn.example.com/shirt.jpg", sortOrder: 0 }],
+        images: [{ id: "img-1", url: "https://cdn.example.com/shirt.jpg", sortOrder: 0, mediaType: "image" }],
       }),
     },
     aiFashionModel: {
@@ -164,13 +165,14 @@ describe("AiFashionService", () => {
             modelCreationEnabled: true,
             maxConcurrentJobs: 6,
             maxImagesPerJob: 4,
-            dailyLimit: 50,
-            monthlyLimit: 500,
+            dailyLimit: 20,
+            monthlyLimit: 200,
             defaultNumImages: 1,
             defaultModelId: null,
             autoGenerateOnCreate: false,
             defaultResolution: "1k",
-            defaultGenerationMode: "balanced",
+            defaultGenerationMode: "fast",
+            videoEnabled: false,
           },
         };
       }

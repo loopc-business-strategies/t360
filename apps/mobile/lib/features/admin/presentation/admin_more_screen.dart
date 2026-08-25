@@ -33,6 +33,18 @@ class _AdminMoreScreenState extends ConsumerState<AdminMoreScreen> {
       appBar: AppBar(title: const Text('More')),
       body: ListView(
         children: [
+          if (adminHasAny(_perms, ['staff.manage']))
+            ListTile(
+              leading: const Icon(Icons.badge_outlined),
+              title: const Text('Staff'),
+              onTap: () => context.push('/admin/staff'),
+            ),
+          if (adminHasAny(_perms, ['roles.manage']))
+            ListTile(
+              leading: const Icon(Icons.security_outlined),
+              title: const Text('Roles'),
+              onTap: () => context.push('/admin/roles'),
+            ),
           if (adminHasAny(_perms, ['inventory.read']))
             ListTile(
               leading: const Icon(Icons.warehouse_outlined),
@@ -45,17 +57,35 @@ class _AdminMoreScreenState extends ConsumerState<AdminMoreScreen> {
               title: const Text('AI Models'),
               onTap: () => context.push('/admin/ai-models'),
             ),
-          if (adminHasAny(_perms, ['ai_settings.view', 'settings.manage']))
+          if (adminHasAny(_perms, ['ai_fashion.view', 'ai.fashion']))
             ListTile(
-              leading: const Icon(Icons.settings_outlined),
-              title: const Text('AI Settings'),
-              onTap: () => context.push('/admin/ai-settings'),
+              leading: const Icon(Icons.image_outlined),
+              title: const Text('AI Images'),
+              onTap: () => context.push('/admin/ai-images'),
+            ),
+          if (adminHasAny(_perms, ['ai_fashion.view', 'ai.fashion']))
+            ListTile(
+              leading: const Icon(Icons.bar_chart_outlined),
+              title: const Text('AI Usage'),
+              onTap: () => context.push('/admin/ai-usage'),
             ),
           ListTile(
             leading: const Icon(Icons.notifications_outlined),
             title: const Text('Notifications'),
             onTap: () => context.push('/admin/notifications'),
           ),
+          if (adminHasAny(_perms, ['audit.read']))
+            ListTile(
+              leading: const Icon(Icons.history),
+              title: const Text('Audit Logs'),
+              onTap: () => context.push('/admin/audit'),
+            ),
+          if (adminHasAny(_perms, ['ai_settings.view', 'settings.manage']))
+            ListTile(
+              leading: const Icon(Icons.settings_outlined),
+              title: const Text('AI Settings'),
+              onTap: () => context.push('/admin/ai-settings'),
+            ),
           ListTile(
             leading: const Icon(Icons.person_outline),
             title: const Text('Profile'),

@@ -4,7 +4,11 @@ import { MediaAsset, MediaStorage } from "./media-storage";
 /** Dev/mock adapter — stores URL as-is. Label: not Cloudinary. */
 @Injectable()
 export class MockMediaStorage implements MediaStorage {
-  async uploadFromUrl(url: string, publicId?: string): Promise<MediaAsset> {
+  async uploadFromUrl(
+    url: string,
+    publicId?: string,
+    _opts?: { resourceType?: "image" | "video" | "auto" },
+  ): Promise<MediaAsset> {
     return { url, publicId: publicId ?? `mock/${Date.now()}` };
   }
 
