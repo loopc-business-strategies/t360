@@ -28,7 +28,7 @@ class AppStrings {
 
   String _t(String en, String ta) => _l == 'ta' ? ta : en;
 
-  String get brand => _t('THARAGAI', 'தராகை');
+  String get brand => _t('THARAGAI', 'தாரகை');
   String get tagline => _t('Readymades for every celebration', 'எல்லா கொண்டாட்டங்களுக்கும் ரெடிமேட்ஸ்');
   String get home => _t('Home', 'முகப்பு');
   String get categories => _t('Categories', 'வகைகள்');
@@ -94,10 +94,10 @@ class AppStrings {
   String get prefWhatsapp => _t('WhatsApp offers', 'WhatsApp சலுகைகள்');
   String get registerDevice => _t('Register device (stub)', 'சாதனம் பதிவு (ஸ்டப்)');
   String get wishlistLogin => _t('Sign in to save favourites', 'பிடித்தவற்றை சேமிக்க உள்நுழையவும்');
-  String get aiTitle => _t('Tharagai AI', 'தராகை AI');
+  String get aiTitle => _t('Tharagai AI', 'தாரகை AI');
   String get aiHint => _t('Ask about products…', 'பொருட்களைப் பற்றி கேளுங்கள்…');
   String get send => _t('Send', 'அனுப்பு');
-  String get openAi => _t('Tharagai AI chat', 'தராகை AI அரட்டை');
+  String get openAi => _t('Tharagai AI chat', 'தாரகை AI அரட்டை');
 }
 
 @immutable

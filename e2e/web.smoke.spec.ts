@@ -7,7 +7,7 @@ test.describe("web smoke", () => {
 
   test("home loads brand", async ({ page }) => {
     await page.goto("/");
-    await expect(page.getByText(/THARAGAI|தராகை/i).first()).toBeVisible();
+    await expect(page.getByText(/THARAGAI|தாரகை/i).first()).toBeVisible();
   });
 
   test("products page loads", async ({ page }) => {

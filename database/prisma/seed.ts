@@ -471,7 +471,7 @@ async function main() {
       code: "order.confirmed",
       channel: "sms",
       locale: "ta",
-      body: "தராகை: ஆர்டர் {{number}} உறுதி. மொத்தம் ₹{{total}}.",
+      body: "தாரகை: ஆர்டர் {{number}} உறுதி. மொத்தம் ₹{{total}}.",
     },
     {
       code: "campaign.broadcast",
