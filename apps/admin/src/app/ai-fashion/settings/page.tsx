@@ -30,9 +30,15 @@ type Settings = {
 type FashionModel = { id: string; name: string };
 
 type Usage = {
-  total: number;
+  today: { total: number; completed: number; failed: number; processing: number; queued: number };
+  month: { total: number; completed: number; failed: number; processing: number; queued: number };
+  limits: {
+    dailyLimit: number;
+    dailyRemaining: number;
+    monthlyLimit: number;
+    monthlyRemaining: number;
+  };
   creditsUsed: number;
-  byStatus: Record<string, number>;
 };
 
 export default function AiFashionSettingsPage() {
@@ -100,6 +106,15 @@ export default function AiFashionSettingsPage() {
   }
 
   const s = settings.data.data;
+  const modelOptions = [
+    { value: "none", label: "None (product-to-model)" },
+    ...(models.data?.data ?? []).map((m) => ({ value: m.id, label: m.name })),
+  ];
+  const defaultModelSelectValue = modelOptions.some(
+    (o) => o.value === (form.defaultModelId ?? "none"),
+  )
+    ? (form.defaultModelId ?? "none")
+    : "none";
 
   return (
     <div className="space-y-6">
@@ -191,14 +206,11 @@ export default function AiFashionSettingsPage() {
 
         <Select
           label="Default model"
-          value={form.defaultModelId ?? "none"}
+          value={defaultModelSelectValue}
           onValueChange={(v) =>
             setForm((f) => ({ ...f, defaultModelId: v === "none" ? null : v }))
           }
-          options={[
-            { value: "none", label: "None (product-to-model)" },
-            ...(models.data?.data ?? []).map((m) => ({ value: m.id, label: m.name })),
-          ]}
+          options={modelOptions}
         />
         <Select
           label="Default generation count"
@@ -263,27 +275,33 @@ export default function AiFashionSettingsPage() {
       </Card>
 
       <Card>
-        <h2 className="font-display text-xl">Usage (30 days)</h2>
+        <h2 className="font-display text-xl">Usage</h2>
         {usage.isLoading ? <LoadingState label="…" /> : null}
         {usage.data?.data ? (
           <dl className="mt-3 grid gap-2 text-sm sm:grid-cols-3">
             <div>
-              <dt className="text-muted">Generations</dt>
-              <dd className="font-display text-2xl">{usage.data.data.total}</dd>
-            </div>
-            <div>
-              <dt className="text-muted">Credits used</dt>
-              <dd className="font-display text-2xl">{usage.data.data.creditsUsed}</dd>
-            </div>
-            <div>
-              <dt className="text-muted">By status</dt>
-              <dd className="text-sm">
-                {Object.entries(usage.data.data.byStatus)
-                  .map(([k, v]) => `${k}: ${v}`)
-                  .join(" · ") || "—"}
+              <dt className="text-muted">Today</dt>
+              <dd className="font-display text-2xl">{usage.data.data.today.total}</dd>
+              <dd className="text-xs text-muted">
+                {usage.data.data.limits.dailyRemaining} left of {usage.data.data.limits.dailyLimit}
               </dd>
             </div>
+            <div>
+              <dt className="text-muted">This month</dt>
+              <dd className="font-display text-2xl">{usage.data.data.month.total}</dd>
+              <dd className="text-xs text-muted">
+                {usage.data.data.limits.monthlyRemaining} left of{" "}
+                {usage.data.data.limits.monthlyLimit}
+              </dd>
+            </div>
+            <div>
+              <dt className="text-muted">Credits used (window)</dt>
+              <dd className="font-display text-2xl">{usage.data.data.creditsUsed}</dd>
+            </div>
           </dl>
+        ) : null}
+        {usage.isError ? (
+          <p className="mt-2 text-sm text-danger">{usage.error?.message ?? "Failed to load usage"}</p>
         ) : null}
       </Card>
     </div>
