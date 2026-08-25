@@ -3,6 +3,8 @@ import 'api_exception.dart';
 import 'env.dart';
 import 'token_storage.dart';
 
+enum _RefreshOutcome { ok, authFailed, networkFailed, noToken }
+
 class ApiClient {
   ApiClient({
     required TokenStorage tokens,
@@ -34,8 +36,8 @@ class ApiClient {
         onError: (error, handler) async {
           if (error.response?.statusCode == 401 &&
               error.requestOptions.extra['retried'] != true) {
-            final refreshed = await _tryRefresh();
-            if (refreshed) {
+            final outcome = await _tryRefresh();
+            if (outcome == _RefreshOutcome.ok) {
               final req = error.requestOptions;
               req.extra['retried'] = true;
               final access = await _tokens.getAccess();
@@ -45,11 +47,25 @@ class ApiClient {
               try {
                 final response = await _dio.fetch(req);
                 return handler.resolve(response);
-              } catch (e) {
+              } catch (_) {
                 return handler.next(error);
               }
             }
-            onSessionExpired?.call();
+            if (outcome == _RefreshOutcome.authFailed ||
+                outcome == _RefreshOutcome.noToken) {
+              onSessionExpired?.call();
+              return handler.next(error);
+            }
+            if (outcome == _RefreshOutcome.networkFailed) {
+              return handler.next(
+                DioException(
+                  requestOptions: error.requestOptions,
+                  type: DioExceptionType.connectionError,
+                  message: 'Server temporarily unavailable. Please try again.',
+                  error: error.error,
+                ),
+              );
+            }
           }
           handler.next(error);
         },
@@ -60,30 +76,70 @@ class ApiClient {
   final TokenStorage _tokens;
   final void Function()? onSessionExpired;
   late final Dio _dio;
+  Future<_RefreshOutcome>? _refreshInFlight;
 
   Dio get dio => _dio;
 
-  Future<bool> _tryRefresh() async {
-    final refresh = await _tokens.getRefresh();
-    if (refresh == null || refresh.isEmpty) return false;
+  Future<_RefreshOutcome> _tryRefresh() async {
+    if (_refreshInFlight != null) return _refreshInFlight!;
+    _refreshInFlight = () async {
+      final refresh = await _tokens.getRefresh();
+      if (refresh == null || refresh.isEmpty) return _RefreshOutcome.noToken;
+      try {
+        final res = await Dio(
+          BaseOptions(
+            baseUrl: AppEnv.apiBaseUrl,
+            connectTimeout: const Duration(seconds: 20),
+            receiveTimeout: const Duration(seconds: 30),
+          ),
+        ).post<Map<String, dynamic>>(
+          '/auth/refresh',
+          data: {'refreshToken': refresh},
+        );
+        final data = res.data;
+        if (data == null || data['success'] != true) {
+          await _tokens.clear();
+          return _RefreshOutcome.authFailed;
+        }
+        final payload = data['data'] as Map<String, dynamic>?;
+        final access = payload?['accessToken']?.toString();
+        final nextRefresh = payload?['refreshToken']?.toString();
+        if (access == null ||
+            access.isEmpty ||
+            nextRefresh == null ||
+            nextRefresh.isEmpty) {
+          await _tokens.clear();
+          return _RefreshOutcome.authFailed;
+        }
+        await _tokens.saveTokens(access: access, refresh: nextRefresh);
+        return _RefreshOutcome.ok;
+      } on DioException catch (e) {
+        final code = e.response?.statusCode;
+        if (code == 401 || code == 403) {
+          await _tokens.clear();
+          return _RefreshOutcome.authFailed;
+        }
+        // Timeouts / connection errors: keep tokens
+        if (e.type == DioExceptionType.connectionTimeout ||
+            e.type == DioExceptionType.sendTimeout ||
+            e.type == DioExceptionType.receiveTimeout ||
+            e.type == DioExceptionType.connectionError ||
+            e.type == DioExceptionType.unknown) {
+          return _RefreshOutcome.networkFailed;
+        }
+        if (code != null && code >= 500) {
+          return _RefreshOutcome.networkFailed;
+        }
+        await _tokens.clear();
+        return _RefreshOutcome.authFailed;
+      } catch (_) {
+        return _RefreshOutcome.networkFailed;
+      }
+    }();
     try {
-      final res = await Dio(
-        BaseOptions(baseUrl: AppEnv.apiBaseUrl),
-      ).post<Map<String, dynamic>>(
-        '/auth/refresh',
-        data: {'refreshToken': refresh},
-      );
-      final data = res.data;
-      if (data == null || data['success'] != true) return false;
-      final payload = data['data'] as Map<String, dynamic>;
-      await _tokens.saveTokens(
-        access: payload['accessToken'] as String,
-        refresh: payload['refreshToken'] as String,
-      );
-      return true;
-    } catch (_) {
-      await _tokens.clear();
-      return false;
+      return await _refreshInFlight!;
+    } finally {
+      _refreshInFlight = null;
     }
   }
 

@@ -60,6 +60,8 @@ pnpm preflight:env -- --profile staging --file .env.staging
 pnpm preflight:env -- --profile production --file .env.production
 ```
 
+Admin session persistence (web localStorage + mobile refresh): see [ADMIN-SESSION.md](./ADMIN-SESSION.md).
+
 Never commit those files. Production profile fails if providers are `mock` unless `ALLOW_MOCK_PROVIDERS=1`.
 
 ## After deploy

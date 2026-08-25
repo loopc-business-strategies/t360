@@ -4,7 +4,7 @@ import * as React from "react";
 import Link from "next/link";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Badge, Button, EmptyState, ErrorState, Input, LoadingState, Table, TBody, TD, TH, THead, TR } from "@t360/ui";
-import { apiFetch, API_URL } from "../../lib/api";
+import { apiFetch, API_URL, getAdminToken } from "../../lib/api";
 
 type Product = {
   id: string;
@@ -20,11 +20,6 @@ type ImportResult = {
   created: number;
   errors: Array<{ row?: number; sku?: string; errors?: string[]; message?: string } | string>;
 };
-
-function getToken() {
-  if (typeof window === "undefined") return null;
-  return sessionStorage.getItem("t360_admin_token");
-}
 
 export default function ProductsPage() {
   const queryClient = useQueryClient();
@@ -51,7 +46,7 @@ export default function ProductsPage() {
       const form = new FormData();
       form.append("file", file);
       const headers = new Headers();
-      const token = getToken();
+      const token = getAdminToken();
       if (token) headers.set("Authorization", `Bearer ${token}`);
       const res = await fetch(`${API_URL}/admin/products/import`, {
         method: "POST",
