@@ -5,6 +5,17 @@ import 'package:go_router/go_router.dart';
 
 import '../features/ai/presentation/ai_chat_screen.dart';
 import '../features/account/presentation/account_screen.dart';
+import '../features/admin/presentation/admin_ai_screen.dart';
+import '../features/admin/presentation/admin_ai_settings_screen.dart';
+import '../features/admin/presentation/admin_home_screen.dart';
+import '../features/admin/presentation/admin_inventory_screen.dart';
+import '../features/admin/presentation/admin_login_screen.dart';
+import '../features/admin/presentation/admin_more_screen.dart';
+import '../features/admin/presentation/admin_notifications_screen.dart';
+import '../features/admin/presentation/admin_orders_screen.dart';
+import '../features/admin/presentation/admin_products_screen.dart';
+import '../features/admin/presentation/admin_profile_screen.dart';
+import '../features/admin/presentation/admin_shell.dart';
 import '../features/auth/presentation/auth_screen.dart';
 import '../features/cart/presentation/cart_screen.dart';
 import '../features/catalog/presentation/categories_screen.dart';
@@ -28,13 +39,22 @@ final goRouterProvider = Provider<GoRouter>((ref) {
     refreshListenable: _AuthRefresh(ref),
     redirect: (context, state) {
       if (auth.booting) return null;
-      final loggingIn = state.matchedLocation.startsWith('/auth');
-      if (kReleaseMode && state.matchedLocation.startsWith('/gallery')) {
-        return '/';
+      final loc = state.matchedLocation;
+      final loggingIn = loc.startsWith('/auth') || loc.startsWith('/admin/login');
+      if (kReleaseMode && loc.startsWith('/gallery')) return '/';
+
+      if (loc.startsWith('/admin') && !loc.startsWith('/admin/login')) {
+        if (!auth.isLoggedIn || !auth.isStaff) return '/admin/login';
+        return null;
       }
-      final needsAuth = state.matchedLocation.startsWith('/checkout') ||
-          state.matchedLocation.startsWith('/orders') ||
-          state.matchedLocation.startsWith('/ai');
+
+      if (auth.isLoggedIn && auth.isStaff && (loc == '/' || loc == '/account')) {
+        return '/admin';
+      }
+
+      final needsAuth = loc.startsWith('/checkout') ||
+          loc.startsWith('/orders') ||
+          loc.startsWith('/ai');
       if (needsAuth && !auth.isLoggedIn && !loggingIn) {
         final redirect = Uri.encodeComponent(state.uri.toString());
         return '/auth?redirect=$redirect';
@@ -84,6 +104,57 @@ final goRouterProvider = Provider<GoRouter>((ref) {
             ],
           ),
         ],
+      ),
+      StatefulShellRoute.indexedStack(
+        builder: (context, state, navigationShell) {
+          return AdminShell(navigationShell: navigationShell);
+        },
+        branches: [
+          StatefulShellBranch(
+            routes: [
+              GoRoute(path: '/admin', builder: (context, state) => const AdminHomeScreen()),
+            ],
+          ),
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: '/admin/products',
+                builder: (context, state) => const AdminProductsScreen(),
+              ),
+            ],
+          ),
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: '/admin/ai',
+                builder: (context, state) => AdminAiScreen(
+                  productId: state.uri.queryParameters['productId'],
+                ),
+              ),
+            ],
+          ),
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: '/admin/orders',
+                builder: (context, state) => const AdminOrdersScreen(),
+              ),
+            ],
+          ),
+          StatefulShellBranch(
+            routes: [
+              GoRoute(path: '/admin/more', builder: (context, state) => const AdminMoreScreen()),
+            ],
+          ),
+        ],
+      ),
+      GoRoute(path: '/admin/login', builder: (context, state) => const AdminLoginScreen()),
+      GoRoute(path: '/admin/ai-settings', builder: (context, state) => const AdminAiSettingsScreen()),
+      GoRoute(path: '/admin/inventory', builder: (context, state) => const AdminInventoryScreen()),
+      GoRoute(path: '/admin/profile', builder: (context, state) => const AdminProfileScreen()),
+      GoRoute(
+        path: '/admin/notifications',
+        builder: (context, state) => const AdminNotificationsScreen(),
       ),
       GoRoute(
         path: '/product/:slug',

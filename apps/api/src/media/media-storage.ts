@@ -5,6 +5,10 @@ export interface MediaAsset {
 
 export interface MediaStorage {
   uploadFromUrl(url: string, publicId?: string): Promise<MediaAsset>;
+  uploadBuffer?(
+    buffer: Buffer,
+    opts?: { publicId?: string; mimeType?: string; folder?: string },
+  ): Promise<MediaAsset>;
 }
 
 export const MEDIA_STORAGE = Symbol("MEDIA_STORAGE");

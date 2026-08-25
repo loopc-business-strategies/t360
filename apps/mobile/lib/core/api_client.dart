@@ -136,6 +136,26 @@ class ApiClient {
     }
   }
 
+  Future<Map<String, dynamic>> uploadMultipart(
+    String path, {
+    required String filePath,
+    String fieldName = 'file',
+  }) async {
+    try {
+      final form = FormData.fromMap({
+        fieldName: await MultipartFile.fromFile(filePath),
+      });
+      final res = await _dio.post<Map<String, dynamic>>(
+        path,
+        data: form,
+        options: Options(contentType: 'multipart/form-data'),
+      );
+      return unwrapData(res.data!, (data) => data as Map<String, dynamic>);
+    } on DioException catch (e) {
+      throw _mapDio(e);
+    }
+  }
+
   ApiException _mapDio(DioException e) {
     final data = e.response?.data;
     if (data is Map && data['error'] is Map) {

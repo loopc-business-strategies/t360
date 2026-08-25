@@ -25,6 +25,7 @@ import { ReportsModule } from "./reports/reports.module";
 import { NotificationsModule } from "./notifications/notifications.module";
 import { MarketingModule } from "./marketing/marketing.module";
 import { AiModule } from "./ai/ai.module";
+import { AiFashionModule } from "./ai-fashion/ai-fashion.module";
 import { PosModule } from "./pos/pos.module";
 import { MediaModule } from "./media/media.module";
 import { JwtAuthGuard } from "./auth/guards/jwt-auth.guard";
@@ -59,6 +60,7 @@ import { RequestIdMiddleware } from "./common/middleware/request-id.middleware";
     NotificationsModule,
     MarketingModule,
     AiModule,
+    AiFashionModule,
     PosModule,
   ],
   providers: [

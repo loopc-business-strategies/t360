@@ -31,6 +31,8 @@ model User {
   deviceTokens DeviceToken[]
   notificationPreference NotificationPreference?
   aiConversations AIConversation[]
+  aiGeneratedImages AiGeneratedImage[]
+  aiFashionUsage    AiFashionUsage[]
 }
 
 model Session {
@@ -152,16 +154,19 @@ model WishlistItem {
 }
 
 model Employee {
-  id        String    @id @default(uuid()) @db.Uuid
-  tenantId  String?   @db.Uuid
-  userId    String    @unique @db.Uuid
-  name      String
-  branchId  String?   @db.Uuid
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
-  deletedAt DateTime?
+  id           String    @id @default(uuid()) @db.Uuid
+  tenantId     String?   @db.Uuid
+  userId       String    @unique @db.Uuid
+  name         String
+  employeeCode String?   @unique
+  branchId     String?   @db.Uuid
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  deletedAt    DateTime?
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([employeeCode])
 }
 
 model AuditLog {
@@ -254,6 +259,7 @@ model Product {
   variants   ProductVariant[]
   images     ProductImage[]
   attributes ProductAttributeValue[]
+  aiGeneratedImages AiGeneratedImage[]
 
   @@index([categoryId])
   @@index([brandId])
@@ -885,4 +891,89 @@ model SearchSynonym {
 
   @@index([active])
   @@index([locale])
+}
+
+/// Fashion model library for AI Fashion Studio
+model AiFashionModel {
+  id              String   @id @default(uuid()) @db.Uuid
+  name            String
+  gender          String
+  ageRange        String?
+  style           String?
+  bodyType        String?
+  skinTone        String?
+  hairStyle       String?
+  imageUrl        String
+  publicId        String?
+  provider        String   @default("fashn")
+  providerModelId String?
+  isActive        Boolean  @default(true)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  generatedImages AiGeneratedImage[]
+
+  @@index([isActive])
+  @@index([gender])
+  @@index([createdAt])
+}
+
+/// AI Fashion generation jobs / results
+model AiGeneratedImage {
+  id              String    @id @default(uuid()) @db.Uuid
+  productId       String?   @db.Uuid
+  modelId         String?   @db.Uuid
+  type            String
+  /// QUEUED | PROCESSING | COMPLETED | FAILED | CANCELLED
+  status          String    @default("QUEUED")
+  inputImageUrl   String
+  personImageUrl  String?
+  outputImageUrl  String?
+  outputPublicId  String?
+  provider        String
+  providerJobId   String?
+  prompt          String?
+  params          Json      @default("{}")
+  error           String?
+  errorDetail     String?
+  approvedAt      DateTime?
+  /// primary | gallery
+  approvedAs      String?
+  createdBy       String    @db.Uuid
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  completedAt     DateTime?
+
+  product Product?        @relation(fields: [productId], references: [id], onDelete: SetNull)
+  model   AiFashionModel? @relation(fields: [modelId], references: [id], onDelete: SetNull)
+  creator User            @relation(fields: [createdBy], references: [id], onDelete: Cascade)
+  usage   AiFashionUsage?
+
+  @@index([status, createdAt])
+  @@index([productId])
+  @@index([createdBy])
+  @@index([providerJobId])
+  @@index([type, status])
+  @@index([modelId])
+}
+
+/// Usage / cost ledger for AI Fashion generations
+model AiFashionUsage {
+  id             String   @id @default(uuid()) @db.Uuid
+  provider       String
+  generationType String
+  productId      String?  @db.Uuid
+  userId         String   @db.Uuid
+  jobId          String   @unique @db.Uuid
+  creditsUsed    Int?
+  status         String
+  createdAt      DateTime @default(now())
+
+  job  AiGeneratedImage @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  user User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt])
+  @@index([provider, createdAt])
+  @@index([generationType, createdAt])
+  @@index([status, createdAt])
 }

@@ -13,20 +13,32 @@ export const otpVerifySchema = z.object({
   code: z.string().regex(/^\d{6}$/, "OTP must be 6 digits"),
 });
 
-export const adminLoginSchema = z.object({
-  email: z.string().email(),
-  password: z.string().min(8),
-  mfaCode: z.string().length(6).optional(),
-});
+export const adminLoginSchema = z
+  .object({
+    email: z.string().email().optional(),
+    employeeCode: z.string().min(2).max(40).optional(),
+    password: z.string().min(8),
+    mfaCode: z.string().length(6).optional(),
+  })
+  .refine((v) => Boolean(v.email || v.employeeCode), {
+    message: "email or employeeCode is required",
+    path: ["email"],
+  });
 
 export const refreshSchema = z.object({
   refreshToken: z.string().min(20),
+});
+
+export const changePasswordSchema = z.object({
+  currentPassword: z.string().min(8),
+  newPassword: z.string().min(8).max(128),
 });
 
 export type OtpRequestInput = z.infer<typeof otpRequestSchema>;
 export type OtpVerifyInput = z.infer<typeof otpVerifySchema>;
 export type AdminLoginInput = z.infer<typeof adminLoginSchema>;
 export type RefreshInput = z.infer<typeof refreshSchema>;
+export type ChangePasswordInput = z.infer<typeof changePasswordSchema>;
 
 export const slugSchema = z
   .string()
@@ -70,6 +82,8 @@ export const productCreateSchema = z.object({
   attributeValues: z
     .array(z.object({ attributeCode: z.string(), value: z.string() }))
     .optional(),
+  /** When true, enqueue AI Fashion generation after product images are saved */
+  generateAiFashion: z.boolean().optional(),
 });
 
 export const productUpdateSchema = productCreateSchema.partial().extend({
@@ -190,12 +204,14 @@ export const employeeCreateSchema = z.object({
   name: z.string().min(2).max(120),
   email: z.string().email(),
   password: z.string().min(8).optional(),
+  employeeCode: z.string().min(2).max(40).optional().nullable(),
   branchId: z.string().uuid().optional().nullable(),
   roleCodes: z.array(z.string()).optional(),
 });
 
 export const employeeUpdateSchema = z.object({
   name: z.string().min(2).max(120).optional(),
+  employeeCode: z.string().min(2).max(40).optional().nullable(),
   branchId: z.string().uuid().optional().nullable(),
   status: z.string().optional(),
 });
@@ -203,6 +219,12 @@ export const employeeUpdateSchema = z.object({
 export const employeeRolesSchema = z.object({
   roleCodes: z.array(z.string()).min(1),
 });
+
+export const rolePermissionsUpdateSchema = z.object({
+  permissionCodes: z.array(z.string()).min(0),
+});
+
+export type RolePermissionsUpdateInput = z.infer<typeof rolePermissionsUpdateSchema>;
 
 export const loyaltyAdjustSchema = z.object({
   delta: z.number().int(),
@@ -332,3 +354,97 @@ export type PosWebhookInput = z.infer<typeof posWebhookSchema>;
 export type SearchSynonymCreateInput = z.infer<typeof searchSynonymCreateSchema>;
 export type StorefrontHeroInput = z.infer<typeof storefrontHeroSchema>;
 export type StorefrontUpdateInput = z.infer<typeof storefrontUpdateSchema>;
+
+// --- AI Fashion Studio ---
+
+export const aiFashionGenerationTypeSchema = z.enum([
+  "PRODUCT_TO_MODEL",
+  "VIRTUAL_TRY_ON",
+  "MODEL_CREATED",
+  "IMAGE_EDIT",
+  "IMAGE_TO_VIDEO",
+]);
+
+export const aiFashionGenerateSchema = z.object({
+  productId: z.string().uuid(),
+  productImageId: z.string().uuid().optional(),
+  inputImageUrl: z.string().url().optional(),
+  type: z.enum(["PRODUCT_TO_MODEL", "VIRTUAL_TRY_ON"]).default("PRODUCT_TO_MODEL"),
+  modelId: z.string().uuid().optional().nullable(),
+  personImageUrl: z.string().url().optional(),
+  gender: z.enum(["male", "female", "unisex"]).optional(),
+  pose: z.enum(["standing", "casual", "fashion", "custom"]).optional(),
+  background: z.enum(["studio", "white", "outdoor", "custom"]).optional(),
+  customPrompt: z.string().max(1000).optional(),
+  numImages: z.number().int().min(1).max(4).optional(),
+  resolution: z.enum(["1k", "2k", "4k"]).optional(),
+  generationMode: z.enum(["fast", "balanced", "quality"]).optional(),
+});
+
+export const aiFashionApproveSchema = z.object({
+  as: z.enum(["primary", "gallery"]),
+});
+
+export const aiFashionModelCreateSchema = z.object({
+  name: z.string().min(1).max(120),
+  gender: z.enum(["male", "female", "unisex"]),
+  ageRange: z.string().max(40).optional().nullable(),
+  style: z.string().max(80).optional().nullable(),
+  bodyType: z.string().max(80).optional().nullable(),
+  skinTone: z.string().max(80).optional().nullable(),
+  hairStyle: z.string().max(80).optional().nullable(),
+  imageUrl: z.string().url(),
+  provider: z.string().max(40).optional(),
+  providerModelId: z.string().max(120).optional().nullable(),
+  isActive: z.boolean().optional(),
+});
+
+export const aiFashionModelUpdateSchema = aiFashionModelCreateSchema.partial();
+
+export const aiFashionModelGenerateSchema = z.object({
+  name: z.string().min(1).max(120).optional(),
+  gender: z.enum(["male", "female", "unisex"]),
+  ageRange: z.string().max(40).optional(),
+  style: z.string().max(80).optional(),
+  bodyType: z.string().max(80).optional(),
+  skinTone: z.string().max(80).optional(),
+  hairStyle: z.string().max(80).optional(),
+  saveToLibrary: z.boolean().optional(),
+  numImages: z.number().int().min(1).max(4).optional(),
+  resolution: z.enum(["1k", "2k", "4k"]).optional(),
+  generationMode: z.enum(["fast", "balanced", "quality"]).optional(),
+});
+
+export const aiFashionSettingsUpdateSchema = z.object({
+  enabled: z.boolean().optional(),
+  defaultNumImages: z.number().int().min(1).max(4).optional(),
+  defaultModelId: z.string().uuid().nullable().optional(),
+  autoGenerateOnCreate: z.boolean().optional(),
+  dailyLimit: z.number().int().min(0).max(10000).optional(),
+  monthlyLimit: z.number().int().min(0).max(100000).optional(),
+  defaultResolution: z.enum(["1k", "2k", "4k"]).optional(),
+  defaultGenerationMode: z.enum(["fast", "balanced", "quality"]).optional(),
+  maintenanceMode: z.boolean().optional(),
+  productToModelEnabled: z.boolean().optional(),
+  virtualTryOnEnabled: z.boolean().optional(),
+  modelCreationEnabled: z.boolean().optional(),
+  requireApproval: z.boolean().optional(),
+  maxImagesPerJob: z.number().int().min(1).max(4).optional(),
+  maxConcurrentJobs: z.number().int().min(1).max(50).optional(),
+});
+
+export const aiFashionJobsQuerySchema = z.object({
+  productId: z.string().uuid().optional(),
+  status: z.enum(["QUEUED", "PROCESSING", "COMPLETED", "FAILED", "CANCELLED"]).optional(),
+  type: aiFashionGenerationTypeSchema.optional(),
+  page: z.coerce.number().int().min(1).optional(),
+  pageSize: z.coerce.number().int().min(1).max(100).optional(),
+});
+
+export type AiFashionGenerateInput = z.infer<typeof aiFashionGenerateSchema>;
+export type AiFashionApproveInput = z.infer<typeof aiFashionApproveSchema>;
+export type AiFashionModelCreateInput = z.infer<typeof aiFashionModelCreateSchema>;
+export type AiFashionModelUpdateInput = z.infer<typeof aiFashionModelUpdateSchema>;
+export type AiFashionModelGenerateInput = z.infer<typeof aiFashionModelGenerateSchema>;
+export type AiFashionSettingsUpdateInput = z.infer<typeof aiFashionSettingsUpdateSchema>;
+export type AiFashionJobsQuery = z.infer<typeof aiFashionJobsQuerySchema>;

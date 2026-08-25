@@ -2,6 +2,17 @@ import { CanActivate, ExecutionContext, ForbiddenException, Injectable } from "@
 import { Reflector } from "@nestjs/core";
 import { IS_PUBLIC_KEY, PERMISSIONS_KEY } from "../common/decorators";
 
+/** Legacy `ai.fashion` grants any granular ai_fashion.* / ai_models.* / ai_settings.* check */
+const AI_FASHION_ALIAS_PREFIXES = ["ai_fashion.", "ai_models.", "ai_settings."];
+
+function hasPermission(perms: string[], required: string): boolean {
+  if (perms.includes(required)) return true;
+  if (perms.includes("ai.fashion") && AI_FASHION_ALIAS_PREFIXES.some((p) => required.startsWith(p))) {
+    return true;
+  }
+  return false;
+}
+
 @Injectable()
 export class PermissionsGuard implements CanActivate {
   constructor(private reflector: Reflector) {}
@@ -22,7 +33,7 @@ export class PermissionsGuard implements CanActivate {
     const request = context.switchToHttp().getRequest();
     const user = request.user as { permissions?: string[] } | undefined;
     const perms = user?.permissions ?? [];
-    const ok = required.every((p) => perms.includes(p));
+    const ok = required.every((p) => hasPermission(perms, p));
     if (!ok) {
       throw new ForbiddenException({
         code: "FORBIDDEN",

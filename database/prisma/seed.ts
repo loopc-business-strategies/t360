@@ -4,6 +4,7 @@ import * as argon2 from "argon2";
 const prisma = new PrismaClient();
 
 const PERMISSIONS = [
+  "dashboard.view",
   "products.read",
   "products.create",
   "products.update",
@@ -35,6 +36,18 @@ const PERMISSIONS = [
   "audit.read",
   "cms.manage",
   "ai.admin",
+  "ai.fashion",
+  "ai_fashion.view",
+  "ai_fashion.generate",
+  "ai_fashion.approve",
+  "ai_fashion.delete",
+  "ai_fashion.retry",
+  "ai_models.view",
+  "ai_models.create",
+  "ai_models.update",
+  "ai_models.delete",
+  "ai_settings.view",
+  "ai_settings.update",
   "whatsapp.manage",
   "notifications.manage",
   "support.manage",
@@ -46,7 +59,10 @@ const ROLES: Record<string, { name: string; permissions: string[] | "*" }> = {
   Manager: {
     name: "Manager",
     permissions: [
+      "dashboard.view",
       "products.read",
+      "products.create",
+      "products.update",
       "inventory.read",
       "inventory.update",
       "orders.read",
@@ -55,25 +71,80 @@ const ROLES: Record<string, { name: string; permissions: string[] | "*" }> = {
       "reports.read",
       "shipments.read",
       "shipments.update",
+      "ai.fashion",
+      "ai_fashion.view",
+      "ai_fashion.generate",
+      "ai_fashion.approve",
+      "ai_fashion.delete",
+      "ai_fashion.retry",
+      "ai_models.view",
+      "ai_models.create",
+      "ai_models.update",
+      "ai_settings.view",
+      "staff.manage",
+      "audit.read",
+    ],
+  },
+  ProductManager: {
+    name: "Product Manager",
+    permissions: [
+      "dashboard.view",
+      "products.read",
+      "products.create",
+      "products.update",
+      "products.delete",
+      "categories.manage",
+      "brands.manage",
+      "ai_fashion.view",
+      "ai_fashion.generate",
+      "ai_fashion.approve",
+      "ai_fashion.retry",
+      "ai_models.view",
+      "ai_models.create",
+      "ai_models.update",
+    ],
+  },
+  SalesManager: {
+    name: "Sales Manager",
+    permissions: [
+      "dashboard.view",
+      "products.read",
+      "inventory.read",
+      "orders.read",
+      "orders.update",
+      "orders.cancel",
+      "customers.read",
+      "customers.update",
+      "reports.read",
     ],
   },
   InventoryManager: {
     name: "Inventory Manager",
     permissions: [
+      "dashboard.view",
       "products.read",
       "inventory.read",
       "inventory.update",
       "inventory.transfer",
       "inventory.adjust",
+      "reports.read",
     ],
   },
   SalesStaff: {
     name: "Sales Staff",
-    permissions: ["products.read", "inventory.read", "orders.read", "orders.update", "customers.read"],
+    permissions: [
+      "dashboard.view",
+      "products.read",
+      "inventory.read",
+      "orders.read",
+      "orders.update",
+      "customers.read",
+    ],
   },
   MarketingStaff: {
     name: "Marketing Staff",
     permissions: [
+      "dashboard.view",
       "coupons.manage",
       "offers.manage",
       "cms.manage",
@@ -81,23 +152,38 @@ const ROLES: Record<string, { name: string; permissions: string[] | "*" }> = {
       "reports.read",
       "notifications.manage",
       "whatsapp.manage",
+      "ai.fashion",
+      "ai_fashion.view",
+      "ai_fashion.generate",
+      "ai_fashion.approve",
+      "ai_models.view",
+      "ai_models.create",
     ],
   },
   CustomerSupport: {
     name: "Customer Support",
-    permissions: ["customers.read", "orders.read", "support.manage", "reviews.moderate"],
+    permissions: ["dashboard.view", "customers.read", "orders.read", "support.manage", "reviews.moderate"],
   },
   DeliveryStaff: {
     name: "Delivery Staff",
-    permissions: ["shipments.read", "shipments.update", "orders.read"],
+    permissions: ["dashboard.view", "shipments.read", "shipments.update", "orders.read"],
   },
   Accountant: {
     name: "Accountant",
-    permissions: ["payments.read", "payments.refund", "orders.read", "reports.read"],
+    permissions: ["dashboard.view", "payments.read", "payments.refund", "orders.read", "reports.read"],
   },
   SystemAdministrator: {
     name: "System Administrator",
-    permissions: ["settings.manage", "integrations.manage", "audit.read", "roles.manage", "staff.manage"],
+    permissions: [
+      "dashboard.view",
+      "settings.manage",
+      "integrations.manage",
+      "audit.read",
+      "roles.manage",
+      "staff.manage",
+      "ai_settings.view",
+      "ai_settings.update",
+    ],
   },
 };
 
@@ -145,13 +231,19 @@ async function main() {
       passwordHash,
       status: "active",
       employee: {
-        create: { name: "Tharagai Owner" },
+        create: { name: "Tharagai Owner", employeeCode: "ADMIN001" },
       },
     },
     update: {
       passwordHash,
       status: "active",
     },
+  });
+
+  await prisma.employee.upsert({
+    where: { userId: user.id },
+    create: { userId: user.id, name: "Tharagai Owner", employeeCode: "ADMIN001" },
+    update: { employeeCode: "ADMIN001", name: "Tharagai Owner" },
   });
 
   const superAdmin = await prisma.role.findUniqueOrThrow({ where: { code: "SuperAdmin" } });
@@ -200,6 +292,28 @@ async function main() {
     ["marketing.abandonedCartDelayHours", 24],
     ["marketing.abandonedCartMaxReminders", 1],
     ["ai.enabled", true],
+    ["ai.fashion.enabled", false],
+    ["feature.mobile_admin.enabled", true],
+    ["feature.ai_fashion.enabled", false],
+    [
+      "ai.fashion.config",
+      {
+        defaultNumImages: 1,
+        defaultModelId: null,
+        autoGenerateOnCreate: false,
+        dailyLimit: 50,
+        monthlyLimit: 500,
+        defaultResolution: "1k",
+        defaultGenerationMode: "balanced",
+        maintenanceMode: false,
+        productToModelEnabled: true,
+        virtualTryOnEnabled: true,
+        modelCreationEnabled: true,
+        requireApproval: true,
+        maxImagesPerJob: 4,
+        maxConcurrentJobs: 6,
+      },
+    ],
   ] as const) {
     await prisma.systemSetting.upsert({
       where: { key },
@@ -409,6 +523,20 @@ async function main() {
       channel: "whatsapp",
       locale: "en",
       body: "Your Tharagai bag is waiting. Complete checkout when ready.",
+    },
+    {
+      code: "ai_fashion.completed",
+      channel: "push",
+      locale: "en",
+      subject: "AI Fashion ready",
+      body: "Your AI Fashion image is ready to review.",
+    },
+    {
+      code: "ai_fashion.failed",
+      channel: "push",
+      locale: "en",
+      subject: "AI Fashion failed",
+      body: "AI Fashion generation failed. You can retry from the admin app.",
     },
   ];
 

@@ -19,5 +19,11 @@ class TokenStorage {
   Future<void> clear() async {
     await _storage.delete(key: _access);
     await _storage.delete(key: _refresh);
+    await _storage.delete(key: _mode);
   }
+
+  static const _mode = 't360_auth_mode';
+
+  Future<void> setMode(String mode) => _storage.write(key: _mode, value: mode);
+  Future<String?> getMode() => _storage.read(key: _mode);
 }

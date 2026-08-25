@@ -30,4 +30,20 @@ describe("PermissionsGuard", () => {
     const { guard, context } = mockContext({ permissions: [] }, { permissions: ["customers.read"] });
     expect(() => guard.canActivate(context)).toThrow(ForbiddenException);
   });
+
+  it("allows granular AI perms when legacy ai.fashion is present", () => {
+    const { guard, context } = mockContext(
+      { permissions: ["ai.fashion"] },
+      { permissions: ["ai_fashion.generate"] },
+    );
+    expect(guard.canActivate(context)).toBe(true);
+  });
+
+  it("allows ai_settings.update via legacy ai.fashion", () => {
+    const { guard, context } = mockContext(
+      { permissions: ["ai.fashion"] },
+      { permissions: ["ai_settings.update"] },
+    );
+    expect(guard.canActivate(context)).toBe(true);
+  });
 });

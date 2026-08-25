@@ -101,21 +101,41 @@ export class AuthService {
   }
 
   async adminLogin(
-    email: string,
-    password: string,
-    mfaCode?: string,
+    input: { email?: string; employeeCode?: string; password: string; mfaCode?: string },
     meta?: { ip?: string; userAgent?: string },
   ) {
-    await this.assertRateLimit("admin-login", email.toLowerCase(), 10, 900);
-    const user = await this.prisma.user.findUnique({ where: { email: email.toLowerCase() } });
+    const rateId = (input.email ?? input.employeeCode ?? "unknown").toLowerCase();
+    await this.assertRateLimit("admin-login", rateId, 10, 900);
+
+    let user = input.email
+      ? await this.prisma.user.findUnique({
+          where: { email: input.email.toLowerCase() },
+          include: { employee: true },
+        })
+      : null;
+
+    if (!user && input.employeeCode) {
+      const emp = await this.prisma.employee.findFirst({
+        where: {
+          employeeCode: { equals: input.employeeCode.trim(), mode: "insensitive" },
+          deletedAt: null,
+        },
+        include: { user: { include: { employee: true } } },
+      });
+      user = emp?.user ?? null;
+    }
+
     if (!user?.passwordHash) {
       throw new UnauthorizedException({ code: "INVALID_CREDENTIALS", message: "Invalid credentials" });
+    }
+    if (user.status !== "active") {
+      throw new ForbiddenException({ code: "ACCOUNT_INACTIVE", message: "Account is inactive" });
     }
     if (user.lockedUntil && user.lockedUntil > new Date()) {
       throw new ForbiddenException({ code: "ACCOUNT_LOCKED", message: "Account temporarily locked" });
     }
 
-    const ok = await argon2.verify(user.passwordHash, password);
+    const ok = await argon2.verify(user.passwordHash, input.password);
     if (!ok) {
       const failed = user.failedLogins + 1;
       await this.prisma.user.update({
@@ -129,7 +149,7 @@ export class AuthService {
     }
 
     if (user.mfaEnabled) {
-      if (!mfaCode || !user.mfaSecret || !authenticator.check(mfaCode, user.mfaSecret)) {
+      if (!input.mfaCode || !user.mfaSecret || !authenticator.check(input.mfaCode, user.mfaSecret)) {
         throw new UnauthorizedException({ code: "MFA_REQUIRED", message: "Valid MFA code required" });
       }
     }
@@ -142,6 +162,58 @@ export class AuthService {
     const tokens = await this.issueTokens(user.id, meta);
     await this.audit.log({ actorId: user.id, action: "auth.admin.login", ip: meta?.ip });
     return tokens;
+  }
+
+  async changePassword(userId: string, currentPassword: string, newPassword: string) {
+    const user = await this.prisma.user.findUniqueOrThrow({ where: { id: userId } });
+    if (!user.passwordHash) {
+      throw new BadRequestException({ code: "NO_PASSWORD", message: "Account has no password" });
+    }
+    const ok = await argon2.verify(user.passwordHash, currentPassword);
+    if (!ok) {
+      throw new UnauthorizedException({ code: "INVALID_CREDENTIALS", message: "Current password is incorrect" });
+    }
+    const passwordHash = await argon2.hash(newPassword);
+    await this.prisma.user.update({ where: { id: userId }, data: { passwordHash } });
+    await this.prisma.session.updateMany({
+      where: { userId, revokedAt: null },
+      data: { revokedAt: new Date() },
+    });
+    await this.audit.log({ actorId: userId, action: "auth.password.change" });
+    return { changed: true, sessionsRevoked: true };
+  }
+
+  async logoutAll(userId: string) {
+    await this.prisma.session.updateMany({
+      where: { userId, revokedAt: null },
+      data: { revokedAt: new Date() },
+    });
+    await this.audit.log({ actorId: userId, action: "auth.logout_all" });
+    return { revoked: true };
+  }
+
+  async listSessions(userId: string, currentRefreshToken?: string) {
+    const currentHash = currentRefreshToken ? this.hashToken(currentRefreshToken) : null;
+    const sessions = await this.prisma.session.findMany({
+      where: { userId, revokedAt: null, expiresAt: { gt: new Date() } },
+      orderBy: { createdAt: "desc" },
+      select: {
+        id: true,
+        userAgent: true,
+        ip: true,
+        createdAt: true,
+        expiresAt: true,
+        refreshTokenHash: true,
+      },
+    });
+    return sessions.map((s) => ({
+      id: s.id,
+      userAgent: s.userAgent,
+      ip: s.ip,
+      createdAt: s.createdAt,
+      expiresAt: s.expiresAt,
+      current: currentHash ? s.refreshTokenHash === currentHash : false,
+    }));
   }
 
   async refresh(refreshToken: string, meta?: { ip?: string; userAgent?: string }) {

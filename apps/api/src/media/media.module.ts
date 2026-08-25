@@ -2,9 +2,11 @@ import { Global, Module } from "@nestjs/common";
 import { MEDIA_STORAGE } from "./media-storage";
 import { MockMediaStorage } from "./mock-media.storage";
 import { CloudinaryMediaStorage } from "./cloudinary-media.storage";
+import { MediaAdminController } from "./media-admin.controller";
 
 @Global()
 @Module({
+  controllers: [MediaAdminController],
   providers: [
     MockMediaStorage,
     CloudinaryMediaStorage,

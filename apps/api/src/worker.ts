@@ -18,12 +18,16 @@ import { MarketingModule } from "./marketing/marketing.module";
 import { MarketingQueueService } from "./marketing/marketing-queue.service";
 import { PosModule } from "./pos/pos.module";
 import { PosQueueService } from "./pos/pos-queue.service";
+import { AiFashionModule } from "./ai-fashion/ai-fashion.module";
+import { AiFashionQueueService } from "./ai-fashion/ai-fashion-queue.service";
+import { MediaModule } from "./media/media.module";
 
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true, envFilePath: [".env", "../../.env"] }),
     PrismaModule,
     AuditModule,
+    MediaModule,
     QueueModule,
     InventoryModule,
     CustomersModule,
@@ -33,6 +37,7 @@ import { PosQueueService } from "./pos/pos-queue.service";
     NotificationsModule,
     MarketingModule,
     PosModule,
+    AiFashionModule,
   ],
 })
 class WorkerAppModule {}
@@ -53,6 +58,8 @@ async function bootstrap() {
   marketing.startWorker();
   const pos = app.get(PosQueueService);
   pos.startWorker();
+  const aiFashion = app.get(AiFashionQueueService);
+  aiFashion.startWorker();
 }
 
 bootstrap();

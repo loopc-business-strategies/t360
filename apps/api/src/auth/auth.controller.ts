@@ -1,13 +1,16 @@
-import { Body, Controller, HttpCode, Post, Req } from "@nestjs/common";
-import { ApiTags } from "@nestjs/swagger";
+import { Body, Controller, Get, Headers, HttpCode, Post, Req } from "@nestjs/common";
+import { ApiBearerAuth, ApiTags } from "@nestjs/swagger";
 import { Request } from "express";
 import {
   adminLoginSchema,
+  changePasswordSchema,
   otpRequestSchema,
   otpVerifySchema,
   refreshSchema,
+  type AdminLoginInput,
+  type ChangePasswordInput,
 } from "@t360/validation";
-import { Public } from "../common/decorators";
+import { CurrentUser, Public } from "../common/decorators";
 import { AuthService } from "./auth.service";
 import { ZodValidationPipe } from "../common/zod-validation.pipe";
 
@@ -45,14 +48,21 @@ export class AuthController {
   @HttpCode(200)
   @Post("login")
   async login(
-    @Body(new ZodValidationPipe(adminLoginSchema))
-    body: { email: string; password: string; mfaCode?: string },
+    @Body(new ZodValidationPipe(adminLoginSchema)) body: AdminLoginInput,
     @Req() req: Request,
   ) {
-    const data = await this.auth.adminLogin(body.email.toLowerCase(), body.password, body.mfaCode, {
-      ip: req.ip,
-      userAgent: req.headers["user-agent"],
-    });
+    const data = await this.auth.adminLogin(
+      {
+        email: body.email,
+        employeeCode: body.employeeCode,
+        password: body.password,
+        mfaCode: body.mfaCode,
+      },
+      {
+        ip: req.ip,
+        userAgent: req.headers["user-agent"],
+      },
+    );
     return { success: true, data, requestId: (req as Request & { requestId?: string }).requestId };
   }
 
@@ -78,6 +88,37 @@ export class AuthController {
     @Req() req: Request,
   ) {
     const data = await this.auth.logout(body.refreshToken);
+    return { success: true, data, requestId: (req as Request & { requestId?: string }).requestId };
+  }
+
+  @ApiBearerAuth()
+  @HttpCode(200)
+  @Post("change-password")
+  async changePassword(
+    @CurrentUser() user: { userId: string },
+    @Body(new ZodValidationPipe(changePasswordSchema)) body: ChangePasswordInput,
+    @Req() req: Request,
+  ) {
+    const data = await this.auth.changePassword(user.userId, body.currentPassword, body.newPassword);
+    return { success: true, data, requestId: (req as Request & { requestId?: string }).requestId };
+  }
+
+  @ApiBearerAuth()
+  @HttpCode(200)
+  @Post("logout-all")
+  async logoutAll(@CurrentUser() user: { userId: string }, @Req() req: Request) {
+    const data = await this.auth.logoutAll(user.userId);
+    return { success: true, data, requestId: (req as Request & { requestId?: string }).requestId };
+  }
+
+  @ApiBearerAuth()
+  @Get("sessions")
+  async sessions(
+    @CurrentUser() user: { userId: string },
+    @Headers("x-refresh-token") refreshToken: string | undefined,
+    @Req() req: Request,
+  ) {
+    const data = await this.auth.listSessions(user.userId, refreshToken);
     return { success: true, data, requestId: (req as Request & { requestId?: string }).requestId };
   }
 }

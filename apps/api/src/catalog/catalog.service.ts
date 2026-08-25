@@ -1,16 +1,20 @@
 import {
   Injectable,
   NotFoundException,
+  Inject,
+  Optional,
+  Logger,
+  forwardRef,
 } from "@nestjs/common";
 import { Prisma } from "@prisma/client";
 import { PrismaService } from "../prisma/prisma.service";
-import { Inject } from "@nestjs/common";
 import { MEDIA_STORAGE, MediaStorage } from "../media/media-storage";
 import { AuditService } from "../audit/audit.service";
 import { InventoryService } from "../inventory/inventory.service";
 import { SEARCH_PROVIDER, type SearchProvider } from "../search/providers/search-provider";
 import { parseProductCsv, slugify, validateCsvProductRow } from "./catalog.utils";
 import type { ProductCreateInput, ProductListQuery } from "@t360/validation";
+import { AiFashionService } from "../ai-fashion/ai-fashion.service";
 
 const productInclude = {
   category: true,
@@ -22,12 +26,17 @@ const productInclude = {
 
 @Injectable()
 export class CatalogService {
+  private readonly logger = new Logger(CatalogService.name);
+
   constructor(
     private readonly prisma: PrismaService,
     private readonly audit: AuditService,
     private readonly inventory: InventoryService,
     @Inject(MEDIA_STORAGE) private readonly media: MediaStorage,
     @Inject(SEARCH_PROVIDER) private readonly search: SearchProvider,
+    @Optional()
+    @Inject(forwardRef(() => AiFashionService))
+    private readonly aiFashion?: AiFashionService,
   ) {}
 
   async listCategories() {
@@ -249,7 +258,19 @@ export class CatalogService {
     });
 
     await this.audit.log({ actorId, action: "product.create", entityType: "Product", entityId: product.id });
-    return this.getProduct(product.id, { admin: true });
+    const result = await this.getProduct(product.id, { admin: true });
+
+    if (actorId && this.aiFashion) {
+      void this.aiFashion
+        .maybeEnqueueOnProductCreate(product.id, actorId, Boolean(input.generateAiFashion))
+        .catch((err) => {
+          this.logger.warn(
+            `AI Fashion auto-enqueue failed: ${err instanceof Error ? err.message : "unknown"}`,
+          );
+        });
+    }
+
+    return result;
   }
 
   async updateProduct(id: string, input: Partial<ProductCreateInput>, actorId?: string) {

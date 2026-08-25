@@ -66,6 +66,7 @@ export class EmployeesController {
       name: string;
       email: string;
       password?: string;
+      employeeCode?: string | null;
       branchId?: string | null;
       roleCodes?: string[];
     },
@@ -80,7 +81,11 @@ export class EmployeesController {
         passwordHash,
         status: "active",
         employee: {
-          create: { name: body.name, branchId: body.branchId ?? null },
+          create: {
+            name: body.name,
+            branchId: body.branchId ?? null,
+            employeeCode: body.employeeCode ?? null,
+          },
         },
       },
       include: { employee: true },
@@ -113,7 +118,7 @@ export class EmployeesController {
   async update(
     @Param("id") id: string,
     @Body(new ZodValidationPipe(employeeUpdateSchema))
-    body: { name?: string; branchId?: string | null; status?: string },
+    body: { name?: string; employeeCode?: string | null; branchId?: string | null; status?: string },
     @CurrentUser() actor: { userId: string },
     @Req() req: Request,
   ) {
@@ -121,6 +126,7 @@ export class EmployeesController {
       where: { id },
       data: {
         name: body.name,
+        employeeCode: body.employeeCode === undefined ? undefined : body.employeeCode,
         branchId: body.branchId === undefined ? undefined : body.branchId,
       },
     });

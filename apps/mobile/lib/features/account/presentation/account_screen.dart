@@ -86,9 +86,23 @@ class _AccountScreenState extends ConsumerState<AccountScreen> {
       return Scaffold(
         appBar: TharagaiAppBar(title: t.account),
         body: Center(
-          child: TharagaiButton(
-            label: t.loginRequired,
-            onPressed: () => context.push('/auth'),
+          child: Padding(
+            padding: const EdgeInsets.all(24),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                TharagaiButton(
+                  label: t.loginRequired,
+                  onPressed: () => context.push('/auth'),
+                ),
+                const SizedBox(height: 12),
+                TharagaiButton(
+                  label: 'Staff admin login',
+                  variant: TharagaiButtonVariant.outline,
+                  onPressed: () => context.push('/admin/login'),
+                ),
+              ],
+            ),
           ),
         ),
       );

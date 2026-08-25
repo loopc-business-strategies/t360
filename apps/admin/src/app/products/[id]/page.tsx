@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 import { Badge, Button, Card, Input, LoadingState, ErrorState } from "@t360/ui";
@@ -13,7 +14,15 @@ type Product = {
   status: string;
   description: string;
   variants: Array<{ sku: string; price: string; salePrice?: string | null }>;
-  images: Array<{ url: string }>;
+  images: Array<{ id?: string; url: string }>;
+};
+
+type FashionJob = {
+  id: string;
+  status: string;
+  type: string;
+  createdAt: string;
+  outputImageUrl?: string | null;
 };
 
 export default function EditProductPage() {
@@ -22,6 +31,12 @@ export default function EditProductPage() {
   const query = useQuery({
     queryKey: ["admin-product", params.id],
     queryFn: () => apiFetch<Product>(`/admin/products/${params.id}`),
+  });
+
+  const fashionJobs = useQuery({
+    queryKey: ["ai-fashion-product-jobs", params.id],
+    queryFn: () =>
+      apiFetch<FashionJob[]>(`/admin/ai-fashion/jobs?productId=${params.id}&pageSize=5`),
   });
 
   const [name, setName] = React.useState("");
@@ -101,23 +116,61 @@ export default function EditProductPage() {
           </div>
         </form>
       </Card>
-      <Card>
-        <h2 className="font-display text-xl">Variants & images</h2>
-        <ul className="mt-4 space-y-2 text-sm">
-          {p.variants.map((v) => (
-            <li key={v.sku} className="flex justify-between border-b border-border py-2">
-              <span>{v.sku}</span>
-              <span>₹{v.salePrice ?? v.price}</span>
-            </li>
-          ))}
-        </ul>
-        <div className="mt-4 grid grid-cols-2 gap-2">
-          {p.images.map((img) => (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img key={img.url} src={img.url} alt="" className="aspect-[4/5] rounded-md object-cover" />
-          ))}
-        </div>
-      </Card>
+      <div className="space-y-6">
+        <Card>
+          <h2 className="font-display text-xl">Variants & images</h2>
+          <ul className="mt-4 space-y-2 text-sm">
+            {p.variants.map((v) => (
+              <li key={v.sku} className="flex justify-between border-b border-border py-2">
+                <span>{v.sku}</span>
+                <span>₹{v.salePrice ?? v.price}</span>
+              </li>
+            ))}
+          </ul>
+          <div className="mt-4 grid grid-cols-2 gap-2">
+            {p.images.map((img) => (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img key={img.url} src={img.url} alt="" className="aspect-[4/5] rounded-md object-cover" />
+            ))}
+          </div>
+        </Card>
+        <Card>
+          <div className="flex items-center justify-between gap-3">
+            <h2 className="font-display text-xl">AI Fashion</h2>
+            <Link href={`/ai-fashion/generate?productId=${params.id}`}>
+              <Button type="button">Generate</Button>
+            </Link>
+          </div>
+          <p className="mt-2 text-sm text-muted">
+            Create on-model fashion images from this product&apos;s photos.
+          </p>
+          <ul className="mt-4 space-y-2 text-sm">
+            {(fashionJobs.data?.data ?? []).length === 0 ? (
+              <li className="text-muted">No AI generations yet.</li>
+            ) : (
+              (fashionJobs.data?.data ?? []).map((j) => (
+                <li key={j.id} className="flex items-center justify-between border-b border-border py-2">
+                  <span>{new Date(j.createdAt).toLocaleString()}</span>
+                  <Badge
+                    tone={
+                      j.status === "COMPLETED"
+                        ? "success"
+                        : j.status === "FAILED"
+                          ? "danger"
+                          : "neutral"
+                    }
+                  >
+                    {j.status}
+                  </Badge>
+                </li>
+              ))
+            )}
+          </ul>
+          <Link href="/ai-fashion/images" className="mt-3 inline-block text-sm text-wine underline">
+            View all generated images
+          </Link>
+        </Card>
+      </div>
     </div>
   );
 }

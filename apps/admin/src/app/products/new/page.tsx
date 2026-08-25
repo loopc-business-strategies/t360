@@ -30,6 +30,7 @@ export default function NewProductPage() {
   const [imageUrl, setImageUrl] = React.useState(
     "https://images.unsplash.com/photo-1596755094514-f87e34085b2c?auto=format&fit=crop&w=800&q=80",
   );
+  const [generateAiFashion, setGenerateAiFashion] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
   const [saving, setSaving] = React.useState(false);
 
@@ -53,6 +54,7 @@ export default function NewProductPage() {
           brandId: brandId || null,
           status,
           imageUrls: imageUrl ? [imageUrl] : [],
+          generateAiFashion,
           variants: [{ sku, price: Number(price), attributes: { size: "M", colour: "Blue" } }],
         }),
       });
@@ -101,6 +103,14 @@ export default function NewProductPage() {
         <Input label="SKU" value={sku} onChange={(e) => setSku(e.target.value)} required />
         <Input label="Price" value={price} onChange={(e) => setPrice(e.target.value)} required />
         <Input label="Image URL" value={imageUrl} onChange={(e) => setImageUrl(e.target.value)} />
+        <label className="flex items-center gap-2 text-sm">
+          <input
+            type="checkbox"
+            checked={generateAiFashion}
+            onChange={(e) => setGenerateAiFashion(e.target.checked)}
+          />
+          Generate AI Fashion Images
+        </label>
         {error ? <p className="text-sm text-danger">{error}</p> : null}
         <Button type="submit" disabled={saving}>
           {saving ? "Saving…" : "Create"}
