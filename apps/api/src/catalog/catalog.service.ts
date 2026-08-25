@@ -12,7 +12,7 @@ import { MEDIA_STORAGE, MediaStorage } from "../media/media-storage";
 import { AuditService } from "../audit/audit.service";
 import { InventoryService } from "../inventory/inventory.service";
 import { SEARCH_PROVIDER, type SearchProvider } from "../search/providers/search-provider";
-import { parseProductCsv, slugify, validateCsvProductRow } from "./catalog.utils";
+import { isUuid, parseProductCsv, slugify, validateCsvProductRow } from "./catalog.utils";
 import type { ProductCreateInput, ProductListQuery } from "@t360/validation";
 import { AiFashionService } from "../ai-fashion/ai-fashion.service";
 
@@ -76,7 +76,9 @@ export class CatalogService {
     const product = await this.prisma.product.findFirst({
       where: {
         deletedAt: null,
-        OR: [{ slug: slugOrId }, { id: slugOrId }],
+        ...(isUuid(slugOrId)
+          ? { OR: [{ slug: slugOrId }, { id: slugOrId }] }
+          : { slug: slugOrId }),
         ...(opts?.admin ? {} : { status: "published" }),
       },
       include: productInclude,

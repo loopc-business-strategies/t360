@@ -56,3 +56,10 @@ export function validateCsvProductRow(row: Record<string, string>): string[] {
   if (!row.price || Number.isNaN(Number(row.price))) errors.push("price must be a number");
   return errors;
 }
+
+/** True when value is a UUID string safe to pass to Prisma UUID columns. */
+export function isUuid(value: string): boolean {
+  return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(
+    value,
+  );
+}
