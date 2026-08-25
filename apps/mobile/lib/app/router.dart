@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 
 import '../features/ai/presentation/ai_chat_screen.dart';
 import '../features/account/presentation/account_screen.dart';
+import '../features/admin/presentation/admin_ai_models_screen.dart';
 import '../features/admin/presentation/admin_ai_screen.dart';
 import '../features/admin/presentation/admin_ai_settings_screen.dart';
 import '../features/admin/presentation/admin_home_screen.dart';
@@ -150,6 +151,7 @@ final goRouterProvider = Provider<GoRouter>((ref) {
       ),
       GoRoute(path: '/admin/login', builder: (context, state) => const AdminLoginScreen()),
       GoRoute(path: '/admin/ai-settings', builder: (context, state) => const AdminAiSettingsScreen()),
+      GoRoute(path: '/admin/ai-models', builder: (context, state) => const AdminAiModelsScreen()),
       GoRoute(path: '/admin/inventory', builder: (context, state) => const AdminInventoryScreen()),
       GoRoute(path: '/admin/profile', builder: (context, state) => const AdminProfileScreen()),
       GoRoute(

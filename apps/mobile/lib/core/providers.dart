@@ -4,12 +4,19 @@ import 'token_storage.dart';
 
 final tokenStorageProvider = Provider<TokenStorage>((ref) => TokenStorage());
 
-final apiClientProvider = Provider<ApiClient>((ref) {
-  return ApiClient(tokens: ref.watch(tokenStorageProvider));
-});
-
 final authStateProvider = StateNotifierProvider<AuthStateNotifier, AuthState>((ref) {
   return AuthStateNotifier(ref.watch(tokenStorageProvider));
+});
+
+final apiClientProvider = Provider<ApiClient>((ref) {
+  final tokens = ref.watch(tokenStorageProvider);
+  return ApiClient(
+    tokens: tokens,
+    onSessionExpired: () {
+      // Fire-and-forget: clear in-memory auth so GoRouter redirects to login.
+      ref.read(authStateProvider.notifier).markLoggedOut();
+    },
+  );
 });
 
 class AuthState {

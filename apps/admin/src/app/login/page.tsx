@@ -3,12 +3,12 @@
 import * as React from "react";
 import { useRouter } from "next/navigation";
 import { Button, Card, Input } from "@t360/ui";
-import { apiFetch, setAdminToken } from "../../lib/api";
+import { apiFetch, setAdminToken, setAdminRefreshToken } from "../../lib/api";
 
 export default function LoginPage() {
   const router = useRouter();
-  const [loginId, setLoginId] = React.useState("owner@tharagai.local");
-  const [password, setPassword] = React.useState("TharagaiOwner!123");
+  const [loginId, setLoginId] = React.useState("");
+  const [password, setPassword] = React.useState("");
   const [mfaCode, setMfaCode] = React.useState("");
   const [error, setError] = React.useState<string | null>(null);
   const [loading, setLoading] = React.useState(false);
@@ -20,7 +20,7 @@ export default function LoginPage() {
     setError(null);
     try {
       const isEmail = loginId.includes("@");
-      const res = await apiFetch<{ accessToken: string }>("/auth/login", {
+      const res = await apiFetch<{ accessToken: string; refreshToken: string }>("/auth/login", {
         method: "POST",
         auth: false,
         body: JSON.stringify({
@@ -30,6 +30,7 @@ export default function LoginPage() {
         }),
       });
       setAdminToken(res.data.accessToken);
+      setAdminRefreshToken(res.data.refreshToken);
       router.push("/");
     } catch (err) {
       const msg = err instanceof Error ? err.message : "Login failed";

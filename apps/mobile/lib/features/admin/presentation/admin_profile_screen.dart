@@ -14,6 +14,7 @@ class AdminProfileScreen extends ConsumerStatefulWidget {
 
 class _AdminProfileScreenState extends ConsumerState<AdminProfileScreen> {
   Map<String, dynamic>? _me;
+  List<dynamic> _sessions = [];
   final _current = TextEditingController();
   final _next = TextEditingController();
   String? _msg;
@@ -21,7 +22,22 @@ class _AdminProfileScreenState extends ConsumerState<AdminProfileScreen> {
   @override
   void initState() {
     super.initState();
-    ref.read(adminRepoProvider).me().then((m) => setState(() => _me = m));
+    _load();
+  }
+
+  Future<void> _load() async {
+    final repo = ref.read(adminRepoProvider);
+    final me = await repo.me();
+    List<dynamic> sessions = [];
+    try {
+      sessions = await repo.sessions();
+    } catch (_) {}
+    if (mounted) {
+      setState(() {
+        _me = me;
+        _sessions = sessions;
+      });
+    }
   }
 
   @override
@@ -69,6 +85,16 @@ class _AdminProfileScreenState extends ConsumerState<AdminProfileScreen> {
             },
             child: const Text('Logout all devices'),
           ),
+          const SizedBox(height: 16),
+          Text('Sessions', style: Theme.of(context).textTheme.titleMedium),
+          ..._sessions.map((s) {
+            final map = s as Map;
+            return ListTile(
+              dense: true,
+              title: Text(map['userAgent']?.toString() ?? 'Session'),
+              subtitle: Text('${map['createdAt'] ?? ''} ${map['current'] == true ? '(this device)' : ''}'),
+            );
+          }),
           if (_msg != null) Text(_msg!),
         ],
       ),

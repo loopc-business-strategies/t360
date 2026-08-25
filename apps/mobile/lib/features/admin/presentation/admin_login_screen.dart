@@ -13,8 +13,8 @@ class AdminLoginScreen extends ConsumerStatefulWidget {
 }
 
 class _AdminLoginScreenState extends ConsumerState<AdminLoginScreen> {
-  final _id = TextEditingController(text: 'owner@tharagai.local');
-  final _password = TextEditingController(text: 'TharagaiOwner!123');
+  final _id = TextEditingController();
+  final _password = TextEditingController();
   final _mfa = TextEditingController();
   String? _error;
   bool _loading = false;

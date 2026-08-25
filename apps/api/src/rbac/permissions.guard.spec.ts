@@ -31,7 +31,7 @@ describe("PermissionsGuard", () => {
     expect(() => guard.canActivate(context)).toThrow(ForbiddenException);
   });
 
-  it("allows granular AI perms when legacy ai.fashion is present", () => {
+  it("allows granular AI studio perms when legacy ai.fashion is present", () => {
     const { guard, context } = mockContext(
       { permissions: ["ai.fashion"] },
       { permissions: ["ai_fashion.generate"] },
@@ -39,10 +39,26 @@ describe("PermissionsGuard", () => {
     expect(guard.canActivate(context)).toBe(true);
   });
 
-  it("allows ai_settings.update via legacy ai.fashion", () => {
+  it("blocks ai_settings.update via legacy ai.fashion", () => {
     const { guard, context } = mockContext(
       { permissions: ["ai.fashion"] },
       { permissions: ["ai_settings.update"] },
+    );
+    expect(() => guard.canActivate(context)).toThrow(ForbiddenException);
+  });
+
+  it("blocks ai_fashion.delete via legacy ai.fashion", () => {
+    const { guard, context } = mockContext(
+      { permissions: ["ai.fashion"] },
+      { permissions: ["ai_fashion.delete"] },
+    );
+    expect(() => guard.canActivate(context)).toThrow(ForbiddenException);
+  });
+
+  it("allows any-of mode when one permission matches", () => {
+    const { guard, context } = mockContext(
+      { permissions: ["products.create"] },
+      { permissions: ["products.update", "products.create"], permissionsMode: "any" },
     );
     expect(guard.canActivate(context)).toBe(true);
   });

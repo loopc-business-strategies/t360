@@ -8,6 +8,7 @@ import { apiFetch } from "../../lib/api";
 type Employee = {
   id: string;
   name: string;
+  employeeCode?: string | null;
   branchId: string | null;
   roles?: string[];
   user: { email: string | null; status: string };
@@ -19,7 +20,9 @@ export default function StaffPage() {
   const qc = useQueryClient();
   const [name, setName] = React.useState("");
   const [email, setEmail] = React.useState("");
-  const [roleCodes, setRoleCodes] = React.useState("store_manager");
+  const [password, setPassword] = React.useState("");
+  const [employeeCode, setEmployeeCode] = React.useState("");
+  const [roleCodes, setRoleCodes] = React.useState("ProductManager");
 
   const employees = useQuery({
     queryKey: ["admin-employees"],
@@ -37,6 +40,8 @@ export default function StaffPage() {
         body: JSON.stringify({
           name,
           email,
+          password,
+          employeeCode: employeeCode || undefined,
           roleCodes: roleCodes
             .split(",")
             .map((s) => s.trim())
@@ -46,6 +51,8 @@ export default function StaffPage() {
     onSuccess: () => {
       setName("");
       setEmail("");
+      setPassword("");
+      setEmployeeCode("");
       qc.invalidateQueries({ queryKey: ["admin-employees"] });
     },
   });
@@ -55,6 +62,15 @@ export default function StaffPage() {
       apiFetch(`/admin/employees/${id}/roles`, {
         method: "POST",
         body: JSON.stringify({ roleCodes: codes }),
+      }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["admin-employees"] }),
+  });
+
+  const setStatus = useMutation({
+    mutationFn: ({ id, status }: { id: string; status: string }) =>
+      apiFetch(`/admin/employees/${id}`, {
+        method: "PATCH",
+        body: JSON.stringify({ status }),
       }),
     onSuccess: () => qc.invalidateQueries({ queryKey: ["admin-employees"] }),
   });
@@ -70,6 +86,17 @@ export default function StaffPage() {
         <Input label="Name" value={name} onChange={(e) => setName(e.target.value)} />
         <Input label="Email" value={email} onChange={(e) => setEmail(e.target.value)} />
         <Input
+          label="Password"
+          type="password"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+        />
+        <Input
+          label="Admin ID (employee code)"
+          value={employeeCode}
+          onChange={(e) => setEmployeeCode(e.target.value)}
+        />
+        <Input
           label="Role codes (comma-separated)"
           value={roleCodes}
           onChange={(e) => setRoleCodes(e.target.value)}
@@ -77,7 +104,10 @@ export default function StaffPage() {
         {roles.data ? (
           <p className="text-xs text-muted">{roles.data.data.map((r) => r.code).join(", ")}</p>
         ) : null}
-        <Button onClick={() => create.mutate()} disabled={create.isPending || !name || !email}>
+        <Button
+          onClick={() => create.mutate()}
+          disabled={create.isPending || !name || !email || password.length < 8}
+        >
           Create staff
         </Button>
         {create.isError ? <p className="text-sm text-wine">{create.error.message}</p> : null}
@@ -98,6 +128,7 @@ export default function StaffPage() {
           <THead>
             <TR>
               <TH>Name</TH>
+              <TH>Admin ID</TH>
               <TH>Email</TH>
               <TH>Roles</TH>
               <TH>Status</TH>
@@ -108,15 +139,19 @@ export default function StaffPage() {
             {employees.data.data.map((e) => (
               <TR key={e.id}>
                 <TD>{e.name}</TD>
+                <TD>{e.employeeCode ?? "—"}</TD>
                 <TD>{e.user.email}</TD>
                 <TD>{(e.roles ?? []).join(", ") || "—"}</TD>
                 <TD>{e.user.status}</TD>
-                <TD>
+                <TD className="space-x-2">
                   <Button
                     variant="outline"
                     type="button"
                     onClick={() => {
-                      const codes = window.prompt("Role codes (comma-separated)", (e.roles ?? []).join(","));
+                      const codes = window.prompt(
+                        "Role codes (comma-separated)",
+                        (e.roles ?? []).join(","),
+                      );
                       if (codes == null) return;
                       setRoles.mutate({
                         id: e.id,
@@ -129,12 +164,25 @@ export default function StaffPage() {
                   >
                     Roles
                   </Button>
+                  <Button
+                    variant="outline"
+                    type="button"
+                    onClick={() =>
+                      setStatus.mutate({
+                        id: e.id,
+                        status: e.user.status === "active" ? "inactive" : "active",
+                      })
+                    }
+                  >
+                    {e.user.status === "active" ? "Deactivate" : "Activate"}
+                  </Button>
                 </TD>
               </TR>
             ))}
           </TBody>
         </Table>
       ) : null}
+      {setRoles.isError ? <p className="text-sm text-wine">{setRoles.error.message}</p> : null}
     </div>
   );
 }

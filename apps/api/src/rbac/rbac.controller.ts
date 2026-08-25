@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, Patch, Req } from "@nestjs/common";
+import { BadRequestException, Body, Controller, Get, Param, Patch, Req } from "@nestjs/common";
 import { ApiBearerAuth, ApiTags } from "@nestjs/swagger";
 import { Request } from "express";
 import { rolePermissionsUpdateSchema, type RolePermissionsUpdateInput } from "@t360/validation";
@@ -55,9 +55,21 @@ export class RbacController {
     @Req() req: Request,
   ) {
     const role = await this.prisma.role.findUniqueOrThrow({ where: { id } });
+    if (role.code === "SuperAdmin" && body.permissionCodes.length === 0) {
+      throw new BadRequestException({
+        code: "SUPERADMIN_PERMS_REQUIRED",
+        message: "Cannot clear all permissions from SuperAdmin",
+      });
+    }
     const perms = await this.prisma.permission.findMany({
       where: { code: { in: body.permissionCodes } },
     });
+    if (role.code === "SuperAdmin" && perms.length === 0 && body.permissionCodes.length > 0) {
+      throw new BadRequestException({
+        code: "INVALID_PERMISSIONS",
+        message: "No matching permissions found",
+      });
+    }
     await this.prisma.$transaction(async (tx) => {
       await tx.rolePermission.deleteMany({ where: { roleId: role.id } });
       if (perms.length) {

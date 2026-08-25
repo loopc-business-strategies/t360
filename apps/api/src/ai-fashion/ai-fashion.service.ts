@@ -577,7 +577,9 @@ export class AiFashionService {
         message: "Only failed or cancelled jobs can be retried",
       });
     }
-    await this.assertReady();
+    await this.assertReady(
+      job.type as "PRODUCT_TO_MODEL" | "VIRTUAL_TRY_ON" | "MODEL_CREATED",
+    );
     await this.assertWithinLimits(userId);
 
     await this.prisma.aiGeneratedImage.update({
@@ -704,6 +706,7 @@ export class AiFashionService {
         where: { jobId: id },
         data: { status: "CANCELLED" },
       });
+      await this.queue.removeJobByGeneratedImageId(id).catch(() => undefined);
     } else {
       await this.prisma.aiGeneratedImage.delete({ where: { id } });
     }
@@ -815,6 +818,11 @@ export class AiFashionService {
       // Auto-save model to library when requested
       if (job.type === "MODEL_CREATED" && params.saveToLibrary) {
         await this.approveJob(job.id, "gallery", job.createdBy);
+      } else if (job.productId && job.type !== "MODEL_CREATED") {
+        const settings = await this.getSettings();
+        if (!settings.requireApproval) {
+          await this.approveJob(job.id, "gallery", job.createdBy);
+        }
       }
 
       await this.notifyCreator(job.createdBy, "ai_fashion.completed", {
@@ -887,14 +895,7 @@ export class AiFashionService {
     const enabledRow = await this.prisma.systemSetting.findUnique({
       where: { key: "ai.fashion.enabled" },
     });
-    const featureRow = await this.prisma.systemSetting.findUnique({
-      where: { key: "feature.ai_fashion.enabled" },
-    });
-    const enabled =
-      enabledRow?.value === true ||
-      enabledRow?.value === "true" ||
-      featureRow?.value === true ||
-      featureRow?.value === "true";
+    const enabled = enabledRow?.value === true || enabledRow?.value === "true";
     if (!enabled) {
       throw new ServiceUnavailableException({
         code: "AI_FASHION_DISABLED",
@@ -943,6 +944,34 @@ export class AiFashionService {
         message: "AI generation limit reached. Please contact the administrator.",
       });
     }
+  }
+
+  /** Mark stuck QUEUED/PROCESSING jobs as FAILED (idempotent). */
+  async failStaleJobs(maxAgeMinutes = 20) {
+    const cutoff = new Date(Date.now() - maxAgeMinutes * 60 * 1000);
+    const result = await this.prisma.aiGeneratedImage.updateMany({
+      where: {
+        status: { in: ["QUEUED", "PROCESSING"] },
+        updatedAt: { lt: cutoff },
+      },
+      data: {
+        status: "FAILED",
+        error: "Job timed out or stalled. Please retry.",
+        errorDetail: "STALE_JOB_SWEEP",
+        completedAt: new Date(),
+      },
+    });
+    if (result.count > 0) {
+      await this.prisma.aiFashionUsage.updateMany({
+        where: {
+          status: { in: ["QUEUED", "PROCESSING"] },
+          createdAt: { lt: cutoff },
+        },
+        data: { status: "FAILED" },
+      });
+      this.logger.warn(`Marked ${result.count} stale AI Fashion job(s) as FAILED`);
+    }
+    return result.count;
   }
 
   private async assertWithinLimits(userId: string) {

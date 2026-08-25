@@ -4,7 +4,7 @@ import * as React from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import { Button, Card, ErrorState, Input, LoadingState } from "@t360/ui";
-import { apiFetch, setAdminToken } from "../../lib/api";
+import { apiFetch, clearAdminSession } from "../../lib/api";
 
 type Me = {
   id: string;
@@ -47,7 +47,7 @@ export default function ProfilePage() {
       }),
     onSuccess: () => {
       setMsg("Password changed. Sign in again.");
-      setAdminToken(null);
+      clearAdminSession();
       router.push("/login");
     },
     onError: (e: Error) => setMsg(e.message),
@@ -56,7 +56,7 @@ export default function ProfilePage() {
   const logoutAll = useMutation({
     mutationFn: () => apiFetch("/auth/logout-all", { method: "POST", body: "{}" }),
     onSuccess: () => {
-      setAdminToken(null);
+      clearAdminSession();
       router.push("/login");
     },
   });

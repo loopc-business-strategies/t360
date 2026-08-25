@@ -19,6 +19,8 @@ class _AdminAiScreenState extends ConsumerState<AdminAiScreen> {
   String? _productId;
   Map<String, dynamic>? _product;
   List<dynamic> _models = [];
+  List<dynamic> _products = [];
+  List<dynamic> _history = [];
   String? _imageId;
   String? _modelId;
   String? _jobId;
@@ -43,14 +45,21 @@ class _AdminAiScreenState extends ConsumerState<AdminAiScreen> {
   Future<void> _load() async {
     final repo = ref.read(adminRepoProvider);
     try {
-      final models = await repo.aiModels();
+      final models = await repo.aiModels(activeOnly: true);
+      final products = await repo.products();
       Map<String, dynamic>? product;
+      List<dynamic> history = [];
       if (_productId != null) {
         product = await repo.product(_productId!);
+        history = await repo.aiJobs(productId: _productId);
+      } else {
+        history = await repo.aiJobs();
       }
       setState(() {
         _models = models;
+        _products = products;
         _product = product;
+        _history = history;
         final images = (product?['images'] as List?) ?? [];
         if (images.isNotEmpty) {
           _imageId = (images.first as Map)['id']?.toString();
@@ -59,6 +68,13 @@ class _AdminAiScreenState extends ConsumerState<AdminAiScreen> {
     } catch (e) {
       setState(() => _error = '$e');
     }
+  }
+
+  Future<void> _selectProduct(String? id) async {
+    _productId = id;
+    _jobId = null;
+    _job = null;
+    await _load();
   }
 
   Future<void> _generate() async {
@@ -94,6 +110,8 @@ class _AdminAiScreenState extends ConsumerState<AdminAiScreen> {
       final status = job['status']?.toString();
       if (status == 'COMPLETED' || status == 'FAILED' || status == 'CANCELLED') {
         _poll?.cancel();
+        _history = await ref.read(adminRepoProvider).aiJobs(productId: _productId);
+        setState(() {});
       }
     } catch (_) {}
   }
@@ -117,6 +135,10 @@ class _AdminAiScreenState extends ConsumerState<AdminAiScreen> {
         title: const Text('AI Fashion'),
         actions: [
           IconButton(
+            onPressed: () => context.push('/admin/ai-models'),
+            icon: const Icon(Icons.people_outline),
+          ),
+          IconButton(
             onPressed: () => context.push('/admin/ai-settings'),
             icon: const Icon(Icons.settings_outlined),
           ),
@@ -125,7 +147,21 @@ class _AdminAiScreenState extends ConsumerState<AdminAiScreen> {
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
-          Text(_product?['name']?.toString() ?? 'Select a product from Products tab'),
+          DropdownButtonFormField<String?>(
+            initialValue: _productId,
+            decoration: const InputDecoration(labelText: 'Product'),
+            items: [
+              const DropdownMenuItem(value: null, child: Text('Select product')),
+              ..._products.map((p) {
+                final map = p as Map;
+                return DropdownMenuItem(
+                  value: map['id']?.toString(),
+                  child: Text(map['name']?.toString() ?? 'Product'),
+                );
+              }),
+            ],
+            onChanged: (v) => _selectProduct(v),
+          ),
           const SizedBox(height: 12),
           if (images.isNotEmpty)
             SizedBox(
@@ -181,7 +217,7 @@ class _AdminAiScreenState extends ConsumerState<AdminAiScreen> {
             if (status == 'QUEUED' || status == 'PROCESSING')
               const Padding(
                 padding: EdgeInsets.only(top: 8),
-                child: Text('Generating AI Fashion Image… You can leave this screen; the job continues.'),
+                child: Text('Generating… You can leave; the job continues on the server.'),
               ),
             if (output != null) ...[
               const SizedBox(height: 12),
@@ -192,23 +228,52 @@ class _AdminAiScreenState extends ConsumerState<AdminAiScreen> {
                 children: [
                   FilledButton(onPressed: () => _approve('gallery'), child: const Text('Approve')),
                   OutlinedButton(onPressed: () => _approve('primary'), child: const Text('Set primary')),
-                  if (status == 'FAILED')
-                    OutlinedButton(
-                      onPressed: () async {
-                        final job = await ref.read(adminRepoProvider).retryJob(_jobId!);
-                        setState(() {
-                          _jobId = job['id']?.toString();
-                          _job = job;
-                        });
-                        _poll?.cancel();
-                        _poll = Timer.periodic(const Duration(seconds: 3), (_) => _refreshJob());
-                      },
-                      child: const Text('Retry'),
-                    ),
                 ],
               ),
             ],
+            if (status == 'FAILED' || status == 'CANCELLED')
+              OutlinedButton(
+                onPressed: () async {
+                  final job = await ref.read(adminRepoProvider).retryJob(_jobId!);
+                  setState(() {
+                    _jobId = job['id']?.toString();
+                    _job = job;
+                  });
+                  _poll?.cancel();
+                  _poll = Timer.periodic(const Duration(seconds: 3), (_) => _refreshJob());
+                },
+                child: const Text('Retry'),
+              ),
+            if (_jobId != null)
+              TextButton(
+                onPressed: () async {
+                  await ref.read(adminRepoProvider).deleteJob(_jobId!);
+                  setState(() {
+                    _jobId = null;
+                    _job = null;
+                  });
+                  await _load();
+                },
+                child: const Text('Cancel / Delete job'),
+              ),
           ],
+          const SizedBox(height: 24),
+          Text('Recent jobs', style: Theme.of(context).textTheme.titleMedium),
+          ..._history.take(15).map((j) {
+            final map = j as Map;
+            return ListTile(
+              dense: true,
+              title: Text('${map['status']} · ${map['type']}'),
+              subtitle: Text(map['product']?['name']?.toString() ?? map['productId']?.toString() ?? ''),
+              onTap: () {
+                setState(() {
+                  _jobId = map['id']?.toString();
+                  _job = Map<String, dynamic>.from(map);
+                  _productId = map['productId']?.toString() ?? _productId;
+                });
+              },
+            );
+          }),
         ],
       ),
     );

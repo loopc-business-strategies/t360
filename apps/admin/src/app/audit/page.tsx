@@ -3,6 +3,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { Card, ErrorState, LoadingState } from "@t360/ui";
 import { apiFetch } from "../../lib/api";
+import { RequirePerm } from "../../components/require-perm";
 
 type AuditRow = {
   id: string;
@@ -14,7 +15,7 @@ type AuditRow = {
   metadata?: unknown;
 };
 
-export default function AuditPage() {
+function AuditPageInner() {
   const query = useQuery({
     queryKey: ["admin-audit"],
     queryFn: () => apiFetch<AuditRow[]>("/audit?take=100"),
@@ -66,5 +67,13 @@ export default function AuditPage() {
         </table>
       </Card>
     </div>
+  );
+}
+
+export default function AuditPage() {
+  return (
+    <RequirePerm anyOf={["audit.read"]}>
+      <AuditPageInner />
+    </RequirePerm>
   );
 }

@@ -6,6 +6,7 @@ import 'token_storage.dart';
 class ApiClient {
   ApiClient({
     required TokenStorage tokens,
+    this.onSessionExpired,
     Dio? dio,
   }) : _tokens = tokens {
     _dio = dio ??
@@ -23,6 +24,10 @@ class ApiClient {
           final access = await _tokens.getAccess();
           if (access != null && access.isNotEmpty) {
             options.headers['Authorization'] = 'Bearer $access';
+          }
+          final mode = await _tokens.getMode();
+          if (mode == 'staff') {
+            options.headers['X-T360-Client'] = 'mobile-admin';
           }
           handler.next(options);
         },
@@ -44,6 +49,7 @@ class ApiClient {
                 return handler.next(error);
               }
             }
+            onSessionExpired?.call();
           }
           handler.next(error);
         },
@@ -52,6 +58,7 @@ class ApiClient {
   }
 
   final TokenStorage _tokens;
+  final void Function()? onSessionExpired;
   late final Dio _dio;
 
   Dio get dio => _dio;

@@ -22,6 +22,9 @@ export class UsersService {
       throw new NotFoundException({ code: "USER_NOT_FOUND", message: "User not found" });
     }
     const permissions = await this.auth.getUserPermissions(userId);
+    const mobileAdminFlag = await this.prisma.systemSetting.findUnique({
+      where: { key: "feature.mobile_admin.enabled" },
+    });
     return {
       id: user.id,
       email: user.email,
@@ -31,6 +34,10 @@ export class UsersService {
       permissions,
       customer: user.customer,
       employee: user.employee,
+      featureFlags: {
+        mobileAdminEnabled:
+          mobileAdminFlag?.value === true || mobileAdminFlag?.value === "true",
+      },
     };
   }
 }

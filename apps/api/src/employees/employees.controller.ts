@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   Body,
   Controller,
   Get,
@@ -65,7 +66,7 @@ export class EmployeesController {
     body: {
       name: string;
       email: string;
-      password?: string;
+      password: string;
       employeeCode?: string | null;
       branchId?: string | null;
       roleCodes?: string[];
@@ -73,8 +74,7 @@ export class EmployeesController {
     @CurrentUser() actor: { userId: string },
     @Req() req: Request,
   ) {
-    const password = body.password ?? "ChangeMe!123";
-    const passwordHash = await argon2.hash(password);
+    const passwordHash = await argon2.hash(body.password);
     const user = await this.prisma.user.create({
       data: {
         email: body.email.toLowerCase(),
@@ -159,6 +159,24 @@ export class EmployeesController {
   ) {
     const emp = await this.prisma.employee.findUniqueOrThrow({ where: { id } });
     const roles = await this.prisma.role.findMany({ where: { code: { in: body.roleCodes } } });
+    const superAdmin = await this.prisma.role.findUnique({ where: { code: "SuperAdmin" } });
+    if (superAdmin) {
+      const currentlySuper = await this.prisma.userRole.findUnique({
+        where: { userId_roleId: { userId: emp.userId, roleId: superAdmin.id } },
+      });
+      const keepingSuper = roles.some((r) => r.code === "SuperAdmin");
+      if (currentlySuper && !keepingSuper) {
+        const otherSuperCount = await this.prisma.userRole.count({
+          where: { roleId: superAdmin.id, userId: { not: emp.userId } },
+        });
+        if (otherSuperCount === 0) {
+          throw new BadRequestException({
+            code: "LAST_SUPERADMIN",
+            message: "Cannot remove the last SuperAdmin role assignment",
+          });
+        }
+      }
+    }
     await this.prisma.userRole.deleteMany({ where: { userId: emp.userId } });
     for (const role of roles) {
       await this.prisma.userRole.create({

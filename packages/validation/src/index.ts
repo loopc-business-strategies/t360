@@ -203,7 +203,7 @@ export const couponValidateSchema = z.object({
 export const employeeCreateSchema = z.object({
   name: z.string().min(2).max(120),
   email: z.string().email(),
-  password: z.string().min(8).optional(),
+  password: z.string().min(8),
   employeeCode: z.string().min(2).max(40).optional().nullable(),
   branchId: z.string().uuid().optional().nullable(),
   roleCodes: z.array(z.string()).optional(),

@@ -3,26 +3,54 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../core/providers.dart';
+import 'admin_home_screen.dart';
+import 'admin_shell.dart';
 
-class AdminMoreScreen extends ConsumerWidget {
+class AdminMoreScreen extends ConsumerStatefulWidget {
   const AdminMoreScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<AdminMoreScreen> createState() => _AdminMoreScreenState();
+}
+
+class _AdminMoreScreenState extends ConsumerState<AdminMoreScreen> {
+  List<String> _perms = [];
+
+  @override
+  void initState() {
+    super.initState();
+    ref.read(adminRepoProvider).me().then((me) {
+      if (!mounted) return;
+      setState(() {
+        _perms = (me['permissions'] as List?)?.map((e) => e.toString()).toList() ?? [];
+      });
+    }).catchError((_) {});
+  }
+
+  @override
+  Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text('More')),
       body: ListView(
         children: [
-          ListTile(
-            leading: const Icon(Icons.warehouse_outlined),
-            title: const Text('Inventory'),
-            onTap: () => context.push('/admin/inventory'),
-          ),
-          ListTile(
-            leading: const Icon(Icons.settings_outlined),
-            title: const Text('AI Settings'),
-            onTap: () => context.push('/admin/ai-settings'),
-          ),
+          if (adminHasAny(_perms, ['inventory.read']))
+            ListTile(
+              leading: const Icon(Icons.warehouse_outlined),
+              title: const Text('Inventory'),
+              onTap: () => context.push('/admin/inventory'),
+            ),
+          if (adminHasAny(_perms, ['ai_models.view', 'ai.fashion']))
+            ListTile(
+              leading: const Icon(Icons.people_outline),
+              title: const Text('AI Models'),
+              onTap: () => context.push('/admin/ai-models'),
+            ),
+          if (adminHasAny(_perms, ['ai_settings.view', 'settings.manage']))
+            ListTile(
+              leading: const Icon(Icons.settings_outlined),
+              title: const Text('AI Settings'),
+              onTap: () => context.push('/admin/ai-settings'),
+            ),
           ListTile(
             leading: const Icon(Icons.notifications_outlined),
             title: const Text('Notifications'),
@@ -37,6 +65,8 @@ class AdminMoreScreen extends ConsumerWidget {
             leading: const Icon(Icons.logout),
             title: const Text('Logout'),
             onTap: () async {
+              final refresh = await ref.read(tokenStorageProvider).getRefresh();
+              await ref.read(adminRepoProvider).logout(refresh);
               await ref.read(authStateProvider.notifier).markLoggedOut();
               if (context.mounted) context.go('/admin/login');
             },

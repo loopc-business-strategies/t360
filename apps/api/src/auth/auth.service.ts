@@ -128,11 +128,25 @@ export class AuthService {
     if (!user?.passwordHash) {
       throw new UnauthorizedException({ code: "INVALID_CREDENTIALS", message: "Invalid credentials" });
     }
+    if (!user.employee) {
+      throw new ForbiddenException({
+        code: "STAFF_REQUIRED",
+        message: "Staff account required for admin login",
+      });
+    }
     if (user.status !== "active") {
       throw new ForbiddenException({ code: "ACCOUNT_INACTIVE", message: "Account is inactive" });
     }
     if (user.lockedUntil && user.lockedUntil > new Date()) {
       throw new ForbiddenException({ code: "ACCOUNT_LOCKED", message: "Account temporarily locked" });
+    }
+
+    const permissions = await this.getUserPermissions(user.id);
+    if (permissions.length === 0) {
+      throw new ForbiddenException({
+        code: "NO_STAFF_ROLE",
+        message: "Account has no staff permissions assigned",
+      });
     }
 
     const ok = await argon2.verify(user.passwordHash, input.password);
@@ -223,6 +237,15 @@ export class AuthService {
     });
     if (!session || session.expiresAt < new Date()) {
       throw new UnauthorizedException({ code: "INVALID_REFRESH", message: "Invalid refresh token" });
+    }
+
+    const user = await this.prisma.user.findUnique({ where: { id: session.userId } });
+    if (!user || user.status !== "active") {
+      await this.prisma.session.updateMany({
+        where: { userId: session.userId, revokedAt: null },
+        data: { revokedAt: new Date() },
+      });
+      throw new ForbiddenException({ code: "ACCOUNT_INACTIVE", message: "Account is inactive" });
     }
 
     // Rotation: revoke current, issue new in same family

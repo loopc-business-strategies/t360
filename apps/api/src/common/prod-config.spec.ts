@@ -35,7 +35,7 @@ describe("assertProductionConfig", () => {
     ).not.toThrow();
   });
 
-  it("passes when real providers set", () => {
+  it("rejects FASHION_AI_PROVIDER=mock in production", () => {
     expect(() =>
       assertProductionConfig({
         NODE_ENV: "production",
@@ -43,6 +43,20 @@ describe("assertProductionConfig", () => {
         NOTIFICATION_PROVIDER: "resend",
         AI_PROVIDER: "openai",
         POS_PROVIDER: "vendor",
+        FASHION_AI_PROVIDER: "mock",
+      }),
+    ).toThrow(/FASHION_AI_PROVIDER=mock/i);
+  });
+
+  it("allows FASHION_AI_PROVIDER=disabled in production", () => {
+    expect(() =>
+      assertProductionConfig({
+        NODE_ENV: "production",
+        PAYMENT_PROVIDER: "razorpay",
+        NOTIFICATION_PROVIDER: "resend",
+        AI_PROVIDER: "openai",
+        POS_PROVIDER: "vendor",
+        FASHION_AI_PROVIDER: "disabled",
       }),
     ).not.toThrow();
   });

@@ -12,6 +12,11 @@ export function assertProductionConfig(env: NodeJS.ProcessEnv = process.env): vo
     ["POS_PROVIDER", (env.POS_PROVIDER ?? "mock").toLowerCase()],
   ];
 
+  const fashion = (env.FASHION_AI_PROVIDER ?? "disabled").toLowerCase();
+  if (fashion === "mock") {
+    checks.push(["FASHION_AI_PROVIDER", fashion]);
+  }
+
   const offenders = checks.filter(([, value]) => value === "mock");
   if (offenders.length === 0) return;
 

@@ -1,6 +1,7 @@
 import {
   BadRequestException,
   Controller,
+  Get,
   Inject,
   Post,
   Req,
@@ -10,7 +11,7 @@ import {
 import { FileInterceptor } from "@nestjs/platform-express";
 import { ApiBearerAuth, ApiBody, ApiConsumes, ApiTags } from "@nestjs/swagger";
 import { Request } from "express";
-import { RequirePermissions } from "../common/decorators";
+import { RequireAnyPermissions, RequirePermissions } from "../common/decorators";
 import { MEDIA_STORAGE, MediaStorage } from "./media-storage";
 
 const ALLOWED = new Set(["image/jpeg", "image/png", "image/webp", "image/gif"]);
@@ -21,8 +22,26 @@ const ALLOWED = new Set(["image/jpeg", "image/png", "image/webp", "image/gif"]);
 export class MediaAdminController {
   constructor(@Inject(MEDIA_STORAGE) private readonly media: MediaStorage) {}
 
+  @Get("status")
+  @RequirePermissions("settings.manage")
+  async status(@Req() req: Request) {
+    const cloud =
+      Boolean(process.env.CLOUDINARY_CLOUD_NAME?.trim()) &&
+      Boolean(process.env.CLOUDINARY_API_KEY?.trim()) &&
+      Boolean(process.env.CLOUDINARY_API_SECRET?.trim());
+    return {
+      success: true,
+      data: {
+        cloudinaryConfigured: cloud,
+        uploadBufferSupported: typeof this.media.uploadBuffer === "function",
+        provider: cloud ? "cloudinary" : "mock",
+      },
+      requestId: (req as Request & { requestId?: string }).requestId,
+    };
+  }
+
   @Post("upload")
-  @RequirePermissions("products.update")
+  @RequireAnyPermissions("products.update", "products.create")
   @ApiConsumes("multipart/form-data")
   @ApiBody({
     schema: {

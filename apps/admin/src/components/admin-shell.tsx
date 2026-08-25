@@ -5,7 +5,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 import { Button } from "@t360/ui";
-import { apiFetch, getAdminToken, setAdminToken } from "../lib/api";
+import { apiFetch, clearAdminSession, getAdminToken } from "../lib/api";
 
 type NavItem = {
   href: string;
@@ -40,7 +40,8 @@ const NAV_GROUPS: NavGroup[] = [
       { href: "/ai-fashion", label: "AI Fashion Studio", anyOf: ["ai_fashion.view", "ai.fashion"] },
       { href: "/ai-fashion/models", label: "AI Models", anyOf: ["ai_models.view", "ai.fashion"] },
       { href: "/ai-fashion/images", label: "Generated Images", anyOf: ["ai_fashion.view", "ai.fashion"] },
-      { href: "/ai-fashion/settings", label: "AI Settings", anyOf: ["ai_settings.view", "ai.fashion", "settings.manage"] },
+      { href: "/ai-fashion/settings", label: "AI Settings", anyOf: ["ai_settings.view", "settings.manage"] },
+      { href: "/ai-fashion/settings#usage", label: "AI Usage", anyOf: ["ai_settings.view", "ai_fashion.view", "ai.fashion"] },
       { href: "/ai", label: "AI Chat", anyOf: ["ai.admin"] },
     ],
   },
@@ -178,7 +179,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
             variant="outline"
             className="w-full border-elevated/30 text-elevated"
             onClick={() => {
-              setAdminToken(null);
+              clearAdminSession();
               router.push("/login");
             }}
           >

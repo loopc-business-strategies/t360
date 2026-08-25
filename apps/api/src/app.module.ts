@@ -29,6 +29,7 @@ import { AiFashionModule } from "./ai-fashion/ai-fashion.module";
 import { PosModule } from "./pos/pos.module";
 import { MediaModule } from "./media/media.module";
 import { JwtAuthGuard } from "./auth/guards/jwt-auth.guard";
+import { MobileAdminGuard } from "./auth/guards/mobile-admin.guard";
 import { PermissionsGuard } from "./rbac/permissions.guard";
 import { RequestIdMiddleware } from "./common/middleware/request-id.middleware";
 
@@ -65,6 +66,7 @@ import { RequestIdMiddleware } from "./common/middleware/request-id.middleware";
   ],
   providers: [
     { provide: APP_GUARD, useClass: JwtAuthGuard },
+    { provide: APP_GUARD, useClass: MobileAdminGuard },
     { provide: APP_GUARD, useClass: PermissionsGuard },
   ],
 })

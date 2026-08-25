@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { Card } from "@t360/ui";
+import { RequirePerm } from "../../components/require-perm";
 
 const links = [
   { href: "/settings/ai", title: "AI", desc: "AI Fashion enablement, modes, limits" },
@@ -12,7 +13,7 @@ const links = [
   { href: "/notifications", title: "Notifications", desc: "Templates and channels" },
 ];
 
-export default function SettingsHomePage() {
+function SettingsHomeInner() {
   return (
     <div className="space-y-6">
       <div>
@@ -30,5 +31,13 @@ export default function SettingsHomePage() {
         ))}
       </div>
     </div>
+  );
+}
+
+export default function SettingsHomePage() {
+  return (
+    <RequirePerm anyOf={["settings.manage"]}>
+      <SettingsHomeInner />
+    </RequirePerm>
   );
 }
