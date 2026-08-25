@@ -18,6 +18,8 @@ Admin UI (/ai-fashion)
 
 Chat AI (`apps/api/src/ai`) is separate. Fashion Studio lives in `apps/api/src/ai-fashion`.
 
+Customer **TRY ME** virtual try-on reuses this same provider + queue with a separate `TryOnSession` model — see [TRY-ON.md](./TRY-ON.md).
+
 ## Provider abstraction
 
 `FashionAIProvider` methods:

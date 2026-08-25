@@ -49,6 +49,7 @@ export type ProductListItem = {
 
 export type ProductDetail = ProductListItem & {
   description: string;
+  tryOnEnabled?: boolean;
 };
 
 export type CategoryNode = {

@@ -273,7 +273,11 @@ export class CatalogService {
     return result;
   }
 
-  async updateProduct(id: string, input: Partial<ProductCreateInput>, actorId?: string) {
+  async updateProduct(
+    id: string,
+    input: Partial<ProductCreateInput> & { tryOnImageId?: string | null },
+    actorId?: string,
+  ) {
     await this.prisma.product.update({
       where: { id },
       data: {
@@ -283,8 +287,22 @@ export class CatalogService {
         status: input.status,
         categoryId: input.categoryId,
         brandId: input.brandId === undefined ? undefined : input.brandId,
+        tryOnEnabled: input.tryOnEnabled === undefined ? undefined : input.tryOnEnabled,
       },
     });
+
+    if (input.tryOnImageId !== undefined) {
+      await this.prisma.productImage.updateMany({
+        where: { productId: id },
+        data: { isTryOnSource: false },
+      });
+      if (input.tryOnImageId) {
+        await this.prisma.productImage.updateMany({
+          where: { id: input.tryOnImageId, productId: id },
+          data: { isTryOnSource: true },
+        });
+      }
+    }
 
     if (input.variants?.length) {
       for (const v of input.variants) {

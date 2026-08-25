@@ -13,8 +13,9 @@ type Product = {
   slug: string;
   status: string;
   description: string;
+  tryOnEnabled?: boolean;
   variants: Array<{ sku: string; price: string; salePrice?: string | null }>;
-  images: Array<{ id?: string; url: string }>;
+  images: Array<{ id?: string; url: string; isTryOnSource?: boolean }>;
 };
 
 type FashionJob = {
@@ -42,6 +43,8 @@ export default function EditProductPage() {
   const [name, setName] = React.useState("");
   const [description, setDescription] = React.useState("");
   const [status, setStatus] = React.useState("published");
+  const [tryOnEnabled, setTryOnEnabled] = React.useState(false);
+  const [tryOnImageId, setTryOnImageId] = React.useState<string | null>(null);
   const [saving, setSaving] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
 
@@ -50,6 +53,9 @@ export default function EditProductPage() {
       setName(query.data.data.name);
       setDescription(query.data.data.description);
       setStatus(query.data.data.status);
+      setTryOnEnabled(Boolean(query.data.data.tryOnEnabled));
+      const src = query.data.data.images.find((i) => i.isTryOnSource);
+      setTryOnImageId(src?.id ?? null);
     }
   }, [query.data]);
 
@@ -60,7 +66,13 @@ export default function EditProductPage() {
     try {
       await apiFetch(`/admin/products/${params.id}`, {
         method: "PATCH",
-        body: JSON.stringify({ name, description, status }),
+        body: JSON.stringify({
+          name,
+          description,
+          status,
+          tryOnEnabled,
+          tryOnImageId,
+        }),
       });
       await query.refetch();
     } catch (err) {
@@ -105,6 +117,37 @@ export default function EditProductPage() {
             onChange={(e) => setDescription(e.target.value)}
           />
           <Input label="Status" value={status} onChange={(e) => setStatus(e.target.value)} />
+          <label className="flex items-center gap-2 text-sm">
+            <input
+              type="checkbox"
+              checked={tryOnEnabled}
+              onChange={(e) => setTryOnEnabled(e.target.checked)}
+            />
+            Enable Virtual Try-On (TRY ME) for this product
+          </label>
+          {p.images.length ? (
+            <div className="space-y-2">
+              <p className="text-sm font-medium">Try-On garment image</p>
+              <p className="text-xs text-muted">
+                Preferred product photo used as the garment for try-on (defaults to first gallery image).
+              </p>
+              <div className="grid grid-cols-3 gap-2">
+                {p.images.map((img) => (
+                  <button
+                    key={img.id ?? img.url}
+                    type="button"
+                    className={`overflow-hidden rounded-md border-2 ${
+                      tryOnImageId === img.id ? "border-wine" : "border-transparent"
+                    }`}
+                    onClick={() => setTryOnImageId(img.id ?? null)}
+                  >
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src={img.url} alt="" className="aspect-[4/5] w-full object-cover" />
+                  </button>
+                ))}
+              </div>
+            </div>
+          ) : null}
           {error ? <p className="text-sm text-danger">{error}</p> : null}
           <div className="flex gap-2">
             <Button type="submit" disabled={saving}>

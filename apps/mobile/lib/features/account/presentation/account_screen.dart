@@ -146,6 +146,12 @@ class _AccountScreenState extends ConsumerState<AccountScreen> {
           ),
           const SizedBox(height: 8),
           TharagaiButton(
+            label: t.tryMeHistory,
+            variant: TharagaiButtonVariant.outline,
+            onPressed: () => context.push('/try-ons'),
+          ),
+          const SizedBox(height: 8),
+          TharagaiButton(
             label: t.openAi,
             variant: TharagaiButtonVariant.outline,
             onPressed: () => context.push('/ai'),

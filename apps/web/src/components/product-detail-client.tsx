@@ -8,6 +8,7 @@ import { API_URL, SITE_URL, productPrice } from "../lib/catalog-api";
 import { apiFetch, getCustomerToken } from "../lib/api";
 import { useLocale } from "../lib/locale";
 import { buildWhatsAppEnquiryUrl } from "../lib/whatsapp";
+import { TryOnModal } from "./try-on/try-on-modal";
 
 export function ProductDetailClient({
   product: initial,
@@ -22,6 +23,7 @@ export function ProductDetailClient({
   const [selected, setSelected] = React.useState(initial.variants?.[0]?.id);
   const [wishIds, setWishIds] = React.useState<string[]>([]);
   const [busy, setBusy] = React.useState(false);
+  const [tryOnOpen, setTryOnOpen] = React.useState(false);
 
   const variant = product.variants?.find((v) => v.id === selected) ?? product.variants?.[0];
   const sizes = Array.from(
@@ -208,6 +210,22 @@ export function ProductDetailClient({
           >
             {t.addToCart}
           </Button>
+          <span title={product.tryOnEnabled ? undefined : t.tryMeUnavailable}>
+            <Button
+              type="button"
+              variant="secondary"
+              disabled={!product.tryOnEnabled || busy}
+              onClick={() => {
+                if (!getCustomerToken()) {
+                  window.location.href = `/account?redirect=/products/${product.slug}`;
+                  return;
+                }
+                setTryOnOpen(true);
+              }}
+            >
+              {t.tryMe}
+            </Button>
+          </span>
           <Button variant="secondary" type="button" disabled={busy} onClick={() => void toggleWishlist()}>
             {variant && wishIds.includes(variant.id) ? t.wishlistRemove : t.wishlistAdd}
           </Button>
@@ -217,6 +235,15 @@ export function ProductDetailClient({
             </Button>
           </a>
         </div>
+        <TryOnModal
+          open={tryOnOpen}
+          onClose={() => setTryOnOpen(false)}
+          productId={product.id}
+          productName={product.name}
+          productSlug={product.slug}
+          variantId={variant?.id}
+          tryOnEnabled={Boolean(product.tryOnEnabled)}
+        />
       </div>
     </main>
   );

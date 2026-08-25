@@ -66,5 +66,9 @@
 		<string>UIInterfaceOrientationLandscapeLeft</string>
 		<string>UIInterfaceOrientationLandscapeRight</string>
 	</array>
+	<key>NSCameraUsageDescription</key>
+	<string>Tharagai needs the camera for Virtual Try-On photos.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>Tharagai needs photo library access to upload a photo for Virtual Try-On.</string>
 </dict>
 </plist>

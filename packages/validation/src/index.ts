@@ -77,6 +77,7 @@ export const productCreateSchema = z.object({
   status: z.enum(["draft", "published", "archived"]).optional(),
   categoryId: z.string().uuid(),
   brandId: z.string().uuid().optional().nullable(),
+  tryOnEnabled: z.boolean().optional(),
   variants: z.array(variantInputSchema).min(1),
   imageUrls: z.array(z.string().url()).optional(),
   attributeValues: z
@@ -89,6 +90,7 @@ export const productCreateSchema = z.object({
 export const productUpdateSchema = productCreateSchema.partial().extend({
   categoryId: z.string().uuid().optional(),
   variants: z.array(variantInputSchema).optional(),
+  tryOnImageId: z.string().uuid().optional().nullable(),
 });
 
 export const productListQuerySchema = z.object({
@@ -475,3 +477,19 @@ export type AiFashionModelUpdateInput = z.infer<typeof aiFashionModelUpdateSchem
 export type AiFashionModelGenerateInput = z.infer<typeof aiFashionModelGenerateSchema>;
 export type AiFashionSettingsUpdateInput = z.infer<typeof aiFashionSettingsUpdateSchema>;
 export type AiFashionJobsQuery = z.infer<typeof aiFashionJobsQuerySchema>;
+
+export const tryOnCreateSchema = z.object({
+  productId: z.string().uuid(),
+  variantId: z.string().uuid().optional().nullable(),
+  inputImageUrl: z.string().url(),
+  inputPublicId: z.string().max(200).optional().nullable(),
+  savePhotoConsent: z.boolean().optional(),
+});
+
+export const tryOnHistoryQuerySchema = z.object({
+  page: z.coerce.number().int().min(1).optional(),
+  pageSize: z.coerce.number().int().min(1).max(50).optional(),
+});
+
+export type TryOnCreateInput = z.infer<typeof tryOnCreateSchema>;
+export type TryOnHistoryQuery = z.infer<typeof tryOnHistoryQuerySchema>;

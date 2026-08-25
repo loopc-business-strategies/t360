@@ -8,6 +8,7 @@ const links = [
   { href: "/ai-fashion/generate", label: "Generate" },
   { href: "/ai-fashion/models", label: "AI Models" },
   { href: "/ai-fashion/images", label: "Generated Images" },
+  { href: "/ai-fashion/try-on", label: "Virtual Try-On" },
   { href: "/ai-fashion/settings", label: "Settings" },
 ];
 

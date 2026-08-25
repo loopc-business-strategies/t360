@@ -98,6 +98,33 @@ class AppStrings {
   String get aiHint => _t('Ask about products…', 'பொருட்களைப் பற்றி கேளுங்கள்…');
   String get send => _t('Send', 'அனுப்பு');
   String get openAi => _t('Tharagai AI chat', 'தாரகை AI அரட்டை');
+  String get tryMe => _t('✨ TRY ME', '✨ TRY ME');
+  String get tryMeUnavailable => _t("Try Me isn't available for this product yet.", 'இந்த தயாரிப்புக்கு Try Me இன்னும் இல்லை.');
+  String get tryMeTitle => _t('Virtual Try-On', 'மெய்நிகர் அணிமுயற்சி');
+  String get tryMeGuide => _t(
+        'For best results: one person, face visible, front-facing, good lighting, and stand naturally.',
+        'சிறந்த முடிவுக்கு: ஒரு நபர், முகம் தெரியும், முன் பார்வை, நல்ல வெளிச்சம், இயல்பாக நிற்கவும்.',
+      );
+  String get tryMeTakePhoto => _t('Take a photo', 'புகைப்படம் எடு');
+  String get tryMeUpload => _t('Upload from gallery', 'கேலரியிலிருந்து பதிவேற்று');
+  String get tryMeRetake => _t('Retake', 'மீண்டும் எடு');
+  String get tryMeConfirm => _t('Start Virtual Try-On', 'அணிமுயற்சியை தொடங்கு');
+  String get tryMeProcessing => _t('Creating your virtual try-on…', 'உங்கள் மெய்நிகர் அணிமுயற்சி உருவாக்கப்படுகிறது…');
+  String get tryMeStepPrepare => _t('Preparing your photo', 'புகைப்படம் தயார்');
+  String get tryMeStepMatch => _t('Matching the outfit', 'ஆடையை பொருத்துதல்');
+  String get tryMeStepGenerate => _t('Generating your preview', 'முன்னோட்டம் உருவாக்கம்');
+  String get tryMeStepFinish => _t('Finishing your look', 'தோற்றம் முடிவு');
+  String get tryMeResult => _t('Your Try-On Result', 'உங்கள் அணிமுயற்சி முடிவு');
+  String get tryMeDisclaimer => _t(
+        'Virtual Try-On is an AI-generated preview. Actual fit, color and appearance may vary.',
+        'மெய்நிகர் அணிமுயற்சி AI முன்னோட்டம். உண்மையான பொருத்தம், நிறம் வேறுபடலாம்.',
+      );
+  String get tryMeShare => _t('Share', 'பகிர்');
+  String get tryMeAnother => _t('Try another product', 'வேறு தயாரிப்பு முயற்சி');
+  String get tryMeAgain => _t('Try again', 'மீண்டும் முயற்சி');
+  String get tryMeFailed => _t("We couldn't create your try-on.", 'அணிமுயற்சியை உருவாக்க முடியவில்லை.');
+  String get tryMeHistory => _t('My Try-Ons', 'என் அணிமுயற்சிகள்');
+  String get viewProduct => _t('View product', 'தயாரிப்பைப் பார்');
 }
 
 @immutable

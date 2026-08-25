@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import Link from "next/link";
 import { Badge, Button, Input, LoadingState } from "@t360/ui";
 import { apiFetch, getCustomerToken, getRefreshToken, setCustomerTokens } from "../../lib/api";
 import { useLocale } from "../../lib/locale";
@@ -236,6 +237,11 @@ export default function AccountPage() {
 
       <section className="space-y-3">
         <h2 className="font-display text-xl">{t.profile}</h2>
+        <p className="text-sm">
+          <Link href="/account/try-ons" className="text-wine hover:underline">
+            {t.tryMeHistory}
+          </Link>
+        </p>
         {loyaltyBalance != null ? (
           <p className="text-sm">
             {t.loyaltyBalance}:{" "}

@@ -8,6 +8,7 @@ import 'cart/data/cart_repository.dart';
 import 'catalog/data/catalog_repository.dart';
 import 'orders/data/orders_repository.dart';
 import 'wishlist/data/wishlist_repository.dart';
+import 'try_on/data/try_on_repository.dart';
 
 final authRepositoryProvider = Provider((ref) => AuthRepository(ref.watch(apiClientProvider)));
 final catalogRepositoryProvider = Provider((ref) => CatalogRepository(ref.watch(apiClientProvider)));
@@ -18,3 +19,4 @@ final accountRepositoryProvider = Provider((ref) => AccountRepository(ref.watch(
 final notificationsRepositoryProvider =
     Provider((ref) => NotificationsRepository(ref.watch(apiClientProvider)));
 final aiRepositoryProvider = Provider((ref) => AiRepository(ref.watch(apiClientProvider)));
+final tryOnRepositoryProvider = Provider((ref) => TryOnRepository(ref.watch(apiClientProvider)));

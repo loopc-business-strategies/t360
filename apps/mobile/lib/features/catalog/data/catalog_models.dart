@@ -21,6 +21,7 @@ class ProductDto {
     this.imageUrl,
     this.price,
     this.salePrice,
+    this.tryOnEnabled = false,
     this.variants = const [],
   });
 
@@ -31,6 +32,7 @@ class ProductDto {
   final String? imageUrl;
   final double? price;
   final double? salePrice;
+  final bool tryOnEnabled;
   final List<VariantDto> variants;
 
   factory ProductDto.fromJson(Map<String, dynamic> j) {
@@ -60,6 +62,7 @@ class ProductDto {
           ? variants.first.price
           : _num(j['price']),
       salePrice: variants.isNotEmpty ? variants.first.salePrice : _num(j['salePrice']),
+      tryOnEnabled: j['tryOnEnabled'] == true,
       variants: variants,
     );
   }

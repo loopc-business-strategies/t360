@@ -9,7 +9,8 @@ export const AI_FASHION_QUEUE = "t360-ai-fashion";
 const LOCK_DURATION_MS = 10 * 60 * 1000;
 
 export type AiFashionQueuePayload = {
-  generatedImageId: string;
+  generatedImageId?: string;
+  tryOnSessionId?: string;
 };
 
 @Injectable()
@@ -36,9 +37,19 @@ export class AiFashionQueueService implements OnModuleInit, OnModuleDestroy {
     await this.connection?.quit();
   }
 
-  async enqueue(payload: AiFashionQueuePayload) {
+  async enqueue(payload: { generatedImageId: string }) {
     return this.queue.add("generate", payload, {
       jobId: `ai-fashion-${payload.generatedImageId}`,
+      attempts: 2,
+      backoff: { type: "exponential", delay: 5000 },
+      removeOnComplete: 100,
+      removeOnFail: 100,
+    });
+  }
+
+  async enqueueTryOn(payload: { tryOnSessionId: string }) {
+    return this.queue.add("try-on", payload, {
+      jobId: `try-on-${payload.tryOnSessionId}`,
       attempts: 2,
       backoff: { type: "exponential", delay: 5000 },
       removeOnComplete: 100,
@@ -51,15 +62,29 @@ export class AiFashionQueueService implements OnModuleInit, OnModuleDestroy {
     if (job) await job.remove();
   }
 
+  async removeTryOnJob(tryOnSessionId: string) {
+    const job = await this.queue.getJob(`try-on-${tryOnSessionId}`);
+    if (job) await job.remove();
+  }
+
   /** Used by dedicated worker process */
   startWorker() {
     this.worker = new Worker(
       AI_FASHION_QUEUE,
       async (job: Job<AiFashionQueuePayload>) => {
-        const { AiFashionService } = await import("./ai-fashion.service");
-        const service = this.moduleRef.get(AiFashionService, { strict: false });
-        await service.processJob(job.data.generatedImageId);
-        return { ok: true, id: job.data.generatedImageId };
+        if (job.data.tryOnSessionId) {
+          const { TryOnService } = await import("./try-on.service");
+          const service = this.moduleRef.get(TryOnService, { strict: false });
+          await service.processSession(job.data.tryOnSessionId);
+          return { ok: true, tryOnSessionId: job.data.tryOnSessionId };
+        }
+        if (job.data.generatedImageId) {
+          const { AiFashionService } = await import("./ai-fashion.service");
+          const service = this.moduleRef.get(AiFashionService, { strict: false });
+          await service.processJob(job.data.generatedImageId);
+          return { ok: true, id: job.data.generatedImageId };
+        }
+        throw new Error("Invalid AI fashion job payload");
       },
       {
         connection: this.connection.duplicate(),
@@ -75,8 +100,11 @@ export class AiFashionQueueService implements OnModuleInit, OnModuleDestroy {
     const runSweep = async () => {
       try {
         const { AiFashionService } = await import("./ai-fashion.service");
-        const service = this.moduleRef.get(AiFashionService, { strict: false });
-        await service.failStaleJobs(20);
+        const fashion = this.moduleRef.get(AiFashionService, { strict: false });
+        await fashion.failStaleJobs(20);
+        const { TryOnService } = await import("./try-on.service");
+        const tryOn = this.moduleRef.get(TryOnService, { strict: false });
+        await tryOn.expireDueSessions();
       } catch (err) {
         this.logger.warn(
           `Stale job sweep failed: ${err instanceof Error ? err.message : "unknown"}`,

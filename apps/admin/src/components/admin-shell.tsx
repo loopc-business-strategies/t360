@@ -40,6 +40,7 @@ const NAV_GROUPS: NavGroup[] = [
       { href: "/ai-fashion", label: "AI Fashion Studio", anyOf: ["ai_fashion.view", "ai.fashion"] },
       { href: "/ai-fashion/models", label: "AI Models", anyOf: ["ai_models.view", "ai.fashion"] },
       { href: "/ai-fashion/images", label: "Generated Images", anyOf: ["ai_fashion.view", "ai.fashion"] },
+      { href: "/ai-fashion/try-on", label: "Virtual Try-On", anyOf: ["ai.tryon.read", "ai.fashion"] },
       { href: "/ai-fashion/settings", label: "AI Settings", anyOf: ["ai_settings.view", "settings.manage"] },
       { href: "/ai-fashion/settings#usage", label: "AI Usage", anyOf: ["ai_settings.view", "ai_fashion.view", "ai.fashion"] },
       { href: "/ai", label: "AI Chat", anyOf: ["ai.admin"] },

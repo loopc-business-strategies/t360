@@ -30,6 +30,8 @@ import '../features/catalog/presentation/product_detail_screen.dart';
 import '../features/checkout/presentation/checkout_screen.dart';
 import '../features/gallery/design_gallery_screen.dart';
 import '../features/orders/presentation/orders_screen.dart';
+import '../features/try_on/presentation/try_on_flow_screen.dart';
+import '../features/try_on/presentation/try_on_history_screen.dart';
 import '../features/wishlist/presentation/wishlist_screen.dart';
 import '../core/providers.dart';
 import 'shell.dart';
@@ -172,6 +174,23 @@ final goRouterProvider = Provider<GoRouter>((ref) {
         path: '/product/:slug',
         builder: (context, state) =>
             ProductDetailScreen(slug: state.pathParameters['slug']!),
+      ),
+      GoRoute(
+        path: '/try-on',
+        builder: (context, state) {
+          final q = state.uri.queryParameters;
+          return TryOnFlowScreen(
+            productId: q['productId'] ?? '',
+            productName: q['name'] ?? '',
+            productSlug: q['slug'] ?? '',
+            variantId: q['variantId'],
+            tryOnEnabled: q['tryOnEnabled'] != '0',
+          );
+        },
+      ),
+      GoRoute(
+        path: '/try-ons',
+        builder: (context, state) => const TryOnHistoryScreen(),
       ),
       GoRoute(
         path: '/auth',

@@ -33,6 +33,8 @@ model User {
   aiConversations AIConversation[]
   aiGeneratedImages AiGeneratedImage[]
   aiFashionUsage    AiFashionUsage[]
+  tryOnSessions     TryOnSession[]
+  tryOnUsage        TryOnUsage[]
 }
 
 model Session {
@@ -250,6 +252,8 @@ model Product {
   slug        String    @unique
   description String    @default("")
   status      String    @default("draft")
+  /// Customer Virtual Try-On ("TRY ME") enabled for this product
+  tryOnEnabled Boolean  @default(false)
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
   deletedAt   DateTime?
@@ -260,11 +264,13 @@ model Product {
   images     ProductImage[]
   attributes ProductAttributeValue[]
   aiGeneratedImages AiGeneratedImage[]
+  tryOnSessions     TryOnSession[]
 
   @@index([categoryId])
   @@index([brandId])
   @@index([status])
   @@index([createdAt])
+  @@index([tryOnEnabled])
 }
 
 model ProductVariant {
@@ -303,6 +309,8 @@ model ProductImage {
   alt       String   @default("")
   /// image | video
   mediaType String   @default("image")
+  /// Preferred garment image for customer Virtual Try-On
+  isTryOnSource Boolean @default(false)
   sortOrder Int      @default(0)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -312,6 +320,7 @@ model ProductImage {
 
   @@index([productId])
   @@index([variantId])
+  @@index([productId, isTryOnSource])
 }
 
 model AttributeDefinition {
@@ -977,5 +986,61 @@ model AiFashionUsage {
   @@index([userId, createdAt])
   @@index([provider, createdAt])
   @@index([generationType, createdAt])
+  @@index([status, createdAt])
+}
+
+/// Customer Virtual Try-On ("TRY ME") session
+model TryOnSession {
+  id              String    @id @default(uuid()) @db.Uuid
+  customerId      String    @db.Uuid
+  productId       String    @db.Uuid
+  variantId       String?   @db.Uuid
+  inputImageUrl   String
+  inputPublicId   String?
+  resultImageUrl  String?
+  resultPublicId  String?
+  /// QUEUED | PROCESSING | COMPLETED | FAILED | CANCELLED | EXPIRED
+  status          String    @default("QUEUED")
+  provider        String    @default("fashn")
+  providerJobId   String?
+  errorCode       String?
+  errorMessage    String?
+  idempotencyKey  String?   @unique
+  savePhotoConsent Boolean  @default(false)
+  deletedAt       DateTime?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  completedAt     DateTime?
+  expiresAt       DateTime?
+
+  customer User    @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  product  Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+  usage    TryOnUsage?
+
+  @@index([customerId, createdAt])
+  @@index([productId])
+  @@index([status, createdAt])
+  @@index([providerJobId])
+  @@index([expiresAt])
+}
+
+/// Customer Try-On usage ledger
+model TryOnUsage {
+  id          String   @id @default(uuid()) @db.Uuid
+  customerId  String   @db.Uuid
+  productId   String?  @db.Uuid
+  sessionId   String   @unique @db.Uuid
+  provider    String
+  status      String
+  durationMs  Int?
+  creditsUsed Int?
+  source      String   @default("customer")
+  createdAt   DateTime @default(now())
+
+  session  TryOnSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  customer User         @relation(fields: [customerId], references: [id], onDelete: Cascade)
+
+  @@index([customerId, createdAt])
+  @@index([productId, createdAt])
   @@index([status, createdAt])
 }
