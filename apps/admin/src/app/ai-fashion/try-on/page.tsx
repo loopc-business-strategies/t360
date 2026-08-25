@@ -109,7 +109,7 @@ export default function AdminTryOnPage() {
         />
       </div>
 
-      {list.isLoading ? <LoadingState /> : null}
+      {list.isLoading ? <LoadingState label="Loading sessions…" /> : null}
       {list.isError ? (
         <ErrorState title="Failed to load sessions" description={list.error.message} />
       ) : null}

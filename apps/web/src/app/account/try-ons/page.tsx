@@ -52,7 +52,7 @@ export default function TryOnHistoryPage() {
   if (!ready) {
     return (
       <main className="mx-auto max-w-3xl px-6 py-12">
-        <LoadingState />
+        <LoadingState label={t.loading} />
       </main>
     );
   }
