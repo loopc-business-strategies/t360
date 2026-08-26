@@ -137,6 +137,141 @@ class AdminRepository {
   Future<List<dynamic>> orders() =>
       _api.get('/admin/orders', query: {'pageSize': 30}, map: (d) => d as List<dynamic>);
 
+  Future<Map<String, dynamic>> order(String id) =>
+      _api.get('/admin/orders/$id', map: (d) => d as Map<String, dynamic>);
+
+  Future<Map<String, dynamic>> updateOrderStatus(String id, String status, {String? note}) =>
+      _api.patch(
+        '/admin/orders/$id/status',
+        data: {'status': status, if (note != null && note.isNotEmpty) 'note': note},
+        map: (d) => d as Map<String, dynamic>,
+      );
+
+  Future<Map<String, dynamic>> verifyPickup(String id, String pickupCode) => _api.post(
+        '/admin/orders/$id/pickup/verify',
+        data: {'pickupCode': pickupCode},
+        map: (d) => d as Map<String, dynamic>,
+      );
+
+  Future<void> deleteProduct(String id) =>
+      _api.delete('/admin/products/$id', map: (_) => true);
+
+  Future<List<dynamic>> inventory({String? branchId, bool lowStockOnly = false}) => _api.get(
+        '/admin/inventory',
+        query: {
+          if (branchId != null && branchId.isNotEmpty) 'branchId': branchId,
+          if (lowStockOnly) 'lowStockOnly': 'true',
+        },
+        map: (d) => d as List<dynamic>,
+      );
+
+  Future<List<dynamic>> branches() =>
+      _api.get('/admin/branches', map: (d) => d as List<dynamic>);
+
+  Future<Map<String, dynamic>> adjustInventory({
+    required String branchId,
+    required String variantId,
+    required int qtyDelta,
+    String? reason,
+  }) =>
+      _api.post(
+        '/admin/inventory/adjust',
+        data: {
+          'branchId': branchId,
+          'variantId': variantId,
+          'qtyDelta': qtyDelta,
+          if (reason != null && reason.isNotEmpty) 'reason': reason,
+        },
+        map: (d) => d as Map<String, dynamic>,
+      );
+
+  Future<Map<String, dynamic>> createTransfer(Map<String, dynamic> body) =>
+      _api.post('/admin/inventory/transfers', data: body, map: (d) => d as Map<String, dynamic>);
+
+  Future<List<dynamic>> customers({String? q}) async {
+    final data = await _api.get(
+      '/admin/customers',
+      query: {'pageSize': 50, if (q != null && q.isNotEmpty) 'q': q},
+      map: (d) => d,
+    );
+    if (data is Map) {
+      return (data['items'] as List?) ?? const [];
+    }
+    return data as List<dynamic>;
+  }
+
+  Future<Map<String, dynamic>> customer(String id) =>
+      _api.get('/admin/customers/$id', map: (d) => d as Map<String, dynamic>);
+
+  Future<List<dynamic>> campaigns() =>
+      _api.get('/admin/campaigns', map: (d) => d as List<dynamic>);
+
+  Future<List<dynamic>> coupons() =>
+      _api.get('/admin/coupons', map: (d) => d as List<dynamic>);
+
+  Future<List<dynamic>> segments() =>
+      _api.get('/admin/segments', map: (d) => d as List<dynamic>);
+
+  Future<List<dynamic>> abandonedCarts() async {
+    final data = await _api.get('/admin/abandoned-cart', map: (d) => d);
+    if (data is List) return data;
+    if (data is Map) {
+      final carts = data['carts'] ?? data['items'] ?? data['abandoned'];
+      if (carts is List) return carts;
+      return [data];
+    }
+    return const [];
+  }
+
+  Future<Map<String, dynamic>> loyaltyForCustomer(String customerId) =>
+      _api.get('/admin/loyalty/$customerId', map: (d) => d as Map<String, dynamic>);
+
+  Future<Map<String, dynamic>> adjustLoyalty(String customerId, {required int delta, required String reason}) =>
+      _api.post(
+        '/admin/loyalty/$customerId/adjust',
+        data: {'delta': delta, 'reason': reason},
+        map: (d) => d as Map<String, dynamic>,
+      );
+
+  Future<Map<String, dynamic>> posStatus() =>
+      _api.get('/admin/integrations/pos', map: (d) => d as Map<String, dynamic>);
+
+  Future<Map<String, dynamic>> posSync() =>
+      _api.post('/admin/integrations/pos/sync/inventory', data: {}, map: (d) => d as Map<String, dynamic>);
+
+  Future<Map<String, dynamic>> salesReport({String? from, String? to}) => _api.get(
+        '/admin/reports/sales',
+        query: {
+          if (from != null) 'from': from,
+          if (to != null) 'to': to,
+        },
+        map: (d) => d as Map<String, dynamic>,
+      );
+
+  Future<List<dynamic>> settings() =>
+      _api.get('/settings', map: (d) => d as List<dynamic>);
+
+  Future<void> revokeSession(String sessionId) =>
+      _api.delete('/auth/sessions/$sessionId', map: (_) => true);
+
+  Future<Map<String, dynamic>> requestPasswordReset(String email) => _api.post(
+        '/auth/password/forgot',
+        data: {'email': email},
+        map: (d) => d is Map<String, dynamic> ? d : <String, dynamic>{},
+      );
+
+  Future<void> resetPassword({required String token, required String newPassword}) => _api.post(
+        '/auth/password/reset',
+        data: {'token': token, 'newPassword': newPassword},
+        map: (_) => true,
+      );
+
+  Future<void> reauth(String password) => _api.post(
+        '/auth/reauth',
+        data: {'password': password},
+        map: (_) => true,
+      );
+
   Future<List<dynamic>> notifications() =>
       _api.get('/notifications/me', map: (d) => d as List<dynamic>);
 
@@ -162,9 +297,5 @@ class AdminRepository {
   Future<List<dynamic>> categories() =>
       _api.get('/admin/categories', map: (d) => d as List<dynamic>);
 
-  Future<List<dynamic>> lowStock() => _api.get(
-        '/admin/inventory',
-        query: {'lowStockOnly': 'true'},
-        map: (d) => d as List<dynamic>,
-      );
+  Future<List<dynamic>> lowStock() => inventory(lowStockOnly: true);
 }

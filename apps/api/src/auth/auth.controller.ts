@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Headers, HttpCode, Post, Req } from "@nestjs/common";
+import { Body, Controller, Delete, Get, Headers, HttpCode, Param, Post, Req } from "@nestjs/common";
 import { ApiBearerAuth, ApiTags } from "@nestjs/swagger";
 import { Request } from "express";
 import {
@@ -6,9 +6,13 @@ import {
   changePasswordSchema,
   otpRequestSchema,
   otpVerifySchema,
+  passwordForgotSchema,
+  passwordResetSchema,
   refreshSchema,
   type AdminLoginInput,
   type ChangePasswordInput,
+  type PasswordForgotInput,
+  type PasswordResetInput,
 } from "@t360/validation";
 import { CurrentUser, Public } from "../common/decorators";
 import { AuthService } from "./auth.service";
@@ -68,6 +72,28 @@ export class AuthController {
 
   @Public()
   @HttpCode(200)
+  @Post("password/forgot")
+  async forgotPassword(
+    @Body(new ZodValidationPipe(passwordForgotSchema)) body: PasswordForgotInput,
+    @Req() req: Request,
+  ) {
+    const data = await this.auth.forgotPassword(body.email, req.ip);
+    return { success: true, data, requestId: (req as Request & { requestId?: string }).requestId };
+  }
+
+  @Public()
+  @HttpCode(200)
+  @Post("password/reset")
+  async resetPassword(
+    @Body(new ZodValidationPipe(passwordResetSchema)) body: PasswordResetInput,
+    @Req() req: Request,
+  ) {
+    const data = await this.auth.resetPassword(body.token, body.newPassword);
+    return { success: true, data, requestId: (req as Request & { requestId?: string }).requestId };
+  }
+
+  @Public()
+  @HttpCode(200)
   @Post("refresh")
   async refresh(
     @Body(new ZodValidationPipe(refreshSchema)) body: { refreshToken: string },
@@ -105,6 +131,18 @@ export class AuthController {
 
   @ApiBearerAuth()
   @HttpCode(200)
+  @Post("reauth")
+  async reauth(
+    @CurrentUser() user: { userId: string },
+    @Body() body: { password?: string },
+    @Req() req: Request,
+  ) {
+    const data = await this.auth.reauth(user.userId, body.password ?? "");
+    return { success: true, data, requestId: (req as Request & { requestId?: string }).requestId };
+  }
+
+  @ApiBearerAuth()
+  @HttpCode(200)
   @Post("logout-all")
   async logoutAll(@CurrentUser() user: { userId: string }, @Req() req: Request) {
     const data = await this.auth.logoutAll(user.userId);
@@ -119,6 +157,18 @@ export class AuthController {
     @Req() req: Request,
   ) {
     const data = await this.auth.listSessions(user.userId, refreshToken);
+    return { success: true, data, requestId: (req as Request & { requestId?: string }).requestId };
+  }
+
+  @ApiBearerAuth()
+  @HttpCode(200)
+  @Delete("sessions/:id")
+  async revokeSession(
+    @CurrentUser() user: { userId: string },
+    @Param("id") id: string,
+    @Req() req: Request,
+  ) {
+    const data = await this.auth.revokeSession(user.userId, id);
     return { success: true, data, requestId: (req as Request & { requestId?: string }).requestId };
   }
 }

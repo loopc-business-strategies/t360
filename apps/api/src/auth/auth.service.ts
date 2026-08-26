@@ -230,6 +230,89 @@ export class AuthService {
     }));
   }
 
+  async revokeSession(userId: string, sessionId: string) {
+    const session = await this.prisma.session.findFirst({
+      where: { id: sessionId, userId, revokedAt: null },
+    });
+    if (!session) {
+      throw new BadRequestException({ code: "SESSION_NOT_FOUND", message: "Session not found" });
+    }
+    await this.prisma.session.update({
+      where: { id: sessionId },
+      data: { revokedAt: new Date() },
+    });
+    await this.audit.log({
+      actorId: userId,
+      action: "auth.session.revoke",
+      entityType: "Session",
+      entityId: sessionId,
+    });
+    return { revoked: true };
+  }
+
+  async forgotPassword(email: string, ip?: string) {
+    const normalized = email.toLowerCase().trim();
+    await this.assertRateLimit("password-forgot", normalized, 5, 3600);
+    if (ip) await this.assertRateLimit("password-forgot-ip", ip, 20, 3600);
+
+    const user = await this.prisma.user.findUnique({
+      where: { email: normalized },
+      include: { employee: true },
+    });
+    // Always return generic success to avoid account enumeration
+    const generic = { sent: true, message: "If an account exists, reset instructions were issued." };
+    if (!user?.employee || !user.passwordHash) {
+      return generic;
+    }
+
+    const token = randomUUID() + randomUUID().replace(/-/g, "");
+    await this.redis.client.set(`pwdreset:${token}`, user.id, "EX", 1800);
+    await this.audit.log({
+      actorId: user.id,
+      action: "auth.password.forgot",
+      ip,
+    });
+
+    // Mock email provider: expose token outside production for operator/tests
+    if (process.env.NODE_ENV !== "production") {
+      return { ...generic, resetToken: token, expiresInSeconds: 1800 };
+    }
+    return generic;
+  }
+
+  async resetPassword(token: string, newPassword: string) {
+    const userId = await this.redis.client.get(`pwdreset:${token}`);
+    if (!userId) {
+      throw new BadRequestException({
+        code: "INVALID_RESET_TOKEN",
+        message: "Reset token is invalid or expired",
+      });
+    }
+    const passwordHash = await argon2.hash(newPassword);
+    await this.prisma.user.update({ where: { id: userId }, data: { passwordHash } });
+    await this.prisma.session.updateMany({
+      where: { userId, revokedAt: null },
+      data: { revokedAt: new Date() },
+    });
+    await this.redis.client.del(`pwdreset:${token}`);
+    await this.audit.log({ actorId: userId, action: "auth.password.reset" });
+    return { reset: true };
+  }
+
+  /** Verify current password for sensitive action re-auth (does not change password). */
+  async reauth(userId: string, password: string) {
+    const user = await this.prisma.user.findUniqueOrThrow({ where: { id: userId } });
+    if (!user.passwordHash) {
+      throw new BadRequestException({ code: "NO_PASSWORD", message: "Account has no password" });
+    }
+    const ok = await argon2.verify(user.passwordHash, password);
+    if (!ok) {
+      throw new UnauthorizedException({ code: "INVALID_CREDENTIALS", message: "Password is incorrect" });
+    }
+    await this.audit.log({ actorId: userId, action: "auth.reauth" });
+    return { ok: true };
+  }
+
   async refresh(refreshToken: string, meta?: { ip?: string; userAgent?: string }) {
     const hash = this.hashToken(refreshToken);
     const session = await this.prisma.session.findFirst({

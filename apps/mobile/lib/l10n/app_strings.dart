@@ -31,11 +31,15 @@ class AppStrings {
   String get brand => _t('THARAGAI', 'தாரகை');
   String get tagline => _t('Readymades for every celebration', 'எல்லா கொண்டாட்டங்களுக்கும் ரெடிமேட்ஸ்');
   String get home => _t('Home', 'முகப்பு');
+  String get shop => _t('Shop', 'கடை');
   String get categories => _t('Categories', 'வகைகள்');
+  String get tryMeTab => _t('TRY ME', 'TRY ME');
   String get wishlist => _t('Wishlist', 'விருப்பப்பட்டியல்');
   String get cart => _t('Cart', 'கூடை');
   String get account => _t('Account', 'கணக்கு');
+  String get profile => _t('Profile', 'சுயவிவரம்');
   String get orders => _t('Orders', 'ஆர்டர்கள்');
+  String get loyaltyHub => _t('Loyalty', 'லாயல்டி');
   String get checkout => _t('Checkout', 'செக்அவுட்');
   String get addToCart => _t('Add to Cart', 'கூடையில் சேர்');
   String get loading => _t('Loading…', 'ஏற்றுகிறது…');
@@ -50,7 +54,6 @@ class AppStrings {
   String get requestOtp => _t('Send OTP', 'OTP அனுப்பு');
   String get verifyOtp => _t('Verify & continue', 'சரிபார்த்து தொடரவும்');
   String get logout => _t('Log out', 'வெளியேறு');
-  String get profile => _t('Profile', 'சுயவிவரம்');
   String get name => _t('Name', 'பெயர்');
   String get save => _t('Save', 'சேமி');
   String get addresses => _t('Addresses', 'முகவரிகள்');
@@ -92,7 +95,7 @@ class AppStrings {
   String get prefSms => _t('SMS offers', 'SMS சலுகைகள்');
   String get prefPush => _t('Push offers', 'புஷ் சலுகைகள்');
   String get prefWhatsapp => _t('WhatsApp offers', 'WhatsApp சலுகைகள்');
-  String get registerDevice => _t('Register device (stub)', 'சாதனம் பதிவு (ஸ்டப்)');
+  String get registerDevice => _t('Enable push notifications', 'புஷ் அறிவிப்புகளை இயக்கு');
   String get wishlistLogin => _t('Sign in to save favourites', 'பிடித்தவற்றை சேமிக்க உள்நுழையவும்');
   String get aiTitle => _t('Tharagai AI', 'தாரகை AI');
   String get aiHint => _t('Ask about products…', 'பொருட்களைப் பற்றி கேளுங்கள்…');

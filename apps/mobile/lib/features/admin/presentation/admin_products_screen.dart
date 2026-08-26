@@ -378,15 +378,17 @@ class _AdminProductsScreenState extends ConsumerState<AdminProductsScreen> {
                       subtitle: Text(p['status']?.toString() ?? ''),
                       trailing: PopupMenuButton<String>(
                         onSelected: (v) {
+                          if (v == 'edit' && id != null) context.push('/admin/products/$id');
                           if (v == 'ai' && id != null) context.push('/admin/ai?productId=$id');
                           if (v == 'photo' && id != null) _showCaptureSheet(productId: id);
                         },
                         itemBuilder: (_) => const [
+                          PopupMenuItem(value: 'edit', child: Text('Edit')),
                           PopupMenuItem(value: 'ai', child: Text('AI Fashion')),
                           PopupMenuItem(value: 'photo', child: Text('Add photo')),
                         ],
                       ),
-                      onTap: id == null ? null : () => context.push('/admin/ai?productId=$id'),
+                      onTap: id == null ? null : () => context.push('/admin/products/$id'),
                     );
                   },
                 );

@@ -69,4 +69,32 @@ export class CloudinaryMediaStorage implements MediaStorage {
       throw err;
     }
   }
+
+  async deleteByPublicId(
+    publicId: string,
+    opts?: { resourceType?: "image" | "video" | "raw" },
+  ): Promise<{ deleted: boolean }> {
+    const id = publicId?.trim();
+    if (!id) return { deleted: false };
+    this.ensureConfigured();
+    try {
+      const result = await cloudinary.uploader.destroy(id, {
+        resource_type: opts?.resourceType ?? "image",
+        invalidate: true,
+      });
+      const ok = result?.result === "ok" || result?.result === "not found";
+      if (!ok) {
+        this.logger.warn(
+          `Cloudinary destroy unexpected result for ${id}: ${String(result?.result)}`,
+        );
+      }
+      return { deleted: ok };
+    } catch (err) {
+      this.logger.error(
+        `Cloudinary destroy failed for ${id}: ${err instanceof Error ? err.message : "unknown"}`,
+      );
+      // Best-effort: callers still clear DB records
+      return { deleted: false };
+    }
+  }
 }

@@ -4,6 +4,8 @@ import { MediaAsset, MediaStorage } from "./media-storage";
 /** Dev/mock adapter — stores URL as-is. Label: not Cloudinary. */
 @Injectable()
 export class MockMediaStorage implements MediaStorage {
+  readonly deletedPublicIds: string[] = [];
+
   async uploadFromUrl(
     url: string,
     publicId?: string,
@@ -25,5 +27,15 @@ export class MockMediaStorage implements MediaStorage {
       // keep a tiny fingerprint so tests can assert buffer was received
       ...(dataUri ? {} : {}),
     };
+  }
+
+  async deleteByPublicId(
+    publicId: string,
+    _opts?: { resourceType?: "image" | "video" | "raw" },
+  ): Promise<{ deleted: boolean }> {
+    const id = publicId?.trim();
+    if (!id) return { deleted: false };
+    this.deletedPublicIds.push(id);
+    return { deleted: true };
   }
 }

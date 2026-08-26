@@ -20,7 +20,7 @@ class AppShell extends ConsumerWidget {
           i,
           initialLocation: i == navigationShell.currentIndex,
         ),
-        labels: [t.home, t.categories, t.wishlist, t.cart, t.account],
+        labels: [t.home, t.shop, t.tryMeTab, t.orders, t.profile],
       ),
     );
   }

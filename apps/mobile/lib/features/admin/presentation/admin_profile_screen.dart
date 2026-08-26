@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../core/biometric_auth.dart';
 import '../../../core/providers.dart';
 import 'admin_home_screen.dart';
 
@@ -17,6 +18,9 @@ class _AdminProfileScreenState extends ConsumerState<AdminProfileScreen> {
   List<dynamic> _sessions = [];
   final _current = TextEditingController();
   final _next = TextEditingController();
+  final _bio = BiometricAuthService();
+  bool _bioOn = false;
+  bool _bioAvailable = false;
   String? _msg;
 
   @override
@@ -32,10 +36,14 @@ class _AdminProfileScreenState extends ConsumerState<AdminProfileScreen> {
     try {
       sessions = await repo.sessions();
     } catch (_) {}
+    final bioOn = await _bio.isEnabled();
+    final bioAvail = await _bio.canCheckBiometrics();
     if (mounted) {
       setState(() {
         _me = me;
         _sessions = sessions;
+        _bioOn = bioOn;
+        _bioAvailable = bioAvail;
       });
     }
   }
@@ -51,7 +59,7 @@ class _AdminProfileScreenState extends ConsumerState<AdminProfileScreen> {
   Widget build(BuildContext context) {
     final emp = _me?['employee'] as Map?;
     return Scaffold(
-      appBar: AppBar(title: const Text('Profile')),
+      appBar: AppBar(title: const Text('Profile & security')),
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
@@ -59,7 +67,19 @@ class _AdminProfileScreenState extends ConsumerState<AdminProfileScreen> {
           Text('Admin ID: ${emp?['employeeCode'] ?? '—'}'),
           Text('Email: ${_me?['email'] ?? '—'}'),
           Text('Roles: ${((_me?['roles'] as List?) ?? []).join(', ')}'),
-          const SizedBox(height: 24),
+          const SizedBox(height: 16),
+          if (_bioAvailable)
+            SwitchListTile(
+              contentPadding: EdgeInsets.zero,
+              title: const Text('Biometric unlock'),
+              subtitle: const Text('Unlock this device with Face ID / fingerprint'),
+              value: _bioOn,
+              onChanged: (v) async {
+                await _bio.setEnabled(v);
+                setState(() => _bioOn = v);
+              },
+            ),
+          const SizedBox(height: 8),
           TextField(controller: _current, obscureText: true, decoration: const InputDecoration(labelText: 'Current password')),
           TextField(controller: _next, obscureText: true, decoration: const InputDecoration(labelText: 'New password')),
           const SizedBox(height: 8),
@@ -79,6 +99,7 @@ class _AdminProfileScreenState extends ConsumerState<AdminProfileScreen> {
           OutlinedButton(
             onPressed: () async {
               await ref.read(adminRepoProvider).logoutAll();
+              await _bio.setEnabled(false);
               await ref.read(authStateProvider.notifier).markLoggedOut();
               if (!context.mounted) return;
               context.go('/admin/login');
@@ -89,10 +110,25 @@ class _AdminProfileScreenState extends ConsumerState<AdminProfileScreen> {
           Text('Sessions', style: Theme.of(context).textTheme.titleMedium),
           ..._sessions.map((s) {
             final map = s as Map;
+            final id = map['id']?.toString();
+            final current = map['current'] == true;
             return ListTile(
               dense: true,
               title: Text(map['userAgent']?.toString() ?? 'Session'),
-              subtitle: Text('${map['createdAt'] ?? ''} ${map['current'] == true ? '(this device)' : ''}'),
+              subtitle: Text('${map['createdAt'] ?? ''} ${current ? '(this device)' : ''}'),
+              trailing: current || id == null
+                  ? null
+                  : IconButton(
+                      icon: const Icon(Icons.logout),
+                      onPressed: () async {
+                        try {
+                          await ref.read(adminRepoProvider).revokeSession(id);
+                          await _load();
+                        } catch (e) {
+                          setState(() => _msg = '$e');
+                        }
+                      },
+                    ),
             );
           }),
           if (_msg != null) Text(_msg!),

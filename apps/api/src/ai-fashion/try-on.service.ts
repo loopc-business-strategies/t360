@@ -488,9 +488,12 @@ export class TryOnService {
     inputPublicId: string | null;
     inputImageUrl: string;
   }) {
-    // Soft-clear URL in DB; Cloudinary destroy is best-effort via publicId when available
     if (session.inputPublicId) {
-      this.logger.log(`Try-on ${session.id}: clearing input publicId ${session.inputPublicId}`);
+      await this.media.deleteByPublicId(session.inputPublicId).catch((err) => {
+        this.logger.warn(
+          `Try-on ${session.id}: input destroy failed: ${err instanceof Error ? err.message : "unknown"}`,
+        );
+      });
     }
     await this.prisma.tryOnSession.update({
       where: { id: session.id },
@@ -509,10 +512,18 @@ export class TryOnService {
     opts: { includeResult: boolean },
   ) {
     if (session.inputPublicId) {
-      this.logger.log(`Try-on ${session.id}: purge input ${session.inputPublicId}`);
+      await this.media.deleteByPublicId(session.inputPublicId).catch((err) => {
+        this.logger.warn(
+          `Try-on ${session.id}: input destroy failed: ${err instanceof Error ? err.message : "unknown"}`,
+        );
+      });
     }
     if (opts.includeResult && session.resultPublicId) {
-      this.logger.log(`Try-on ${session.id}: purge result ${session.resultPublicId}`);
+      await this.media.deleteByPublicId(session.resultPublicId).catch((err) => {
+        this.logger.warn(
+          `Try-on ${session.id}: result destroy failed: ${err instanceof Error ? err.message : "unknown"}`,
+        );
+      });
     }
   }
 

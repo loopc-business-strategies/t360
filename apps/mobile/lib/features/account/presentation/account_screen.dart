@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../account/data/account_repository.dart';
 import '../../../core/providers.dart';
+import '../../../core/push_registration.dart';
 import '../../../design_system/design_system.dart';
 import '../../../l10n/app_strings.dart';
 import '../../repositories.dart';
@@ -121,6 +122,24 @@ class _AccountScreenState extends ConsumerState<AccountScreen> {
               padding: const EdgeInsets.symmetric(vertical: 8),
               child: Text('${t.loyaltyBalance}: $_loyalty ${t.loyaltyPoints}'),
             ),
+          TharagaiButton(
+            label: t.loyaltyHub,
+            variant: TharagaiButtonVariant.outline,
+            onPressed: () => context.push('/loyalty'),
+          ),
+          const SizedBox(height: 8),
+          TharagaiButton(
+            label: t.wishlist,
+            variant: TharagaiButtonVariant.outline,
+            onPressed: () => context.push('/wishlist'),
+          ),
+          const SizedBox(height: 8),
+          TharagaiButton(
+            label: t.cart,
+            variant: TharagaiButtonVariant.outline,
+            onPressed: () => context.push('/cart'),
+          ),
+          const SizedBox(height: 8),
           TharagaiInput(label: t.name, controller: _name),
           const SizedBox(height: 8),
           TharagaiButton(
@@ -195,21 +214,29 @@ class _AccountScreenState extends ConsumerState<AccountScreen> {
                   .updatePrefs({'marketingWhatsapp': v});
             },
           ),
+          TharagaiButton(
+            label: t.registerDevice,
+            variant: TharagaiButtonVariant.outline,
+            onPressed: () async {
+              try {
+                final token = await ref.read(pushRegistrationProvider).register();
+                if (mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('Device registered ($token)')),
+                  );
+                }
+                setState(() => _error = null);
+              } catch (e) {
+                setState(() => _error = e.toString());
+              }
+            },
+          ),
+          const SizedBox(height: 8),
           if (!kReleaseMode) ...[
             TharagaiButton(
-              label: t.registerDevice,
+              label: t.gallery,
               variant: TharagaiButtonVariant.outline,
-              onPressed: () async {
-                try {
-                  await ref.read(notificationsRepositoryProvider).registerDevice(
-                        token: 'dev-stub-${DateTime.now().millisecondsSinceEpoch}',
-                        platform: 'android',
-                      );
-                  setState(() => _error = null);
-                } catch (e) {
-                  setState(() => _error = e.toString());
-                }
-              },
+              onPressed: () => context.push('/gallery'),
             ),
             const SizedBox(height: 8),
           ],
@@ -218,14 +245,6 @@ class _AccountScreenState extends ConsumerState<AccountScreen> {
             variant: TharagaiButtonVariant.outline,
             onPressed: () => ref.read(localeProvider.notifier).toggle(),
           ),
-          if (!kReleaseMode) ...[
-            const SizedBox(height: 8),
-            TharagaiButton(
-              label: t.gallery,
-              variant: TharagaiButtonVariant.outline,
-              onPressed: () => context.push('/gallery'),
-            ),
-          ],
           const SizedBox(height: 24),
           Text(t.addresses, style: Theme.of(context).textTheme.titleMedium),
           for (final a in _addresses)

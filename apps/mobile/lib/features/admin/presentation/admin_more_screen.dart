@@ -33,6 +33,36 @@ class _AdminMoreScreenState extends ConsumerState<AdminMoreScreen> {
       appBar: AppBar(title: const Text('More')),
       body: ListView(
         children: [
+          if (adminHasAny(_perms, ['customers.read']))
+            ListTile(
+              leading: const Icon(Icons.people_outline),
+              title: const Text('Customers'),
+              onTap: () => context.push('/admin/customers'),
+            ),
+          if (adminHasAny(_perms, ['inventory.read']))
+            ListTile(
+              leading: const Icon(Icons.warehouse_outlined),
+              title: const Text('Inventory'),
+              onTap: () => context.push('/admin/inventory'),
+            ),
+          if (adminHasAny(_perms, ['offers.manage', 'coupons.manage']))
+            ListTile(
+              leading: const Icon(Icons.campaign_outlined),
+              title: const Text('Marketing'),
+              onTap: () => context.push('/admin/marketing'),
+            ),
+          if (adminHasAny(_perms, ['reports.read', 'dashboard.view']))
+            ListTile(
+              leading: const Icon(Icons.analytics_outlined),
+              title: const Text('Reports'),
+              onTap: () => context.push('/admin/reports'),
+            ),
+          if (adminHasAny(_perms, ['integrations.manage']))
+            ListTile(
+              leading: const Icon(Icons.point_of_sale_outlined),
+              title: const Text('POS'),
+              onTap: () => context.push('/admin/pos'),
+            ),
           if (adminHasAny(_perms, ['staff.manage']))
             ListTile(
               leading: const Icon(Icons.badge_outlined),
@@ -44,12 +74,6 @@ class _AdminMoreScreenState extends ConsumerState<AdminMoreScreen> {
               leading: const Icon(Icons.security_outlined),
               title: const Text('Roles'),
               onTap: () => context.push('/admin/roles'),
-            ),
-          if (adminHasAny(_perms, ['inventory.read']))
-            ListTile(
-              leading: const Icon(Icons.warehouse_outlined),
-              title: const Text('Inventory'),
-              onTap: () => context.push('/admin/inventory'),
             ),
           if (adminHasAny(_perms, ['ai_models.view', 'ai.fashion']))
             ListTile(
@@ -82,13 +106,19 @@ class _AdminMoreScreenState extends ConsumerState<AdminMoreScreen> {
             ),
           if (adminHasAny(_perms, ['ai_settings.view', 'settings.manage']))
             ListTile(
-              leading: const Icon(Icons.settings_outlined),
+              leading: const Icon(Icons.auto_awesome_outlined),
               title: const Text('AI Settings'),
               onTap: () => context.push('/admin/ai-settings'),
             ),
+          if (adminHasAny(_perms, ['settings.manage']))
+            ListTile(
+              leading: const Icon(Icons.settings_outlined),
+              title: const Text('Settings'),
+              onTap: () => context.push('/admin/settings'),
+            ),
           ListTile(
             leading: const Icon(Icons.person_outline),
-            title: const Text('Profile'),
+            title: const Text('Profile & security'),
             onTap: () => context.push('/admin/profile'),
           ),
           ListTile(

@@ -5,21 +5,28 @@ import 'package:go_router/go_router.dart';
 
 import '../features/ai/presentation/ai_chat_screen.dart';
 import '../features/account/presentation/account_screen.dart';
+import '../features/account/presentation/loyalty_screen.dart';
 import '../features/admin/presentation/admin_ai_models_screen.dart';
 import '../features/admin/presentation/admin_ai_screen.dart';
 import '../features/admin/presentation/admin_ai_settings_screen.dart';
 import '../features/admin/presentation/admin_ai_images_screen.dart';
 import '../features/admin/presentation/admin_ai_usage_screen.dart';
 import '../features/admin/presentation/admin_audit_screen.dart';
+import '../features/admin/presentation/admin_customers_screen.dart';
 import '../features/admin/presentation/admin_home_screen.dart';
 import '../features/admin/presentation/admin_inventory_screen.dart';
 import '../features/admin/presentation/admin_login_screen.dart';
+import '../features/admin/presentation/admin_marketing_screen.dart';
 import '../features/admin/presentation/admin_more_screen.dart';
 import '../features/admin/presentation/admin_notifications_screen.dart';
 import '../features/admin/presentation/admin_orders_screen.dart';
+import '../features/admin/presentation/admin_pos_screen.dart';
+import '../features/admin/presentation/admin_product_edit_screen.dart';
 import '../features/admin/presentation/admin_products_screen.dart';
 import '../features/admin/presentation/admin_profile_screen.dart';
+import '../features/admin/presentation/admin_reports_screen.dart';
 import '../features/admin/presentation/admin_roles_screen.dart';
+import '../features/admin/presentation/admin_settings_screen.dart';
 import '../features/admin/presentation/admin_shell.dart';
 import '../features/admin/presentation/admin_staff_screen.dart';
 import '../features/auth/presentation/auth_screen.dart';
@@ -30,6 +37,7 @@ import '../features/catalog/presentation/product_detail_screen.dart';
 import '../features/checkout/presentation/checkout_screen.dart';
 import '../features/gallery/design_gallery_screen.dart';
 import '../features/orders/presentation/orders_screen.dart';
+import '../features/try_on/presentation/try_me_hub_screen.dart';
 import '../features/try_on/presentation/try_on_flow_screen.dart';
 import '../features/try_on/presentation/try_on_history_screen.dart';
 import '../features/wishlist/presentation/wishlist_screen.dart';
@@ -62,7 +70,9 @@ final goRouterProvider = Provider<GoRouter>((ref) {
 
       final needsAuth = loc.startsWith('/checkout') ||
           loc.startsWith('/orders') ||
-          loc.startsWith('/ai');
+          loc.startsWith('/ai') ||
+          loc.startsWith('/loyalty') ||
+          loc.startsWith('/try-ons');
       if (needsAuth && !auth.isLoggedIn && !loggingIn) {
         final redirect = Uri.encodeComponent(state.uri.toString());
         return '/auth?redirect=$redirect';
@@ -93,14 +103,17 @@ final goRouterProvider = Provider<GoRouter>((ref) {
           StatefulShellBranch(
             routes: [
               GoRoute(
-                path: '/wishlist',
-                builder: (context, state) => const WishlistScreen(),
+                path: '/try-me',
+                builder: (context, state) => const TryMeHubScreen(),
               ),
             ],
           ),
           StatefulShellBranch(
             routes: [
-              GoRoute(path: '/cart', builder: (context, state) => const CartScreen()),
+              GoRoute(
+                path: '/orders',
+                builder: (context, state) => const OrdersListScreen(),
+              ),
             ],
           ),
           StatefulShellBranch(
@@ -166,10 +179,28 @@ final goRouterProvider = Provider<GoRouter>((ref) {
       GoRoute(path: '/admin/audit', builder: (context, state) => const AdminAuditScreen()),
       GoRoute(path: '/admin/inventory', builder: (context, state) => const AdminInventoryScreen()),
       GoRoute(path: '/admin/profile', builder: (context, state) => const AdminProfileScreen()),
+      GoRoute(path: '/admin/customers', builder: (context, state) => const AdminCustomersScreen()),
+      GoRoute(path: '/admin/marketing', builder: (context, state) => const AdminMarketingScreen()),
+      GoRoute(path: '/admin/pos', builder: (context, state) => const AdminPosScreen()),
+      GoRoute(path: '/admin/reports', builder: (context, state) => const AdminReportsScreen()),
+      GoRoute(path: '/admin/settings', builder: (context, state) => const AdminSettingsScreen()),
       GoRoute(
         path: '/admin/notifications',
         builder: (context, state) => const AdminNotificationsScreen(),
       ),
+      GoRoute(
+        path: '/admin/orders/:id',
+        builder: (context, state) =>
+            AdminOrderDetailScreen(orderId: state.pathParameters['id']!),
+      ),
+      GoRoute(
+        path: '/admin/products/:id',
+        builder: (context, state) =>
+            AdminProductEditScreen(productId: state.pathParameters['id']!),
+      ),
+      GoRoute(path: '/cart', builder: (context, state) => const CartScreen()),
+      GoRoute(path: '/wishlist', builder: (context, state) => const WishlistScreen()),
+      GoRoute(path: '/loyalty', builder: (context, state) => const LoyaltyScreen()),
       GoRoute(
         path: '/product/:slug',
         builder: (context, state) =>
@@ -201,10 +232,6 @@ final goRouterProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/checkout',
         builder: (context, state) => const CheckoutScreen(),
-      ),
-      GoRoute(
-        path: '/orders',
-        builder: (context, state) => const OrdersListScreen(),
       ),
       GoRoute(
         path: '/ai',

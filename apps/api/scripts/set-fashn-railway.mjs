@@ -47,7 +47,8 @@ for (const name of ["CLOUDINARY_CLOUD_NAME", "CLOUDINARY_API_KEY", "CLOUDINARY_A
 for (const service of ["api", "worker"]) {
   for (const [k, v] of pairs) {
     console.log(`set ${service} ${k}`);
-    rail(["variable", "--service", service, "set", `${k}=${v}`]);
+    // Railway CLI v5+: `variable set KEY=VALUE --service …`
+    rail(["variable", "set", `${k}=${v}`, "--service", service, "--skip-deploys"]);
   }
 }
 

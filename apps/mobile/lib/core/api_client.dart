@@ -27,6 +27,10 @@ class ApiClient {
           if (access != null && access.isNotEmpty) {
             options.headers['Authorization'] = 'Bearer $access';
           }
+          final refresh = await _tokens.getRefresh();
+          if (refresh != null && refresh.isNotEmpty) {
+            options.headers['X-Refresh-Token'] = refresh;
+          }
           final mode = await _tokens.getMode();
           if (mode == 'staff') {
             options.headers['X-T360-Client'] = 'mobile-admin';

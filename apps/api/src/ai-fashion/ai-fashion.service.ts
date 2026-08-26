@@ -331,13 +331,21 @@ export class AiFashionService {
   }
 
   async deleteModel(id: string, actorId?: string) {
-    await this.getModel(id);
+    const model = await this.getModel(id);
+    if (model.publicId) {
+      await this.media.deleteByPublicId(model.publicId).catch((err) => {
+        this.logger.warn(
+          `Model ${id}: destroy failed: ${err instanceof Error ? err.message : "unknown"}`,
+        );
+      });
+    }
     await this.prisma.aiFashionModel.delete({ where: { id } });
     await this.audit.log({
       actorId,
       action: "ai_fashion.model.delete",
       entityType: "AiFashionModel",
       entityId: id,
+      metadata: { publicId: model.publicId },
     });
     return { deleted: true };
   }
@@ -879,10 +887,17 @@ export class AiFashionService {
     if (!job) {
       throw new NotFoundException({ code: "JOB_NOT_FOUND", message: "Generation job not found" });
     }
+    if (job.outputPublicId) {
+      await this.media.deleteByPublicId(job.outputPublicId).catch((err) => {
+        this.logger.warn(
+          `Job ${id}: destroy failed: ${err instanceof Error ? err.message : "unknown"}`,
+        );
+      });
+    }
     if (job.status === "QUEUED" || job.status === "PROCESSING") {
       await this.prisma.aiGeneratedImage.update({
         where: { id },
-        data: { status: "CANCELLED" },
+        data: { status: "CANCELLED", outputImageUrl: null, outputPublicId: null },
       });
       await this.prisma.aiFashionUsage.updateMany({
         where: { jobId: id },
@@ -897,6 +912,7 @@ export class AiFashionService {
       action: "ai_fashion.job.delete",
       entityType: "AiGeneratedImage",
       entityId: id,
+      metadata: { outputPublicId: job.outputPublicId, status: job.status },
     });
     return { deleted: true };
   }

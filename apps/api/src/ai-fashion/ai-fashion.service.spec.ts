@@ -94,6 +94,7 @@ function createService(overrides?: {
       url: "https://res.cloudinary.com/demo/ai.png",
       publicId: "t360/ai",
     }),
+    deleteByPublicId: jest.fn().mockResolvedValue({ deleted: true }),
   };
 
   const service = new AiFashionService(
@@ -296,5 +297,31 @@ describe("AiFashionService", () => {
         data: expect.objectContaining({ status: "COMPLETED" }),
       }),
     );
+  });
+
+  it("destroys output asset when deleting a completed job", async () => {
+    const { service, prisma, media, audit } = createService();
+    prisma.aiGeneratedImage.findUnique = jest.fn().mockResolvedValue({
+      id: "job-1",
+      status: "COMPLETED",
+      outputPublicId: "t360/out",
+    });
+    await service.deleteJob("job-1", "user-1");
+    expect(media.deleteByPublicId).toHaveBeenCalledWith("t360/out");
+    expect(prisma.aiGeneratedImage.delete).toHaveBeenCalledWith({ where: { id: "job-1" } });
+    expect(audit.log).toHaveBeenCalledWith(
+      expect.objectContaining({ action: "ai_fashion.job.delete" }),
+    );
+  });
+
+  it("destroys model asset when deleting a model", async () => {
+    const { service, prisma, media } = createService();
+    prisma.aiFashionModel.findUnique = jest.fn().mockResolvedValue({
+      id: "m1",
+      publicId: "t360/models/m1",
+    });
+    await service.deleteModel("m1", "user-1");
+    expect(media.deleteByPublicId).toHaveBeenCalledWith("t360/models/m1");
+    expect(prisma.aiFashionModel.delete).toHaveBeenCalledWith({ where: { id: "m1" } });
   });
 });

@@ -34,11 +34,22 @@ export const changePasswordSchema = z.object({
   newPassword: z.string().min(8).max(128),
 });
 
+export const passwordForgotSchema = z.object({
+  email: z.string().email(),
+});
+
+export const passwordResetSchema = z.object({
+  token: z.string().min(20),
+  newPassword: z.string().min(8).max(128),
+});
+
 export type OtpRequestInput = z.infer<typeof otpRequestSchema>;
 export type OtpVerifyInput = z.infer<typeof otpVerifySchema>;
 export type AdminLoginInput = z.infer<typeof adminLoginSchema>;
 export type RefreshInput = z.infer<typeof refreshSchema>;
 export type ChangePasswordInput = z.infer<typeof changePasswordSchema>;
+export type PasswordForgotInput = z.infer<typeof passwordForgotSchema>;
+export type PasswordResetInput = z.infer<typeof passwordResetSchema>;
 
 export const slugSchema = z
   .string()

@@ -50,6 +50,7 @@ describe("TryOnService", () => {
       url: "https://cdn.example.com/person.jpg",
       publicId: "person_1",
     }),
+    deleteByPublicId: jest.fn().mockResolvedValue({ deleted: true }),
   };
 
   function createService() {
@@ -164,5 +165,28 @@ describe("TryOnService", () => {
       { url: "b.jpg", mediaType: "image", isTryOnSource: true, sortOrder: 1 },
     ]);
     expect(url).toBe("b.jpg");
+  });
+
+  it("destroys Cloudinary assets when customer deletes try-on", async () => {
+    const service = createService();
+    prisma.tryOnSession.findFirst.mockResolvedValue({
+      id: "s1",
+      customerId: "u1",
+      deletedAt: null,
+      inputPublicId: "t360/in",
+      resultPublicId: "t360/out",
+      inputImageUrl: "https://cdn/in.jpg",
+      resultImageUrl: "https://cdn/out.jpg",
+    });
+    prisma.tryOnSession.update.mockResolvedValue({});
+    await service.deleteForCustomer("u1", "s1");
+    expect(media.deleteByPublicId).toHaveBeenCalledWith("t360/in");
+    expect(media.deleteByPublicId).toHaveBeenCalledWith("t360/out");
+    expect(prisma.tryOnSession.update).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: { id: "s1" },
+        data: expect.objectContaining({ deletedAt: expect.any(Date) }),
+      }),
+    );
   });
 });

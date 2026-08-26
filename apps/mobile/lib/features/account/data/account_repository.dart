@@ -94,4 +94,11 @@ class AccountRepository {
       map: (d) => (d as Map)['pointsBalance'] as int? ?? 0,
     );
   }
+
+  Future<Map<String, dynamic>> loyaltyMe() {
+    return _api.get(
+      '/loyalty/me',
+      map: (d) => Map<String, dynamic>.from(d as Map),
+    );
+  }
 }
