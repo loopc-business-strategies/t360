@@ -109,13 +109,9 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
               TharagaiButton(
                 label: t.tryMe,
                 variant: TharagaiButtonVariant.secondary,
-                onPressed: _busy
+                onPressed: _busy || !p.tryOnEnabled
                     ? null
                     : () {
-                        if (!p.tryOnEnabled) {
-                          setState(() => _message = t.tryMeUnavailable);
-                          return;
-                        }
                         if (!loggedIn) {
                           context.push('/auth?redirect=/try-on?productId=${p.id}&slug=${widget.slug}');
                           return;
@@ -132,6 +128,10 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
                         );
                       },
               ),
+              if (!p.tryOnEnabled) ...[
+                const SizedBox(height: 8),
+                Text(t.tryMeUnavailable, style: const TextStyle(color: TharagaiColors.muted)),
+              ],
               const SizedBox(height: 12),
               TharagaiButton(
                 label: t.wishlist,

@@ -253,7 +253,7 @@ model Product {
   description String    @default("")
   status      String    @default("draft")
   /// Customer Virtual Try-On ("TRY ME") enabled for this product
-  tryOnEnabled Boolean  @default(false)
+  tryOnEnabled Boolean  @default(true)
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
   deletedAt   DateTime?
