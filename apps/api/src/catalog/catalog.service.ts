@@ -277,7 +277,10 @@ export class CatalogService {
 
   async updateProduct(
     id: string,
-    input: Partial<ProductCreateInput> & { tryOnImageId?: string | null },
+    input: Partial<ProductCreateInput> & {
+      tryOnImageId?: string | null;
+      primaryImageId?: string | null;
+    },
     actorId?: string,
   ) {
     await this.prisma.product.update({
@@ -302,6 +305,21 @@ export class CatalogService {
         await this.prisma.productImage.updateMany({
           where: { id: input.tryOnImageId, productId: id },
           data: { isTryOnSource: true },
+        });
+      }
+    }
+
+    if (input.primaryImageId) {
+      const images = await this.prisma.productImage.findMany({
+        where: { productId: id },
+        orderBy: { sortOrder: "asc" },
+      });
+      let order = 1;
+      for (const img of images) {
+        const sortOrder = img.id === input.primaryImageId ? 0 : order++;
+        await this.prisma.productImage.update({
+          where: { id: img.id },
+          data: { sortOrder },
         });
       }
     }

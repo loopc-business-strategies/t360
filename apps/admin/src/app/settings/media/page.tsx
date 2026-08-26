@@ -1,41 +1,80 @@
 "use client";
 
-import { useQuery } from "@tanstack/react-query";
-import { Card, Badge, LoadingState, ErrorState } from "@t360/ui";
+import * as React from "react";
+import Link from "next/link";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { Badge, Button, Card, ErrorState, Input, LoadingState } from "@t360/ui";
 import { apiFetch } from "../../../lib/api";
 
-type MediaStatus = {
-  cloudinaryConfigured: boolean;
-  uploadBufferSupported: boolean;
-  provider: string;
+type Catalog = {
+  categories: Array<{
+    id: string;
+    fields: Array<{ key: string; label: string; value: unknown }>;
+    status?: { configured?: boolean; provider?: string };
+  }>;
 };
 
 export default function SettingsMediaPage() {
-  const status = useQuery({
-    queryKey: ["admin-media-status"],
-    queryFn: () => apiFetch<MediaStatus>("/admin/media/status"),
+  const qc = useQueryClient();
+  const catalog = useQuery({
+    queryKey: ["admin-settings-catalog"],
+    queryFn: () => apiFetch<Catalog>("/admin/settings/catalog"),
+  });
+  const storage = catalog.data?.data.categories.find((c) => c.id === "storage");
+  const maxField = storage?.fields.find((f) => f.key === "media.maxUploadBytes");
+  const [maxUploadBytes, setMaxUploadBytes] = React.useState<number>(12_000_000);
+
+  React.useEffect(() => {
+    if (typeof maxField?.value === "number") setMaxUploadBytes(maxField.value);
+  }, [maxField?.value]);
+
+  const save = useMutation({
+    mutationFn: () =>
+      apiFetch("/admin/settings/storage", {
+        method: "PATCH",
+        body: JSON.stringify({ maxUploadBytes }),
+      }),
+    onSuccess: () => void qc.invalidateQueries({ queryKey: ["admin-settings-catalog"] }),
   });
 
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="font-display text-3xl">Media settings</h1>
-        <p className="text-sm text-muted">Cloudinary credentials are set via server environment only</p>
+        <h1 className="font-display text-3xl">Media / Storage</h1>
+        <p className="text-sm text-muted">
+          Cloudinary secrets are server-only. Upload size is editable here and on Admin Mobile.
+        </p>
+        <Link href="/settings" className="text-sm text-wine underline">
+          ← Settings hub
+        </Link>
       </div>
-      {status.isLoading ? <LoadingState label="Checking media…" /> : null}
-      {status.isError ? (
-        <ErrorState title="Failed" description={status.error.message} onRetry={() => status.refetch()} />
+      {catalog.isLoading ? <LoadingState label="Loading…" /> : null}
+      {catalog.isError ? (
+        <ErrorState
+          title="Failed"
+          description={catalog.error.message}
+          onRetry={() => catalog.refetch()}
+        />
       ) : null}
-      {status.data ? (
-        <Card className="space-y-3">
-          <Badge tone={status.data.data.cloudinaryConfigured ? "success" : "neutral"}>
-            {status.data.data.cloudinaryConfigured ? "Cloudinary configured" : "Mock / not configured"}
+      {storage ? (
+        <Card className="space-y-4">
+          <Badge tone={storage.status?.configured ? "success" : "neutral"}>
+            {storage.status?.configured
+              ? `Provider: ${storage.status.provider}`
+              : "Mock / not configured"}
           </Badge>
-          <p className="text-sm text-muted">
-            Provider: <code>{status.data.data.provider}</code>. Configure{" "}
-            <code>CLOUDINARY_CLOUD_NAME</code>, <code>CLOUDINARY_API_KEY</code>, and{" "}
-            <code>CLOUDINARY_API_SECRET</code> on the API. Secrets are never returned to the browser.
-          </p>
+          <Input
+            label="Max upload bytes"
+            type="number"
+            value={String(maxUploadBytes)}
+            onChange={(e) => setMaxUploadBytes(Number(e.target.value))}
+          />
+          <Button type="button" disabled={save.isPending} onClick={() => save.mutate()}>
+            {save.isPending ? "Saving…" : "Save storage settings"}
+          </Button>
+          {save.isError ? (
+            <p className="text-sm text-danger">{(save.error as Error).message}</p>
+          ) : null}
         </Card>
       ) : null}
     </div>

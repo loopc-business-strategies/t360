@@ -264,6 +264,22 @@ async function main() {
     update: { value: "Tharagai Readymades" },
   });
 
+  for (const [key, value] of [
+    ["business.phone", "+91 4322 000000"],
+    ["business.email", "hello@tharagai.local"],
+    ["business.address", "Pudukkottai, Tamil Nadu"],
+    ["business.timezone", "Asia/Kolkata"],
+    ["business.currency", "INR"],
+    ["business.language", "en"],
+    ["media.maxUploadBytes", 12_000_000],
+  ] as const) {
+    await prisma.systemSetting.upsert({
+      where: { key },
+      create: { key, value },
+      update: {},
+    });
+  }
+
   await prisma.systemSetting.upsert({
     where: { key: "storefront.hero" },
     create: {

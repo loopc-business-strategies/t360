@@ -281,6 +281,12 @@ class AdminRepository {
   Future<List<dynamic>> settings() =>
       _api.get('/settings', map: (d) => d as List<dynamic>);
 
+  Future<Map<String, dynamic>> settingsCatalog() =>
+      _api.get('/admin/settings/catalog', map: (d) => d as Map<String, dynamic>);
+
+  Future<Map<String, dynamic>> patchSettingsCategory(String category, Map<String, dynamic> body) =>
+      _api.patch('/admin/settings/$category', data: body, map: (d) => d as Map<String, dynamic>);
+
   Future<void> revokeSession(String sessionId) =>
       _api.delete('/auth/sessions/$sessionId', map: (_) => true);
 

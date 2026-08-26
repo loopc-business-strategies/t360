@@ -12,6 +12,7 @@ import { FileInterceptor } from "@nestjs/platform-express";
 import { ApiBearerAuth, ApiBody, ApiConsumes, ApiTags } from "@nestjs/swagger";
 import { Request } from "express";
 import { RequireAnyPermissions, RequirePermissions } from "../common/decorators";
+import { SettingsService } from "../settings/settings.service";
 import { MEDIA_STORAGE, MediaStorage } from "./media-storage";
 
 const ALLOWED = new Set(["image/jpeg", "image/png", "image/webp", "image/gif"]);
@@ -20,7 +21,10 @@ const ALLOWED = new Set(["image/jpeg", "image/png", "image/webp", "image/gif"]);
 @ApiBearerAuth()
 @Controller("admin/media")
 export class MediaAdminController {
-  constructor(@Inject(MEDIA_STORAGE) private readonly media: MediaStorage) {}
+  constructor(
+    @Inject(MEDIA_STORAGE) private readonly media: MediaStorage,
+    private readonly settings: SettingsService,
+  ) {}
 
   @Get("status")
   @RequirePermissions("settings.manage")
@@ -65,6 +69,13 @@ export class MediaAdminController {
       throw new BadRequestException({
         code: "INVALID_FILE_TYPE",
         message: "Supported formats: JPEG, PNG, WebP, GIF",
+      });
+    }
+    const maxBytes = await this.settings.getMaxUploadBytes();
+    if (file.size > maxBytes) {
+      throw new BadRequestException({
+        code: "FILE_TOO_LARGE",
+        message: `Image exceeds maximum size of ${Math.round(maxBytes / (1024 * 1024))} MB`,
       });
     }
     if (!this.media.uploadBuffer) {

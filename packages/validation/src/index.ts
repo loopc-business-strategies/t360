@@ -102,6 +102,7 @@ export const productUpdateSchema = productCreateSchema.partial().extend({
   categoryId: z.string().uuid().optional(),
   variants: z.array(variantInputSchema).optional(),
   tryOnImageId: z.string().uuid().optional().nullable(),
+  primaryImageId: z.string().uuid().optional().nullable(),
 });
 
 export const productListQuerySchema = z.object({
@@ -358,6 +359,46 @@ export const storefrontUpdateSchema = z.object({
   hero: storefrontHeroSchema,
 });
 
+export const settingsCategorySchema = z.enum([
+  "general",
+  "commerce",
+  "branding",
+  "storage",
+  "system",
+]);
+
+export const settingsGeneralPatchSchema = z.object({
+  businessName: z.string().min(1).max(200).optional(),
+  phone: z.string().max(40).optional().nullable(),
+  email: z.string().email().max(200).optional().nullable(),
+  address: z.string().max(500).optional().nullable(),
+  timezone: z.string().max(80).optional(),
+  currency: z.string().max(10).optional(),
+  language: z.string().max(20).optional(),
+});
+
+export const settingsCommercePatchSchema = z.object({
+  codEnabled: z.boolean().optional(),
+  shippingFee: z.number().min(0).max(100_000).optional(),
+  freeShippingAbove: z.number().min(0).max(1_000_000).optional(),
+});
+
+export const settingsStoragePatchSchema = z.object({
+  maxUploadBytes: z.number().int().min(100_000).max(20_000_000).optional(),
+});
+
+export const settingsBrandingPatchSchema = z.object({
+  hero: storefrontHeroSchema.optional(),
+});
+
+export type StorefrontHeroInput = z.infer<typeof storefrontHeroSchema>;
+export type StorefrontUpdateInput = z.infer<typeof storefrontUpdateSchema>;
+export type SettingsCategory = z.infer<typeof settingsCategorySchema>;
+export type SettingsGeneralPatchInput = z.infer<typeof settingsGeneralPatchSchema>;
+export type SettingsCommercePatchInput = z.infer<typeof settingsCommercePatchSchema>;
+export type SettingsStoragePatchInput = z.infer<typeof settingsStoragePatchSchema>;
+export type SettingsBrandingPatchInput = z.infer<typeof settingsBrandingPatchSchema>;
+
 export type CartItemAddInput = z.infer<typeof cartItemAddSchema>;
 export type CreateOrderInput = z.infer<typeof createOrderSchema>;
 export type CouponCreateInput = z.infer<typeof couponCreateSchema>;
@@ -365,8 +406,6 @@ export type SegmentRules = z.infer<typeof segmentRulesSchema>;
 export type AiChatInput = z.infer<typeof aiChatSchema>;
 export type PosWebhookInput = z.infer<typeof posWebhookSchema>;
 export type SearchSynonymCreateInput = z.infer<typeof searchSynonymCreateSchema>;
-export type StorefrontHeroInput = z.infer<typeof storefrontHeroSchema>;
-export type StorefrontUpdateInput = z.infer<typeof storefrontUpdateSchema>;
 
 // --- AI Fashion Studio ---
 

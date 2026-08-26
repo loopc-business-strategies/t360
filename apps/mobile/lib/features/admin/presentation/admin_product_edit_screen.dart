@@ -22,11 +22,12 @@ class _AdminProductEditScreenState extends ConsumerState<AdminProductEditScreen>
   final _description = TextEditingController();
   String _status = 'draft';
   bool _tryOnEnabled = false;
+  String? _tryOnImageId;
   bool _loading = true;
   bool _saving = false;
   String? _error;
   List<String> _perms = [];
-  List<String> _imageUrls = [];
+  List<Map<String, dynamic>> _images = [];
   Map<String, dynamic>? _product;
 
   @override
@@ -52,7 +53,17 @@ class _AdminProductEditScreenState extends ConsumerState<AdminProductEditScreen>
       final me = await repo.me();
       final perms = (me['permissions'] as List?)?.map((e) => e.toString()).toList() ?? [];
       final p = await repo.product(widget.productId);
-      final images = (p['images'] as List?) ?? [];
+      final images = ((p['images'] as List?) ?? [])
+          .whereType<Map>()
+          .map((i) => Map<String, dynamic>.from(i))
+          .toList();
+      Map<String, dynamic>? tryOn;
+      for (final i in images) {
+        if (i['isTryOnSource'] == true) {
+          tryOn = i;
+          break;
+        }
+      }
       if (!mounted) return;
       setState(() {
         _perms = perms;
@@ -61,10 +72,8 @@ class _AdminProductEditScreenState extends ConsumerState<AdminProductEditScreen>
         _description.text = p['description']?.toString() ?? '';
         _status = p['status']?.toString() ?? 'draft';
         _tryOnEnabled = p['tryOnEnabled'] == true;
-        _imageUrls = images
-            .map((i) => (i as Map)['url']?.toString())
-            .whereType<String>()
-            .toList();
+        _images = images;
+        _tryOnImageId = tryOn?['id']?.toString();
         _loading = false;
       });
     } catch (e) {
@@ -77,7 +86,7 @@ class _AdminProductEditScreenState extends ConsumerState<AdminProductEditScreen>
     }
   }
 
-  Future<void> _save({String? statusOverride}) async {
+  Future<void> _save({String? statusOverride, Map<String, dynamic>? extra}) async {
     if (!adminHasAny(_perms, ['products.update'])) return;
     setState(() => _saving = true);
     try {
@@ -86,7 +95,8 @@ class _AdminProductEditScreenState extends ConsumerState<AdminProductEditScreen>
         'description': _description.text.trim().isEmpty ? null : _description.text.trim(),
         'status': statusOverride ?? _status,
         'tryOnEnabled': _tryOnEnabled,
-        'imageUrls': _imageUrls,
+        if (_tryOnImageId != null) 'tryOnImageId': _tryOnImageId,
+        ...?extra,
       });
       if (statusOverride != null) _status = statusOverride;
       if (mounted) {
@@ -131,8 +141,58 @@ class _AdminProductEditScreenState extends ConsumerState<AdminProductEditScreen>
       final upload = await ref.read(adminRepoProvider).uploadImage(shot.path);
       final url = upload['url']?.toString();
       if (url == null) throw Exception('Upload returned no URL');
-      setState(() => _imageUrls = [..._imageUrls, url]);
-      await _save();
+      await ref.read(adminRepoProvider).updateProduct(widget.productId, {
+        'imageUrls': [url],
+      });
+      await _load();
+      if (!mounted) return;
+      Map<String, dynamic>? added;
+      for (final i in _images.reversed) {
+        if (i['url']?.toString() == url) {
+          added = i;
+          break;
+        }
+      }
+      added ??= _images.isEmpty ? null : _images.last;
+      final imageId = added?['id']?.toString();
+      if (imageId != null) {
+        final asPrimary = await showDialog<bool>(
+              context: context,
+              builder: (ctx) => AlertDialog(
+                title: const Text('Primary image'),
+                content: const Text('Set this image as the primary product image?'),
+                actions: [
+                  TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('No')),
+                  FilledButton(onPressed: () => Navigator.pop(ctx, true), child: const Text('Yes')),
+                ],
+              ),
+            ) ??
+            false;
+        if (!mounted) return;
+        final asTryOn = await showDialog<bool>(
+              context: context,
+              builder: (ctx) => AlertDialog(
+                title: const Text('TRY ME source'),
+                content: const Text('Use this image as the TRY ME garment source?'),
+                actions: [
+                  TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('No')),
+                  FilledButton(onPressed: () => Navigator.pop(ctx, true), child: const Text('Yes')),
+                ],
+              ),
+            ) ??
+            false;
+        if (!mounted) return;
+        final patch = <String, dynamic>{};
+        if (asPrimary) patch['primaryImageId'] = imageId;
+        if (asTryOn) {
+          patch['tryOnImageId'] = imageId;
+          _tryOnImageId = imageId;
+        }
+        if (patch.isNotEmpty) {
+          await ref.read(adminRepoProvider).updateProduct(widget.productId, patch);
+          await _load();
+        }
+      }
     } on ApiException catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(e.message)));
@@ -140,6 +200,15 @@ class _AdminProductEditScreenState extends ConsumerState<AdminProductEditScreen>
     } finally {
       if (mounted) setState(() => _saving = false);
     }
+  }
+
+  Future<void> _setPrimary(String imageId) async {
+    await _save(extra: {'primaryImageId': imageId});
+  }
+
+  Future<void> _setTryOnSource(String imageId) async {
+    setState(() => _tryOnImageId = imageId);
+    await _save(extra: {'tryOnImageId': imageId});
   }
 
   Future<void> _delete() async {
@@ -163,6 +232,7 @@ class _AdminProductEditScreenState extends ConsumerState<AdminProductEditScreen>
   Widget build(BuildContext context) {
     final canUpdate = adminHasAny(_perms, ['products.update']);
     final canDelete = adminHasAny(_perms, ['products.delete']);
+    final primaryUrl = _images.isNotEmpty ? _images.first['url']?.toString() : null;
 
     return Scaffold(
       appBar: AppBar(
@@ -227,26 +297,50 @@ class _AdminProductEditScreenState extends ConsumerState<AdminProductEditScreen>
                     const SizedBox(height: 8),
                     Text('Images', style: Theme.of(context).textTheme.titleMedium),
                     const SizedBox(height: 8),
-                    SizedBox(
-                      height: 88,
-                      child: ListView(
-                        scrollDirection: Axis.horizontal,
-                        children: [
-                          ..._imageUrls.map(
-                            (u) => Padding(
-                              padding: const EdgeInsets.only(right: 8),
-                              child: Image.network(u, width: 88, height: 88, fit: BoxFit.cover),
-                            ),
+                    ..._images.map((img) {
+                      final url = img['url']?.toString() ?? '';
+                      final id = img['id']?.toString();
+                      final isPrimary = url == primaryUrl;
+                      final isTryOn = id != null && id == _tryOnImageId;
+                      return Card(
+                        margin: const EdgeInsets.only(bottom: 8),
+                        child: ListTile(
+                          leading: url.isEmpty
+                              ? const Icon(Icons.image_not_supported)
+                              : Image.network(url, width: 56, height: 56, fit: BoxFit.cover),
+                          title: Text(
+                            [
+                              if (isPrimary) 'Primary',
+                              if (isTryOn) 'TRY ME',
+                              if (!isPrimary && !isTryOn) 'Gallery',
+                            ].join(' · '),
                           ),
-                          if (canUpdate)
-                            OutlinedButton.icon(
-                              onPressed: _saving ? null : _addImage,
-                              icon: const Icon(Icons.add_a_photo),
-                              label: const Text('Add'),
-                            ),
-                        ],
+                          subtitle: canUpdate && id != null
+                              ? Wrap(
+                                  spacing: 8,
+                                  children: [
+                                    if (!isPrimary)
+                                      TextButton(
+                                        onPressed: _saving ? null : () => _setPrimary(id),
+                                        child: const Text('Set primary'),
+                                      ),
+                                    if (!isTryOn)
+                                      TextButton(
+                                        onPressed: _saving ? null : () => _setTryOnSource(id),
+                                        child: const Text('TRY ME source'),
+                                      ),
+                                  ],
+                                )
+                              : null,
+                        ),
+                      );
+                    }),
+                    if (canUpdate)
+                      OutlinedButton.icon(
+                        onPressed: _saving ? null : _addImage,
+                        icon: const Icon(Icons.add_a_photo),
+                        label: const Text('Add camera / gallery'),
                       ),
-                    ),
                     if (_saving) const LinearProgressIndicator(),
                     const SizedBox(height: 16),
                     if (canUpdate) ...[

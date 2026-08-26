@@ -16,7 +16,7 @@ type Product = {
   description: string;
   tryOnEnabled?: boolean;
   variants: Array<{ sku: string; price: string; salePrice?: string | null }>;
-  images: Array<{ id?: string; url: string; isTryOnSource?: boolean }>;
+  images: Array<{ id?: string; url: string; isTryOnSource?: boolean; sortOrder?: number }>;
 };
 
 type FashionJob = {
@@ -98,11 +98,45 @@ export default function EditProductPage() {
         method: "PATCH",
         body: JSON.stringify({ imageUrls: [url] }),
       });
-      await query.refetch();
+      const refreshed = await query.refetch();
+      const imgs = refreshed.data?.data.images ?? [];
+      const added = [...imgs].reverse().find((i) => i.url === url) ?? imgs[imgs.length - 1];
+      if (added?.id) {
+        const asPrimary = confirm("Set this image as the primary product image?");
+        const asTryOn = confirm("Use this image as the TRY ME garment source?");
+        const patch: Record<string, string> = {};
+        if (asPrimary) patch.primaryImageId = added.id;
+        if (asTryOn) {
+          patch.tryOnImageId = added.id;
+          setTryOnImageId(added.id);
+        }
+        if (Object.keys(patch).length) {
+          await apiFetch(`/admin/products/${params.id}`, {
+            method: "PATCH",
+            body: JSON.stringify(patch),
+          });
+          await query.refetch();
+        }
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : "Image attach failed");
     } finally {
       setUploadingImage(false);
+    }
+  }
+
+  async function setPrimary(imageId: string) {
+    setSaving(true);
+    try {
+      await apiFetch(`/admin/products/${params.id}`, {
+        method: "PATCH",
+        body: JSON.stringify({ primaryImageId: imageId }),
+      });
+      await query.refetch();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to set primary");
+    } finally {
+      setSaving(false);
     }
   }
 
@@ -190,8 +224,26 @@ export default function EditProductPage() {
           </ul>
           <div className="mt-4 grid grid-cols-2 gap-2">
             {p.images.map((img) => (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img key={img.url} src={img.url} alt="" className="aspect-[4/5] rounded-md object-cover" />
+              <div key={img.url} className="space-y-1">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={img.url} alt="" className="aspect-[4/5] rounded-md object-cover" />
+                <div className="flex flex-wrap gap-1">
+                  {p.images[0]?.url === img.url ? (
+                    <Badge tone="success">Primary</Badge>
+                  ) : (
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      disabled={!img.id || saving}
+                      onClick={() => img.id && void setPrimary(img.id)}
+                    >
+                      Set primary
+                    </Button>
+                  )}
+                  {img.isTryOnSource ? <Badge tone="neutral">TRY ME</Badge> : null}
+                </div>
+              </div>
             ))}
           </div>
           <div className="mt-4">

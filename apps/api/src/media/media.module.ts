@@ -1,4 +1,5 @@
-import { Global, Module } from "@nestjs/common";
+import { Global, Module, forwardRef } from "@nestjs/common";
+import { SettingsModule } from "../settings/settings.module";
 import { MEDIA_STORAGE } from "./media-storage";
 import { MockMediaStorage } from "./mock-media.storage";
 import { CloudinaryMediaStorage } from "./cloudinary-media.storage";
@@ -6,6 +7,7 @@ import { MediaAdminController } from "./media-admin.controller";
 
 @Global()
 @Module({
+  imports: [forwardRef(() => SettingsModule)],
   controllers: [MediaAdminController],
   providers: [
     MockMediaStorage,

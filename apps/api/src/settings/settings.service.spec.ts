@@ -53,7 +53,8 @@ describe("SettingsService.updateStorefront", () => {
       },
     };
     const audit = { log: jest.fn().mockResolvedValue({}) };
-    const service = new SettingsService(prisma as never, audit as never);
+    const redis = { ping: jest.fn().mockResolvedValue("PONG") };
+    const service = new SettingsService(prisma as never, audit as never, redis as never);
 
     const result = await service.updateStorefront(
       {
