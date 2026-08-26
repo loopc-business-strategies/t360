@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import '../../../core/api_exception.dart';
 import '../../../core/providers.dart';
 import '../../../design_system/design_system.dart';
 import '../../../l10n/app_strings.dart';
 import '../../repositories.dart';
+import '../data/phone_normalize.dart';
 
 class AuthScreen extends ConsumerStatefulWidget {
   const AuthScreen({super.key, this.redirectTo});
@@ -21,6 +23,7 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
   var _otpSent = false;
   var _busy = false;
   String? _error;
+  String? _devOtpHint;
 
   @override
   void dispose() {
@@ -33,10 +36,19 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
     setState(() {
       _busy = true;
       _error = null;
+      _devOtpHint = null;
     });
     try {
-      await ref.read(authRepositoryProvider).requestOtp(_mobile.text.trim());
+      final normalized = normalizeIndianMobile(_mobile.text);
+      _mobile.text = normalized;
+      final res = await ref.read(authRepositoryProvider).requestOtp(normalized);
+      if (res.devOtp != null && res.devOtp!.isNotEmpty) {
+        _otp.text = res.devOtp!;
+        _devOtpHint = 'Staging code: ${res.devOtp}';
+      }
       setState(() => _otpSent = true);
+    } on ApiException catch (e) {
+      setState(() => _error = e.message);
     } catch (e) {
       setState(() => _error = e.toString());
     } finally {
@@ -50,8 +62,10 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
       _error = null;
     });
     try {
+      final normalized = normalizeIndianMobile(_mobile.text);
+      _mobile.text = normalized;
       final tokens = await ref.read(authRepositoryProvider).verifyOtp(
-            _mobile.text.trim(),
+            normalized,
             _otp.text.trim(),
           );
       await ref.read(tokenStorageProvider).saveTokens(
@@ -60,7 +74,14 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
           );
       await ref.read(authStateProvider.notifier).markLoggedIn();
       if (!mounted) return;
-      context.go(widget.redirectTo ?? '/');
+      final dest = widget.redirectTo;
+      if (dest != null && dest.isNotEmpty) {
+        context.go(dest);
+      } else {
+        context.go('/');
+      }
+    } on ApiException catch (e) {
+      setState(() => _error = e.message);
     } catch (e) {
       setState(() => _error = e.toString());
     } finally {
@@ -77,6 +98,11 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
         padding: const EdgeInsets.all(24),
         children: [
           Text(t.loginRequired, style: Theme.of(context).textTheme.titleLarge),
+          const SizedBox(height: 8),
+          Text(
+            'Use +91 and your 10-digit mobile number',
+            style: Theme.of(context).textTheme.bodySmall,
+          ),
           const SizedBox(height: 24),
           TharagaiInput(
             label: t.mobile,
@@ -89,6 +115,17 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
               label: t.otp,
               controller: _otp,
               keyboardType: TextInputType.number,
+            ),
+          ],
+          if (_devOtpHint != null) ...[
+            const SizedBox(height: 12),
+            Material(
+              color: Theme.of(context).colorScheme.secondaryContainer,
+              borderRadius: BorderRadius.circular(8),
+              child: Padding(
+                padding: const EdgeInsets.all(12),
+                child: Text(_devOtpHint!, style: Theme.of(context).textTheme.titleSmall),
+              ),
             ),
           ],
           if (_error != null) ...[

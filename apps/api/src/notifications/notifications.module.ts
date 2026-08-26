@@ -10,6 +10,7 @@ import { FcmPushProvider } from "./providers/fcm-push.provider";
 import { MockEmailProvider } from "./providers/mock-email.provider";
 import { MockPushProvider } from "./providers/mock-push.provider";
 import { MockSmsProvider } from "./providers/mock-sms.provider";
+import { Msg91SmsProvider } from "./providers/msg91-sms.provider";
 import { MockWhatsappProvider } from "./providers/mock-whatsapp.provider";
 import { PUSH_PROVIDER } from "./providers/push-provider";
 import { ResendEmailProvider } from "./providers/resend-email.provider";
@@ -37,6 +38,7 @@ function forceMock() {
     MockPushProvider,
     FcmPushProvider,
     MockSmsProvider,
+    Msg91SmsProvider,
     MockWhatsappProvider,
     CloudWhatsappProvider,
     {
@@ -57,7 +59,16 @@ function forceMock() {
     },
     {
       provide: SMS_PROVIDER,
-      useExisting: MockSmsProvider,
+      useFactory: (mock: MockSmsProvider, msg91: Msg91SmsProvider) => {
+        const wantMsg91 = (process.env.SMS_PROVIDER ?? "mock").toLowerCase() === "msg91";
+        if (wantMsg91 && process.env.MSG91_AUTH_KEY?.trim()) return msg91;
+        if (wantMsg91) {
+          // eslint-disable-next-line no-console
+          console.warn("[SMS] SMS_PROVIDER=msg91 but MSG91_AUTH_KEY missing — using mock");
+        }
+        return mock;
+      },
+      inject: [MockSmsProvider, Msg91SmsProvider],
     },
     {
       provide: WHATSAPP_PROVIDER,

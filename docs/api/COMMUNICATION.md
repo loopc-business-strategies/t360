@@ -13,7 +13,11 @@ Notification engine + channel ports (Email, Push, SMS, WhatsApp). Default provid
 | `FCM_SERVER_KEY` | Legacy FCM HTTP | — |
 | `WHATSAPP_PROVIDER` | `mock` \| `cloud` | `mock` |
 | `WHATSAPP_TOKEN` / `WHATSAPP_PHONE_NUMBER_ID` / `WHATSAPP_VERIFY_TOKEN` / `WHATSAPP_APP_SECRET` | Cloud API | — |
-| `SMS_PROVIDER` | `mock` (India provider later) | `mock` |
+| `SMS_PROVIDER` | `mock` \| `msg91` | `mock` |
+| `MSG91_AUTH_KEY` | MSG91 auth key (required for `msg91`) | — |
+| `MSG91_OTP_TEMPLATE_ID` | MSG91 OTP template id | — |
+| `MSG91_SENDER_ID` | SMS sender id | `THRGAI` |
+| `ALLOW_DEV_OTP` | When `1` and SMS is mock, `POST /auth/otp/request` returns `devOtp` (staging only) | unset |
 
 ## Event catalogue (shipped)
 

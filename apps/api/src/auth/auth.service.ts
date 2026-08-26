@@ -57,7 +57,16 @@ export class AuthService {
     const code = String(randomInt(100000, 999999));
     await this.redis.client.set(this.otpKey(mobile), code, "EX", 300);
     await this.sms.sendOtp(mobile, code);
-    return { sent: true, expiresInSeconds: 300, provider: "mock" };
+
+    const provider = this.sms.providerName;
+    const allowDev =
+      this.config.get<string>("ALLOW_DEV_OTP") === "1" ||
+      this.config.get<string>("ALLOW_DEV_OTP") === "true";
+    const base = { sent: true as const, expiresInSeconds: 300, provider };
+    if (allowDev && provider === "mock") {
+      return { ...base, devOtp: code };
+    }
+    return base;
   }
 
   async verifyOtp(mobile: string, code: string, meta?: { ip?: string; userAgent?: string }) {

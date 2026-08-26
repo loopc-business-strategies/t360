@@ -113,7 +113,10 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
                     ? null
                     : () {
                         if (!loggedIn) {
-                          context.push('/auth?redirect=/try-on?productId=${p.id}&slug=${widget.slug}');
+                          final redirect = Uri.encodeComponent(
+                            '/try-on?productId=${p.id}&slug=${widget.slug}',
+                          );
+                          context.push('/auth?redirect=$redirect');
                           return;
                         }
                         final q = {

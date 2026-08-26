@@ -3,6 +3,7 @@ import { SmsProvider } from "./sms-provider";
 
 @Injectable()
 export class MockSmsProvider implements SmsProvider {
+  readonly providerName = "mock";
   private readonly logger = new Logger("MockSmsProvider");
 
   async sendOtp(mobile: string, code: string): Promise<void> {

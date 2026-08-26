@@ -1,18 +1,31 @@
 import '../../../core/api_client.dart';
+import 'phone_normalize.dart';
 
 class AuthRepository {
   AuthRepository(this._api);
 
   final ApiClient _api;
 
-  Future<void> requestOtp(String mobile) async {
-    await _api.post('/auth/otp/request', data: {'mobile': mobile}, map: (_) => true);
+  Future<({String? devOtp, String provider})> requestOtp(String mobile) async {
+    final normalized = normalizeIndianMobile(mobile);
+    return _api.post(
+      '/auth/otp/request',
+      data: {'mobile': normalized},
+      map: (data) {
+        final m = data as Map<String, dynamic>? ?? {};
+        return (
+          devOtp: m['devOtp']?.toString(),
+          provider: m['provider']?.toString() ?? 'unknown',
+        );
+      },
+    );
   }
 
   Future<({String access, String refresh})> verifyOtp(String mobile, String code) async {
+    final normalized = normalizeIndianMobile(mobile);
     return _api.post(
       '/auth/otp/verify',
-      data: {'mobile': mobile, 'code': code},
+      data: {'mobile': normalized, 'code': code},
       map: (data) {
         final m = data as Map<String, dynamic>;
         return (

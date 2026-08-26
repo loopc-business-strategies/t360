@@ -2,9 +2,11 @@
 
 import * as React from "react";
 import Link from "next/link";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Badge, Button, Input, LoadingState } from "@t360/ui";
 import { apiFetch, getCustomerToken, getRefreshToken, setCustomerTokens } from "../../lib/api";
 import { useLocale } from "../../lib/locale";
+import { normalizeIndianMobile } from "../../lib/phone";
 
 type Profile = {
   id: string;
@@ -27,12 +29,23 @@ type Address = {
 };
 
 export default function AccountPage() {
+  return (
+    <React.Suspense fallback={<LoadingState label="Loading…" />}>
+      <AccountPageInner />
+    </React.Suspense>
+  );
+}
+
+function AccountPageInner() {
   const { t } = useLocale();
+  const router = useRouter();
+  const searchParams = useSearchParams();
   const [ready, setReady] = React.useState(false);
   const [token, setToken] = React.useState<string | null>(null);
   const [mobile, setMobile] = React.useState("+91");
   const [otp, setOtp] = React.useState("");
   const [otpSent, setOtpSent] = React.useState(false);
+  const [devOtpHint, setDevOtpHint] = React.useState<string | null>(null);
   const [profile, setProfile] = React.useState<Profile | null>(null);
   const [name, setName] = React.useState("");
   const [addresses, setAddresses] = React.useState<Address[]>([]);
@@ -92,12 +105,22 @@ export default function AccountPage() {
   async function requestOtp() {
     setBusy(true);
     setError(null);
+    setDevOtpHint(null);
     try {
-      await apiFetch("/auth/otp/request", {
-        method: "POST",
-        auth: false,
-        body: JSON.stringify({ mobile }),
-      });
+      const normalized = normalizeIndianMobile(mobile);
+      setMobile(normalized);
+      const res = await apiFetch<{ sent: boolean; provider: string; devOtp?: string }>(
+        "/auth/otp/request",
+        {
+          method: "POST",
+          auth: false,
+          body: JSON.stringify({ mobile: normalized }),
+        },
+      );
+      if (res.data.devOtp) {
+        setOtp(res.data.devOtp);
+        setDevOtpHint(`Staging code: ${res.data.devOtp}`);
+      }
       setOtpSent(true);
     } catch (e) {
       setError(e instanceof Error ? e.message : "OTP failed");
@@ -110,13 +133,20 @@ export default function AccountPage() {
     setBusy(true);
     setError(null);
     try {
+      const normalized = normalizeIndianMobile(mobile);
+      setMobile(normalized);
       const res = await apiFetch<{ accessToken: string; refreshToken: string }>("/auth/otp/verify", {
         method: "POST",
         auth: false,
-        body: JSON.stringify({ mobile, code: otp }),
+        body: JSON.stringify({ mobile: normalized, code: otp }),
       });
       setCustomerTokens(res.data.accessToken, res.data.refreshToken);
       setToken(res.data.accessToken);
+      const redirect = searchParams.get("redirect");
+      if (redirect && redirect.startsWith("/")) {
+        router.replace(redirect);
+        return;
+      }
       await loadAccount();
     } catch (e) {
       setError(e instanceof Error ? e.message : "Verify failed");
@@ -167,6 +197,7 @@ export default function AccountPage() {
         <p className="text-xs font-medium uppercase tracking-[0.14em] text-muted">{t.accountBrand}</p>
         <h1 className="mt-3 font-display text-3xl">{t.accountTitle}</h1>
         <p className="mt-3 text-sm leading-relaxed text-muted">{t.accountLogin}</p>
+        <p className="mt-2 text-xs text-muted">Use +91 and your 10-digit mobile number</p>
         <div className="mt-8 space-y-4 border border-border bg-elevated p-5">
           <Input label={t.mobile} value={mobile} onChange={(e) => setMobile(e.target.value)} autoComplete="tel" />
           {otpSent ? (
@@ -177,6 +208,11 @@ export default function AccountPage() {
               autoComplete="one-time-code"
               inputMode="numeric"
             />
+          ) : null}
+          {devOtpHint ? (
+            <p className="rounded-md border border-border bg-elevated px-3 py-2 text-sm font-medium text-ink">
+              {devOtpHint}
+            </p>
           ) : null}
           {error ? <p className="text-sm text-wine">{error}</p> : null}
           {!otpSent ? (
