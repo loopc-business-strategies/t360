@@ -26,7 +26,23 @@ export class HealthService {
       if (pong !== "PONG") {
         throw new Error("Redis not ready");
       }
-      return { status: "ready", database: "up", redis: "up" };
+      const cloudinary =
+        Boolean(process.env.CLOUDINARY_CLOUD_NAME?.trim()) &&
+        Boolean(process.env.CLOUDINARY_API_KEY?.trim()) &&
+        Boolean(process.env.CLOUDINARY_API_SECRET?.trim());
+      const fashionProvider = process.env.FASHION_AI_PROVIDER?.trim() || "disabled";
+      const fashionConfigured =
+        fashionProvider === "fashn" && Boolean(process.env.FASHN_API_KEY?.trim());
+      return {
+        status: "ready",
+        database: "up",
+        redis: "up",
+        storage: cloudinary ? "cloudinary" : "mock",
+        fashionAi: {
+          provider: fashionProvider,
+          configured: fashionConfigured,
+        },
+      };
     } catch {
       throw new ServiceUnavailableException({
         code: "NOT_READY",

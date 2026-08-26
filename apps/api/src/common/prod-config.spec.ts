@@ -44,11 +44,30 @@ describe("assertProductionConfig", () => {
         AI_PROVIDER: "openai",
         POS_PROVIDER: "vendor",
         FASHION_AI_PROVIDER: "mock",
+        CLOUDINARY_CLOUD_NAME: "demo",
+        CLOUDINARY_API_KEY: "k",
+        CLOUDINARY_API_SECRET: "s",
       }),
     ).toThrow(/FASHION_AI_PROVIDER=mock/i);
   });
 
-  it("allows FASHION_AI_PROVIDER=disabled in production", () => {
+  it("allows FASHION_AI_PROVIDER=disabled in production with Cloudinary", () => {
+    expect(() =>
+      assertProductionConfig({
+        NODE_ENV: "production",
+        PAYMENT_PROVIDER: "razorpay",
+        NOTIFICATION_PROVIDER: "resend",
+        AI_PROVIDER: "openai",
+        POS_PROVIDER: "vendor",
+        FASHION_AI_PROVIDER: "disabled",
+        CLOUDINARY_CLOUD_NAME: "demo",
+        CLOUDINARY_API_KEY: "k",
+        CLOUDINARY_API_SECRET: "s",
+      }),
+    ).not.toThrow();
+  });
+
+  it("rejects missing Cloudinary in production", () => {
     expect(() =>
       assertProductionConfig({
         NODE_ENV: "production",
@@ -58,6 +77,6 @@ describe("assertProductionConfig", () => {
         POS_PROVIDER: "vendor",
         FASHION_AI_PROVIDER: "disabled",
       }),
-    ).not.toThrow();
+    ).toThrow(/Cloudinary/i);
   });
 });

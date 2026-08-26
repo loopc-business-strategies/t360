@@ -93,6 +93,12 @@ class _AdminMoreScreenState extends ConsumerState<AdminMoreScreen> {
               title: const Text('AI Usage'),
               onTap: () => context.push('/admin/ai-usage'),
             ),
+          if (adminHasAny(_perms, ['ai.tryon.read', 'ai.fashion']))
+            ListTile(
+              leading: const Icon(Icons.checkroom_outlined),
+              title: const Text('Virtual Try-On'),
+              onTap: () => context.push('/admin/try-on'),
+            ),
           ListTile(
             leading: const Icon(Icons.notifications_outlined),
             title: const Text('Notifications'),

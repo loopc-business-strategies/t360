@@ -57,6 +57,7 @@ class TryOnRepository {
     required String inputImageUrl,
     String? inputPublicId,
     String? idempotencyKey,
+    bool savePhotoConsent = false,
   }) {
     return _api.post(
       '/ai/fashion/try-on',
@@ -65,6 +66,7 @@ class TryOnRepository {
         'variantId': ?variantId,
         'inputImageUrl': inputImageUrl,
         'inputPublicId': ?inputPublicId,
+        'savePhotoConsent': savePhotoConsent,
       },
       headers: {
         'Idempotency-Key': ?idempotencyKey,

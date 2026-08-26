@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 import { Button, Card, Input, Select } from "@t360/ui";
 import { apiFetch } from "../../../lib/api";
+import { MediaImagePicker } from "../../../components/media-image-picker";
 
 type Category = { id: string; name: string };
 type Brand = { id: string; name: string };
@@ -27,9 +28,7 @@ export default function NewProductPage() {
   const [sku, setSku] = React.useState("");
   const [price, setPrice] = React.useState("1299");
   const [status, setStatus] = React.useState("published");
-  const [imageUrl, setImageUrl] = React.useState(
-    "https://images.unsplash.com/photo-1596755094514-f87e34085b2c?auto=format&fit=crop&w=800&q=80",
-  );
+  const [imageUrls, setImageUrls] = React.useState<string[]>([]);
   const [generateAiFashion, setGenerateAiFashion] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
   const [saving, setSaving] = React.useState(false);
@@ -53,7 +52,7 @@ export default function NewProductPage() {
           categoryId,
           brandId: brandId || null,
           status,
-          imageUrls: imageUrl ? [imageUrl] : [],
+          imageUrls,
           generateAiFashion,
           variants: [{ sku, price: Number(price), attributes: { size: "M", colour: "Blue" } }],
         }),
@@ -102,7 +101,12 @@ export default function NewProductPage() {
         />
         <Input label="SKU" value={sku} onChange={(e) => setSku(e.target.value)} required />
         <Input label="Price" value={price} onChange={(e) => setPrice(e.target.value)} required />
-        <Input label="Image URL" value={imageUrl} onChange={(e) => setImageUrl(e.target.value)} />
+        <MediaImagePicker
+          label="Product images"
+          urls={imageUrls}
+          onChange={() => {}}
+          onUrlsChange={setImageUrls}
+        />
         <label className="flex items-center gap-2 text-sm">
           <input
             type="checkbox"

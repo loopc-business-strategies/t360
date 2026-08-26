@@ -328,6 +328,9 @@ async function main() {
         retentionHours: 24,
         perUserPerHour: 10,
         maxConcurrentPerUser: 2,
+        consentRequired: true,
+        allowCamera: true,
+        allowUpload: true,
       },
     ],
   ] as const) {

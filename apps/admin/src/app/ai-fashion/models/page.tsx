@@ -5,6 +5,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Badge, Button, Card, Input, LoadingState, Select, ErrorState } from "@t360/ui";
 import { apiFetch } from "../../../lib/api";
 import { AiFashionNav } from "../../../components/ai-fashion-nav";
+import { MediaImagePicker } from "../../../components/media-image-picker";
 
 type FashionModel = {
   id: string;
@@ -125,8 +126,13 @@ export default function AiFashionModelsPage() {
           <Input label="Body type" value={bodyType} onChange={(e) => setBodyType(e.target.value)} />
           <Input label="Skin tone" value={skinTone} onChange={(e) => setSkinTone(e.target.value)} />
           <Input label="Hair style" value={hairStyle} onChange={(e) => setHairStyle(e.target.value)} />
+          <MediaImagePicker
+            label="Model image"
+            value={imageUrl}
+            onChange={(url) => setImageUrl(url)}
+          />
           <Input
-            label="Image URL (for upload)"
+            label="Or paste image URL"
             value={imageUrl}
             onChange={(e) => setImageUrl(e.target.value)}
           />

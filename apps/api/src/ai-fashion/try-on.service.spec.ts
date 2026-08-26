@@ -8,7 +8,7 @@ import { TryOnService } from "./try-on.service";
 
 describe("TryOnService", () => {
   const prisma = {
-    systemSetting: { findUnique: jest.fn() },
+    systemSetting: { findUnique: jest.fn(), upsert: jest.fn() },
     product: { findFirst: jest.fn(), findUnique: jest.fn(), findMany: jest.fn() },
     productVariant: { findFirst: jest.fn() },
     tryOnSession: {
@@ -52,12 +52,14 @@ describe("TryOnService", () => {
     }),
     deleteByPublicId: jest.fn().mockResolvedValue({ deleted: true }),
   };
+  const audit = { log: jest.fn().mockResolvedValue(undefined) };
 
   function createService() {
     return new TryOnService(
       prisma as never,
       redis as never,
       queue as never,
+      audit as never,
       provider as never,
       media as never,
     );
@@ -72,8 +74,12 @@ describe("TryOnService", () => {
         retentionHours: 24,
         perUserPerHour: 10,
         maxConcurrentPerUser: 2,
+        consentRequired: true,
+        allowCamera: true,
+        allowUpload: true,
       },
     });
+    prisma.systemSetting.upsert = jest.fn().mockResolvedValue({});
     prisma.tryOnSession.count.mockResolvedValue(0);
   });
 

@@ -20,6 +20,15 @@ import { MediaAdminController } from "./media-admin.controller";
         ) {
           return cloud;
         }
+        const allowMock =
+          process.env.ALLOW_MOCK_PROVIDERS === "1" ||
+          process.env.ALLOW_MOCK_PROVIDERS === "true" ||
+          process.env.NODE_ENV !== "production";
+        if (!allowMock) {
+          throw new Error(
+            "Cloudinary is required in production. Set CLOUDINARY_* or ALLOW_MOCK_PROVIDERS=1.",
+          );
+        }
         return mock;
       },
       inject: [MockMediaStorage, CloudinaryMediaStorage],

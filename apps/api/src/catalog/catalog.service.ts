@@ -306,6 +306,29 @@ export class CatalogService {
       }
     }
 
+    if (input.imageUrls?.length) {
+      const existing = await this.prisma.productImage.count({
+        where: { productId: id },
+      });
+      let order = existing;
+      for (const url of input.imageUrls) {
+        const already = await this.prisma.productImage.findFirst({
+          where: { productId: id, url },
+        });
+        if (already) continue;
+        const asset = await this.media.uploadFromUrl(url);
+        await this.prisma.productImage.create({
+          data: {
+            productId: id,
+            url: asset.url,
+            publicId: asset.publicId,
+            sortOrder: order++,
+            alt: input.name ?? undefined,
+          },
+        });
+      }
+    }
+
     if (input.variants?.length) {
       for (const v of input.variants) {
         await this.prisma.productVariant.upsert({

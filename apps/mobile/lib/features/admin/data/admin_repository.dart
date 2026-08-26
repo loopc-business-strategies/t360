@@ -134,6 +134,36 @@ class AdminRepository {
   Future<Map<String, dynamic>> updateAiSettings(Map<String, dynamic> body) =>
       _api.patch('/admin/ai-fashion/settings', data: body, map: (d) => d as Map<String, dynamic>);
 
+  Future<Map<String, dynamic>> tryOnDashboard() =>
+      _api.get('/admin/ai-fashion/try-on/dashboard', map: (d) => d as Map<String, dynamic>);
+
+  Future<Map<String, dynamic>> tryOnSettings() =>
+      _api.get('/admin/ai-fashion/try-on/settings', map: (d) => d as Map<String, dynamic>);
+
+  Future<Map<String, dynamic>> updateTryOnSettings(Map<String, dynamic> body) =>
+      _api.patch('/admin/ai-fashion/try-on/settings', data: body, map: (d) => d as Map<String, dynamic>);
+
+  Future<List<dynamic>> tryOnSessions({String? status, int pageSize = 50}) => _api.get(
+        '/admin/ai-fashion/try-on',
+        query: {
+          'pageSize': pageSize,
+          if (status != null && status.isNotEmpty) 'status': status,
+        },
+        map: (d) {
+          final map = Map<String, dynamic>.from(d as Map);
+          return (map['items'] as List?) ?? [];
+        },
+      );
+
+  Future<Map<String, dynamic>> retryTryOn(String id) =>
+      _api.post('/admin/ai-fashion/try-on/$id/retry', data: {}, map: (d) => d as Map<String, dynamic>);
+
+  Future<Map<String, dynamic>> cancelTryOn(String id) =>
+      _api.post('/admin/ai-fashion/try-on/$id/cancel', data: {}, map: (d) => d as Map<String, dynamic>);
+
+  Future<void> deleteTryOn(String id) =>
+      _api.delete('/admin/ai-fashion/try-on/$id', map: (_) => true);
+
   Future<List<dynamic>> orders() =>
       _api.get('/admin/orders', query: {'pageSize': 30}, map: (d) => d as List<dynamic>);
 

@@ -18,10 +18,20 @@ export function assertProductionConfig(env: NodeJS.ProcessEnv = process.env): vo
   }
 
   const offenders = checks.filter(([, value]) => value === "mock");
-  if (offenders.length === 0) return;
+  if (offenders.length > 0) {
+    const list = offenders.map(([key, value]) => `${key}=${value}`).join(", ");
+    throw new Error(
+      `Production refuses mock providers (${list}). Set real providers or ALLOW_MOCK_PROVIDERS=1 for emergency only.`,
+    );
+  }
 
-  const list = offenders.map(([key, value]) => `${key}=${value}`).join(", ");
-  throw new Error(
-    `Production refuses mock providers (${list}). Set real providers or ALLOW_MOCK_PROVIDERS=1 for emergency only.`,
-  );
+  const cloudinaryMissing =
+    !env.CLOUDINARY_CLOUD_NAME?.trim() ||
+    !env.CLOUDINARY_API_KEY?.trim() ||
+    !env.CLOUDINARY_API_SECRET?.trim();
+  if (cloudinaryMissing) {
+    throw new Error(
+      "Production requires Cloudinary (CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY, CLOUDINARY_API_SECRET). Set credentials or ALLOW_MOCK_PROVIDERS=1 for emergency only.",
+    );
+  }
 }

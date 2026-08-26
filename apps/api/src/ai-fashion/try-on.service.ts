@@ -8,9 +8,14 @@ import {
   ServiceUnavailableException,
 } from "@nestjs/common";
 import { createHash, randomUUID } from "crypto";
-import type { TryOnCreateInput, TryOnHistoryQuery } from "@t360/validation";
+import type {
+  TryOnCreateInput,
+  TryOnHistoryQuery,
+  TryOnSettingsUpdateInput,
+} from "@t360/validation";
 import { PrismaService } from "../prisma/prisma.service";
 import { RedisService } from "../redis/redis.service";
+import { AuditService } from "../audit/audit.service";
 import { MEDIA_STORAGE, MediaStorage } from "../media/media-storage";
 import {
   FASHION_AI_PROVIDER,
@@ -25,6 +30,9 @@ type TryOnConfig = {
   retentionHours: number;
   perUserPerHour: number;
   maxConcurrentPerUser: number;
+  consentRequired: boolean;
+  allowCamera: boolean;
+  allowUpload: boolean;
 };
 
 const DEFAULT_TRY_ON_CONFIG: TryOnConfig = {
@@ -33,6 +41,9 @@ const DEFAULT_TRY_ON_CONFIG: TryOnConfig = {
   retentionHours: 24,
   perUserPerHour: 10,
   maxConcurrentPerUser: 2,
+  consentRequired: true,
+  allowCamera: true,
+  allowUpload: true,
 };
 
 const FRIENDLY: Record<string, string> = {
@@ -53,6 +64,7 @@ export class TryOnService {
     private readonly prisma: PrismaService,
     private readonly redis: RedisService,
     private readonly queue: AiFashionQueueService,
+    private readonly audit: AuditService,
     @Inject(FASHION_AI_PROVIDER) private readonly provider: FashionAIProvider,
     @Inject(MEDIA_STORAGE) private readonly media: MediaStorage,
   ) {}
@@ -65,6 +77,36 @@ export class TryOnService {
       return DEFAULT_TRY_ON_CONFIG;
     }
     return { ...DEFAULT_TRY_ON_CONFIG, ...(row.value as Partial<TryOnConfig>) };
+  }
+
+  async getSettings() {
+    return this.readConfig();
+  }
+
+  async updateSettings(input: TryOnSettingsUpdateInput, actorId?: string) {
+    const current = await this.readConfig();
+    const next: TryOnConfig = {
+      enabled: input.enabled ?? current.enabled,
+      maxImageBytes: input.maxImageBytes ?? current.maxImageBytes,
+      retentionHours: input.retentionHours ?? current.retentionHours,
+      perUserPerHour: input.perUserPerHour ?? current.perUserPerHour,
+      maxConcurrentPerUser: input.maxConcurrentPerUser ?? current.maxConcurrentPerUser,
+      consentRequired: input.consentRequired ?? current.consentRequired,
+      allowCamera: input.allowCamera ?? current.allowCamera,
+      allowUpload: input.allowUpload ?? current.allowUpload,
+    };
+    await this.prisma.systemSetting.upsert({
+      where: { key: "ai.tryon.config" },
+      create: { key: "ai.tryon.config", value: next },
+      update: { value: next },
+    });
+    await this.audit.log({
+      actorId,
+      action: "ai_tryon.settings.update",
+      entityType: "SystemSetting",
+      metadata: { keys: Object.keys(input) },
+    });
+    return next;
   }
 
   private friendly(code: string, fallback?: string) {
@@ -609,6 +651,11 @@ export class TryOnService {
       data: { status: "QUEUED", errorCode: null, errorMessage: null },
     });
     await this.queue.enqueueTryOn({ tryOnSessionId: id });
+    await this.audit.log({
+      action: "ai_tryon.retry",
+      entityType: "TryOnSession",
+      entityId: id,
+    });
     return this.getAdminSession(id);
   }
 
@@ -628,6 +675,11 @@ export class TryOnService {
       data: { status: "CANCELLED" },
     });
     await this.queue.removeTryOnJob(id);
+    await this.audit.log({
+      action: "ai_tryon.cancel",
+      entityType: "TryOnSession",
+      entityId: id,
+    });
     return this.getAdminSession(id);
   }
 
@@ -638,6 +690,11 @@ export class TryOnService {
     await this.prisma.tryOnSession.update({
       where: { id },
       data: { deletedAt: new Date(), inputImageUrl: "", resultImageUrl: null },
+    });
+    await this.audit.log({
+      action: "ai_tryon.delete",
+      entityType: "TryOnSession",
+      entityId: id,
     });
     return { deleted: true };
   }

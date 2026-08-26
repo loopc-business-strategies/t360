@@ -46,11 +46,17 @@ export function TryOnModal({
   const [session, setSession] = React.useState<TryOnSession | null>(null);
   const [error, setError] = React.useState<string | null>(null);
   const [busy, setBusy] = React.useState(false);
+  const [savePhotoConsent, setSavePhotoConsent] = React.useState(false);
   const fileRef = React.useRef<HTMLInputElement>(null);
   const videoRef = React.useRef<HTMLVideoElement>(null);
   const [cameraOn, setCameraOn] = React.useState(false);
   const streamRef = React.useRef<MediaStream | null>(null);
   const pollRef = React.useRef<ReturnType<typeof setInterval> | null>(null);
+  const [cfg, setCfg] = React.useState({
+    allowCamera: true,
+    allowUpload: true,
+    consentRequired: true,
+  });
 
   React.useEffect(() => {
     if (!open) {
@@ -63,6 +69,14 @@ export function TryOnModal({
     setUploadedUrl(reusedPhotoUrl ?? null);
     setSession(null);
     setError(null);
+    setSavePhotoConsent(false);
+    void apiFetch<{
+      allowCamera: boolean;
+      allowUpload: boolean;
+      consentRequired: boolean;
+    }>("/ai/fashion/try-on/config")
+      .then((r) => setCfg(r.data))
+      .catch(() => undefined);
   }, [open, reusedPhotoUrl]);
 
   React.useEffect(() => () => stopCamera(), []);
@@ -173,6 +187,7 @@ export function TryOnModal({
           variantId: variantId || undefined,
           inputImageUrl: uploadedUrl,
           inputPublicId: uploadedPublicId,
+          savePhotoConsent,
         }),
       });
       setSession(res.data);
@@ -266,12 +281,16 @@ export function TryOnModal({
               <li>Stand naturally</li>
             </ul>
             <div className="flex flex-wrap gap-2">
-              <Button type="button" onClick={() => void startCamera()}>
-                {t.tryMeTakePhoto}
-              </Button>
-              <Button type="button" variant="secondary" onClick={() => fileRef.current?.click()}>
-                {t.tryMeUpload}
-              </Button>
+              {cfg.allowCamera ? (
+                <Button type="button" onClick={() => void startCamera()}>
+                  {t.tryMeTakePhoto}
+                </Button>
+              ) : null}
+              {cfg.allowUpload ? (
+                <Button type="button" variant="secondary" onClick={() => fileRef.current?.click()}>
+                  {t.tryMeUpload}
+                </Button>
+              ) : null}
               <Button type="button" variant="outline" onClick={onClose}>
                 {t.tryMeCancel}
               </Button>
@@ -303,6 +322,18 @@ export function TryOnModal({
               // eslint-disable-next-line @next/next/no-img-element
               <img src={previewUrl} alt="" className="aspect-[3/4] w-full rounded-lg object-cover" />
             ) : null}
+            <label className="flex items-start gap-2 text-sm">
+              <input
+                type="checkbox"
+                className="mt-1"
+                checked={savePhotoConsent}
+                onChange={(e) => setSavePhotoConsent(e.target.checked)}
+              />
+              <span>
+                Save my photo for this try-on session (optional). Without this, your original photo is
+                deleted after processing.
+              </span>
+            </label>
             <div className="flex flex-wrap gap-2">
               <Button
                 type="button"
@@ -315,10 +346,17 @@ export function TryOnModal({
               >
                 {t.tryMeRetake}
               </Button>
-              <Button type="button" onClick={() => void startTryOn()} disabled={busy || !uploadedUrl}>
+              <Button
+                type="button"
+                onClick={() => void startTryOn()}
+                disabled={busy || !uploadedUrl}
+              >
                 {busy ? "…" : t.tryMeConfirm}
               </Button>
             </div>
+            <p className="text-xs text-muted">
+              You can continue without saving the original photo; only the AI result may be kept briefly.
+            </p>
           </div>
         ) : null}
 
@@ -332,6 +370,25 @@ export function TryOnModal({
               <li>{t.tryMeStepFinish}</li>
             </ol>
             <p className="text-xs text-muted">Status: {session?.status ?? "QUEUED"}</p>
+            {session?.id && session.status === "QUEUED" ? (
+              <Button
+                type="button"
+                variant="outline"
+                disabled={busy}
+                onClick={() => {
+                  void apiFetch(`/ai/fashion/try-on/${session.id}/cancel`, { method: "POST" })
+                    .then(() => {
+                      if (pollRef.current) clearInterval(pollRef.current);
+                      setBusy(false);
+                      setStep("failed");
+                      setError("Try-on cancelled");
+                    })
+                    .catch((e: Error) => setError(e.message));
+                }}
+              >
+                Cancel
+              </Button>
+            ) : null}
           </div>
         ) : null}
 

@@ -786,6 +786,12 @@ export class AiFashionService {
       data: { status: "QUEUED", creditsUsed: null },
     });
     await this.queue.enqueue({ generatedImageId: id });
+    await this.audit.log({
+      actorId: userId,
+      action: "ai_fashion.retry",
+      entityType: "AiGeneratedImage",
+      entityId: id,
+    });
     return this.getJob(id);
   }
 

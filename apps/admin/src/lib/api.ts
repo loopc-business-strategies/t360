@@ -187,4 +187,15 @@ export async function apiFetch<T>(
   return json as ApiSuccess<T>;
 }
 
+/** Multipart upload (admin media). Does not set Content-Type so the browser sets the boundary. */
+export async function apiUpload<T>(
+  path: string,
+  file: File,
+  fieldName = "file",
+): Promise<ApiSuccess<T>> {
+  const form = new FormData();
+  form.append(fieldName, file);
+  return apiFetch<T>(path, { method: "POST", body: form });
+}
+
 export { API_URL };

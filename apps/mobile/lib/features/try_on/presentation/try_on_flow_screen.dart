@@ -43,6 +43,7 @@ class _TryOnFlowScreenState extends ConsumerState<TryOnFlowScreen> {
   TryOnSessionDto? _session;
   String? _error;
   var _busy = false;
+  var _savePhotoConsent = false;
   final _picker = ImagePicker();
 
   @override
@@ -101,6 +102,7 @@ class _TryOnFlowScreenState extends ConsumerState<TryOnFlowScreen> {
             variantId: widget.variantId,
             inputImageUrl: url,
             inputPublicId: _uploadedPublicId,
+            savePhotoConsent: _savePhotoConsent,
             idempotencyKey: DateTime.now().millisecondsSinceEpoch.toString(),
           );
       setState(() => _session = session);
@@ -206,6 +208,18 @@ class _TryOnFlowScreenState extends ConsumerState<TryOnFlowScreen> {
                 child: Image.network(_uploadedUrl!, fit: BoxFit.cover),
               ),
             const SizedBox(height: 16),
+            CheckboxListTile(
+              contentPadding: EdgeInsets.zero,
+              value: _savePhotoConsent,
+              onChanged: _busy
+                  ? null
+                  : (v) => setState(() => _savePhotoConsent = v ?? false),
+              title: const Text(
+                'Save my photo for this try-on (optional). Without this, the original is deleted after processing.',
+                style: TextStyle(fontSize: 13),
+              ),
+              controlAffinity: ListTileControlAffinity.leading,
+            ),
             TharagaiButton(
               label: t.tryMeConfirm,
               onPressed: _busy || _uploadedUrl == null ? null : _start,
@@ -234,6 +248,30 @@ class _TryOnFlowScreenState extends ConsumerState<TryOnFlowScreen> {
                 padding: const EdgeInsets.only(top: 12),
                 child: Text('Status: ${_session!.status}'),
               ),
+            if (_session?.status == 'QUEUED') ...[
+              const SizedBox(height: 12),
+              TharagaiButton(
+                label: 'Cancel',
+                variant: TharagaiButtonVariant.outline,
+                onPressed: _busy
+                    ? null
+                    : () async {
+                        final id = _session?.id;
+                        if (id == null) return;
+                        try {
+                          await ref.read(tryOnRepositoryProvider).cancel(id);
+                          if (!mounted) return;
+                          setState(() {
+                            _busy = false;
+                            _step = _Step.failed;
+                            _error = 'Try-on cancelled';
+                          });
+                        } catch (e) {
+                          if (mounted) setState(() => _error = e.toString());
+                        }
+                      },
+              ),
+            ],
           ],
           if (widget.tryOnEnabled && _step == _Step.result && _session?.resultImageUrl != null) ...[
             Text(t.tryMeResult, style: Theme.of(context).textTheme.titleLarge),

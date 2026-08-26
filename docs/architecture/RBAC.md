@@ -34,9 +34,10 @@ AI Fashion granular codes (live):
 ai_fashion.view | generate | approve | retry | delete
 ai_models.view | create | update | delete
 ai_settings.view | update
+ai.tryon.read | manage | delete
 ```
 
-Legacy `ai.fashion` is a **compatibility alias** for studio workflow only (`view/generate/approve/retry` + `ai_models.view/create/update`). It does **not** grant `ai_settings.*` or delete permissions.
+Legacy `ai.fashion` is a **compatibility alias** for studio workflow only (`view/generate/approve/retry` + `ai_models.view/create/update`). It does **not** grant `ai_settings.*`, try-on delete, or delete permissions.
 
 ## Seed roles (initial)
 

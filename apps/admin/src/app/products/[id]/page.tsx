@@ -6,6 +6,7 @@ import { useParams, useRouter } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 import { Badge, Button, Card, Input, LoadingState, ErrorState } from "@t360/ui";
 import { apiFetch } from "../../../lib/api";
+import { MediaImagePicker } from "../../../components/media-image-picker";
 
 type Product = {
   id: string;
@@ -46,6 +47,7 @@ export default function EditProductPage() {
   const [tryOnEnabled, setTryOnEnabled] = React.useState(false);
   const [tryOnImageId, setTryOnImageId] = React.useState<string | null>(null);
   const [saving, setSaving] = React.useState(false);
+  const [uploadingImage, setUploadingImage] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
 
   React.useEffect(() => {
@@ -86,6 +88,22 @@ export default function EditProductPage() {
     if (!confirm("Archive this product?")) return;
     await apiFetch(`/admin/products/${params.id}`, { method: "DELETE" });
     router.push("/products");
+  }
+
+  async function onImageUploaded(url: string) {
+    setUploadingImage(true);
+    setError(null);
+    try {
+      await apiFetch(`/admin/products/${params.id}`, {
+        method: "PATCH",
+        body: JSON.stringify({ imageUrls: [url] }),
+      });
+      await query.refetch();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Image attach failed");
+    } finally {
+      setUploadingImage(false);
+    }
   }
 
   if (query.isLoading) return <LoadingState label="Loading product…" />;
@@ -176,12 +194,19 @@ export default function EditProductPage() {
               <img key={img.url} src={img.url} alt="" className="aspect-[4/5] rounded-md object-cover" />
             ))}
           </div>
+          <div className="mt-4">
+            <MediaImagePicker
+              label="Add shirt image"
+              onChange={(url) => void onImageUploaded(url)}
+            />
+            {uploadingImage ? <p className="mt-2 text-xs text-muted">Saving to product…</p> : null}
+          </div>
         </Card>
         <Card>
           <div className="flex items-center justify-between gap-3">
             <h2 className="font-display text-xl">AI Fashion</h2>
-            <Link href={`/ai-fashion/generate?productId=${params.id}`}>
-              <Button type="button">Generate</Button>
+            <Link href={`/ai-fashion/generate?productId=${params.id}&quick=1`}>
+              <Button type="button">Quick Generate</Button>
             </Link>
           </div>
           <p className="mt-2 text-sm text-muted">

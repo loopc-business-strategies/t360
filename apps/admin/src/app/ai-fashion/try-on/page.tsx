@@ -26,10 +26,43 @@ type Session = {
 export default function AdminTryOnPage() {
   const qc = useQueryClient();
   const [status, setStatus] = React.useState("all");
+  const [settingsForm, setSettingsForm] = React.useState({
+    enabled: true,
+    retentionHours: 24,
+    perUserPerHour: 10,
+    maxConcurrentPerUser: 2,
+    consentRequired: true,
+    allowCamera: true,
+    allowUpload: true,
+    maxImageBytes: 8_000_000,
+  });
+  const [settingsSaved, setSettingsSaved] = React.useState(false);
 
   const dash = useQuery({
     queryKey: ["admin-try-on-dash"],
     queryFn: () => apiFetch<Dashboard>("/admin/ai-fashion/try-on/dashboard"),
+  });
+
+  const settingsQ = useQuery({
+    queryKey: ["admin-try-on-settings"],
+    queryFn: () => apiFetch<typeof settingsForm>("/admin/ai-fashion/try-on/settings"),
+  });
+
+  React.useEffect(() => {
+    if (settingsQ.data?.data) setSettingsForm(settingsQ.data.data);
+  }, [settingsQ.data]);
+
+  const saveSettings = useMutation({
+    mutationFn: () =>
+      apiFetch("/admin/ai-fashion/try-on/settings", {
+        method: "PATCH",
+        body: JSON.stringify(settingsForm),
+      }),
+    onSuccess: () => {
+      setSettingsSaved(true);
+      void qc.invalidateQueries({ queryKey: ["admin-try-on-settings"] });
+      setTimeout(() => setSettingsSaved(false), 2000);
+    },
   });
 
   const list = useQuery({
@@ -71,6 +104,89 @@ export default function AdminTryOnPage() {
         <p className="mt-1 text-sm text-muted">Customer TRY ME sessions, metrics, and media cleanup</p>
       </div>
       <AiFashionNav />
+
+      <Card className="space-y-3">
+        <h2 className="font-display text-xl">TRY ME settings</h2>
+        <p className="text-sm text-muted">Shared with Admin Mobile — same database settings.</p>
+        <div className="grid gap-3 sm:grid-cols-2">
+          <label className="flex items-center gap-2 text-sm">
+            <input
+              type="checkbox"
+              checked={settingsForm.enabled}
+              onChange={(e) => setSettingsForm((s) => ({ ...s, enabled: e.target.checked }))}
+            />
+            Enable customer TRY ME
+          </label>
+          <label className="flex items-center gap-2 text-sm">
+            <input
+              type="checkbox"
+              checked={settingsForm.consentRequired}
+              onChange={(e) => setSettingsForm((s) => ({ ...s, consentRequired: e.target.checked }))}
+            />
+            Require photo retention consent UI
+          </label>
+          <label className="flex items-center gap-2 text-sm">
+            <input
+              type="checkbox"
+              checked={settingsForm.allowCamera}
+              onChange={(e) => setSettingsForm((s) => ({ ...s, allowCamera: e.target.checked }))}
+            />
+            Allow camera
+          </label>
+          <label className="flex items-center gap-2 text-sm">
+            <input
+              type="checkbox"
+              checked={settingsForm.allowUpload}
+              onChange={(e) => setSettingsForm((s) => ({ ...s, allowUpload: e.target.checked }))}
+            />
+            Allow gallery upload
+          </label>
+        </div>
+        <div className="grid gap-3 sm:grid-cols-3">
+          <label className="text-sm">
+            Retention hours
+            <input
+              className="mt-1 w-full rounded-md border border-border px-2 py-1"
+              type="number"
+              value={settingsForm.retentionHours}
+              onChange={(e) =>
+                setSettingsForm((s) => ({ ...s, retentionHours: Number(e.target.value) }))
+              }
+            />
+          </label>
+          <label className="text-sm">
+            Per user / hour
+            <input
+              className="mt-1 w-full rounded-md border border-border px-2 py-1"
+              type="number"
+              value={settingsForm.perUserPerHour}
+              onChange={(e) =>
+                setSettingsForm((s) => ({ ...s, perUserPerHour: Number(e.target.value) }))
+              }
+            />
+          </label>
+          <label className="text-sm">
+            Max concurrent / user
+            <input
+              className="mt-1 w-full rounded-md border border-border px-2 py-1"
+              type="number"
+              value={settingsForm.maxConcurrentPerUser}
+              onChange={(e) =>
+                setSettingsForm((s) => ({ ...s, maxConcurrentPerUser: Number(e.target.value) }))
+              }
+            />
+          </label>
+        </div>
+        <div className="flex items-center gap-3">
+          <Button type="button" disabled={saveSettings.isPending} onClick={() => saveSettings.mutate()}>
+            {saveSettings.isPending ? "Saving…" : "Save TRY ME settings"}
+          </Button>
+          {settingsSaved ? <span className="text-sm text-success">Saved</span> : null}
+          {saveSettings.isError ? (
+            <span className="text-sm text-danger">{(saveSettings.error as Error).message}</span>
+          ) : null}
+        </div>
+      </Card>
 
       {dash.isLoading ? <LoadingState label="Loading metrics…" /> : null}
       {dash.isError ? (

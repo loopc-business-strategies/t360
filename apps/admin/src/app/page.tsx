@@ -7,8 +7,9 @@ import { Badge, Button, Card, ErrorState, LoadingState } from "@t360/ui";
 import { apiFetch } from "../lib/api";
 
 type Dashboard = {
-  salesToday?: number;
   ordersToday?: number;
+  ordersWeek?: number;
+  revenueWeek?: number;
   [key: string]: unknown;
 };
 
@@ -52,14 +53,18 @@ export default function AdminDashboardPage() {
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <Card className="p-4">
-          <p className="text-xs uppercase text-muted">Today&apos;s sales</p>
+          <p className="text-xs uppercase text-muted">Orders today</p>
+          <p className="mt-1 font-display text-2xl">{String(d?.ordersToday ?? "—")}</p>
+        </Card>
+        <Card className="p-4">
+          <p className="text-xs uppercase text-muted">Revenue (7d)</p>
           <p className="mt-1 font-display text-2xl">
-            {d?.salesToday != null ? `₹${d.salesToday}` : "—"}
+            {d?.revenueWeek != null ? `₹${d.revenueWeek}` : "—"}
           </p>
         </Card>
         <Card className="p-4">
-          <p className="text-xs uppercase text-muted">Orders</p>
-          <p className="mt-1 font-display text-2xl">{String(d?.ordersToday ?? "—")}</p>
+          <p className="text-xs uppercase text-muted">Orders (7d)</p>
+          <p className="mt-1 font-display text-2xl">{String(d?.ordersWeek ?? "—")}</p>
         </Card>
       </div>
 

@@ -70,6 +70,23 @@ export class TryOnCustomerController {
     return { success: true, data, requestId: this.reqId(req) };
   }
 
+  @Get("config")
+  async config(@Req() req: Request) {
+    const s = await this.tryOn.getSettings();
+    return {
+      success: true,
+      data: {
+        enabled: s.enabled,
+        consentRequired: s.consentRequired,
+        allowCamera: s.allowCamera,
+        allowUpload: s.allowUpload,
+        maxImageBytes: s.maxImageBytes,
+        retentionHours: s.retentionHours,
+      },
+      requestId: this.reqId(req),
+    };
+  }
+
   @Get("history")
   async history(
     @CurrentUser() user: { userId: string },

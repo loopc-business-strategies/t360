@@ -7,19 +7,15 @@ import { Badge, Button, Card, Input, LoadingState, Select } from "@t360/ui";
 import { apiFetch } from "../../../lib/api";
 import { AiFashionNav } from "../../../components/ai-fashion-nav";
 
-type ProductListItem = {
-  id: string;
-  name: string;
-};
-
-type ProductDetail = {
-  id: string;
-  name: string;
-  images: Array<{ id: string; url: string }>;
-};
-
+type ProductListItem = { id: string; name: string };
+type ProductDetail = { id: string; name: string; images: Array<{ id: string; url: string }> };
 type FashionModel = { id: string; name: string; gender: string; imageUrl: string; isActive: boolean };
-
+type FashionSettings = {
+  defaultNumImages: number;
+  defaultModelId: string | null;
+  defaultResolution: string;
+  defaultGenerationMode: string;
+};
 type Job = {
   id: string;
   status: string;
@@ -34,6 +30,7 @@ export default function GenerateClient() {
   const search = useSearchParams();
   const qc = useQueryClient();
   const presetProductId = search.get("productId") ?? "";
+  const wantQuick = search.get("quick") === "1";
 
   const products = useQuery({
     queryKey: ["admin-products-ai"],
@@ -43,7 +40,12 @@ export default function GenerateClient() {
     queryKey: ["ai-fashion-models-active"],
     queryFn: () => apiFetch<FashionModel[]>("/admin/ai-fashion/models?activeOnly=true"),
   });
+  const settingsQ = useQuery({
+    queryKey: ["ai-fashion-settings"],
+    queryFn: () => apiFetch<FashionSettings>("/admin/ai-fashion/settings"),
+  });
 
+  const [mode, setMode] = React.useState<"quick" | "advanced">(wantQuick ? "quick" : "quick");
   const [productId, setProductId] = React.useState(presetProductId);
   const [productImageId, setProductImageId] = React.useState("");
   const [modelId, setModelId] = React.useState("none");
@@ -57,10 +59,21 @@ export default function GenerateClient() {
   const [jobId, setJobId] = React.useState<string | null>(null);
   const [error, setError] = React.useState<string | null>(null);
   const [warning, setWarning] = React.useState<string | null>(null);
+  const defaultsApplied = React.useRef(false);
 
   React.useEffect(() => {
     if (presetProductId) setProductId(presetProductId);
   }, [presetProductId]);
+
+  React.useEffect(() => {
+    if (defaultsApplied.current || !settingsQ.data?.data) return;
+    const s = settingsQ.data.data;
+    defaultsApplied.current = true;
+    setNumImages(String(s.defaultNumImages ?? 1));
+    setResolution(s.defaultResolution ?? "1k");
+    setGenerationMode(s.defaultGenerationMode ?? "fast");
+    if (s.defaultModelId) setModelId(s.defaultModelId);
+  }, [settingsQ.data]);
 
   const product = useQuery({
     queryKey: ["admin-product-ai", productId],
@@ -93,12 +106,15 @@ export default function GenerateClient() {
           type: "PRODUCT_TO_MODEL",
           modelId: modelId === "none" ? null : modelId,
           gender: modelId === "none" ? gender : undefined,
-          pose,
-          background,
+          pose: mode === "quick" ? "standing" : pose,
+          background: mode === "quick" ? "studio" : background,
           numImages: Number(numImages),
-          resolution,
-          generationMode,
-          customPrompt: customPrompt || undefined,
+          resolution: mode === "quick" ? (settingsQ.data?.data.defaultResolution ?? "1k") : resolution,
+          generationMode:
+            mode === "quick"
+              ? (settingsQ.data?.data.defaultGenerationMode ?? "fast")
+              : generationMode,
+          customPrompt: mode === "advanced" && customPrompt ? customPrompt : undefined,
         }),
       }),
     onSuccess: (res) => {
@@ -137,10 +153,29 @@ export default function GenerateClient() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="font-display text-3xl">Generate AI Image</h1>
-        <p className="mt-1 text-sm text-muted">Product image → AI model wearing the garment</p>
+        <h1 className="font-display text-3xl">AI Fashion Generate</h1>
+        <p className="mt-1 text-sm text-muted">
+          Quick Generate uses studio defaults. Advanced unlocks pose, background, and quality.
+        </p>
       </div>
       <AiFashionNav />
+
+      <div className="flex gap-2">
+        <Button
+          type="button"
+          variant={mode === "quick" ? "primary" : "outline"}
+          onClick={() => setMode("quick")}
+        >
+          Quick Generate
+        </Button>
+        <Button
+          type="button"
+          variant={mode === "advanced" ? "primary" : "outline"}
+          onClick={() => setMode("advanced")}
+        >
+          Advanced
+        </Button>
+      </div>
 
       <div className="grid gap-6 lg:grid-cols-2">
         <Card className="space-y-4">
@@ -156,7 +191,7 @@ export default function GenerateClient() {
 
           {productId ? (
             <div>
-              <p className="mb-2 text-sm font-medium">Product image</p>
+              <p className="mb-2 text-sm font-medium">Product / shirt image</p>
               {product.isLoading ? <LoadingState label="Loading images…" /> : null}
               <div className="grid grid-cols-3 gap-2">
                 {images.map((img) => (
@@ -181,7 +216,7 @@ export default function GenerateClient() {
             value={modelId}
             onValueChange={setModelId}
             options={[
-              { value: "none", label: "Auto (product-to-model)" },
+              { value: "none", label: "Default / auto" },
               ...(models.data?.data ?? []).map((m) => ({
                 value: m.id,
                 label: `${m.name} (${m.gender})`,
@@ -202,63 +237,71 @@ export default function GenerateClient() {
             />
           ) : null}
 
-          <Select
-            label="Pose"
-            value={pose}
-            onValueChange={setPose}
-            options={[
-              { value: "standing", label: "Standing" },
-              { value: "casual", label: "Casual" },
-              { value: "fashion", label: "Fashion" },
-              { value: "custom", label: "Custom (prompt)" },
-            ]}
-          />
-          <Select
-            label="Background"
-            value={background}
-            onValueChange={setBackground}
-            options={[
-              { value: "studio", label: "Studio" },
-              { value: "white", label: "White" },
-              { value: "outdoor", label: "Outdoor" },
-              { value: "custom", label: "Custom (prompt)" },
-            ]}
-          />
-          <Select
-            label="Number of images"
-            value={numImages}
-            onValueChange={setNumImages}
-            options={[
-              { value: "1", label: "1" },
-              { value: "2", label: "2" },
-              { value: "4", label: "4" },
-            ]}
-          />
-          <Select
-            label="Resolution"
-            value={resolution}
-            onValueChange={setResolution}
-            options={[
-              { value: "1k", label: "1K" },
-              { value: "2k", label: "2K" },
-              { value: "4k", label: "4K" },
-            ]}
-          />
-          <Select
-            label="Quality"
-            value={generationMode}
-            onValueChange={setGenerationMode}
-            options={[
-              { value: "fast", label: "Fast" },
-              { value: "balanced", label: "Balanced" },
-              { value: "quality", label: "Quality" },
-            ]}
-          />
-          <Input
-            label="Custom prompt (optional)"
-            value={customPrompt}
-            onChange={(e) => setCustomPrompt(e.target.value)}
-          />
+          {mode === "advanced" ? (
+            <>
+              <Select
+                label="Pose"
+                value={pose}
+                onValueChange={setPose}
+                options={[
+                  { value: "standing", label: "Standing" },
+                  { value: "casual", label: "Casual" },
+                  { value: "fashion", label: "Fashion" },
+                  { value: "custom", label: "Custom (prompt)" },
+                ]}
+              />
+              <Select
+                label="Background"
+                value={background}
+                onValueChange={setBackground}
+                options={[
+                  { value: "studio", label: "Studio" },
+                  { value: "white", label: "White" },
+                  { value: "outdoor", label: "Outdoor" },
+                  { value: "custom", label: "Custom (prompt)" },
+                ]}
+              />
+              <Select
+                label="Number of images"
+                value={numImages}
+                onValueChange={setNumImages}
+                options={[
+                  { value: "1", label: "1" },
+                  { value: "2", label: "2" },
+                  { value: "4", label: "4" },
+                ]}
+              />
+              <Select
+                label="Resolution"
+                value={resolution}
+                onValueChange={setResolution}
+                options={[
+                  { value: "1k", label: "1K" },
+                  { value: "2k", label: "2K" },
+                  { value: "4k", label: "4K" },
+                ]}
+              />
+              <Select
+                label="Quality"
+                value={generationMode}
+                onValueChange={setGenerationMode}
+                options={[
+                  { value: "fast", label: "Fast" },
+                  { value: "balanced", label: "Balanced" },
+                  { value: "quality", label: "Quality" },
+                ]}
+              />
+              <Input
+                label="Custom prompt (optional)"
+                value={customPrompt}
+                onChange={(e) => setCustomPrompt(e.target.value)}
+              />
+            </>
+          ) : (
+            <p className="text-sm text-muted">
+              Uses default pose (standing), studio background, and quality from AI settings.
+            </p>
+          )}
 
           {warning ? <p className="text-sm text-brass">{warning}</p> : null}
           {error ? <p className="text-sm text-danger">{error}</p> : null}
@@ -268,7 +311,11 @@ export default function GenerateClient() {
             disabled={!productId || !productImageId || generate.isPending}
             onClick={() => generate.mutate()}
           >
-            {generate.isPending ? "Submitting…" : "Generate AI Image"}
+            {generate.isPending
+              ? "Submitting…"
+              : mode === "quick"
+                ? "Generate Now"
+                : "Generate AI Image"}
           </Button>
         </Card>
 

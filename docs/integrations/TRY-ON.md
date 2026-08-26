@@ -16,7 +16,7 @@ PDP TRY ME → Customer JWT
 
 ## Product gate
 
-- `Product.tryOnEnabled` default **false** (cost control). Enable per product in Admin → Products → Edit.
+- `Product.tryOnEnabled` default **true**. Disable per product in Admin → Products → Edit.
 - Optional `ProductImage.isTryOnSource` for garment priority.
 - Garment pick order: try-on source → first gallery image → primary (`sortOrder` 0).
 
@@ -57,6 +57,8 @@ CLOUDINARY_CLOUD_NAME=...
 CLOUDINARY_API_KEY=...
 CLOUDINARY_API_SECRET=...
 ```
+
+Admin settings: `GET/PATCH /admin/ai-fashion/try-on/settings` (key `ai.tryon.config`). Customer clients read non-secret flags via `GET /ai/fashion/try-on/config`.
 
 Until FASHN + Cloudinary are configured, the API returns honest provider-unavailable / failed errors — **no fake success images**.
 

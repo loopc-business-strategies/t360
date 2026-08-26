@@ -497,6 +497,17 @@ export const tryOnCreateSchema = z.object({
   savePhotoConsent: z.boolean().optional(),
 });
 
+export const tryOnSettingsUpdateSchema = z.object({
+  enabled: z.boolean().optional(),
+  maxImageBytes: z.number().int().min(100_000).max(20_000_000).optional(),
+  retentionHours: z.number().int().min(1).max(24 * 30).optional(),
+  perUserPerHour: z.number().int().min(1).max(100).optional(),
+  maxConcurrentPerUser: z.number().int().min(1).max(10).optional(),
+  consentRequired: z.boolean().optional(),
+  allowCamera: z.boolean().optional(),
+  allowUpload: z.boolean().optional(),
+});
+
 export const tryOnHistoryQuerySchema = z.object({
   page: z.coerce.number().int().min(1).optional(),
   pageSize: z.coerce.number().int().min(1).max(50).optional(),
@@ -504,3 +515,4 @@ export const tryOnHistoryQuerySchema = z.object({
 
 export type TryOnCreateInput = z.infer<typeof tryOnCreateSchema>;
 export type TryOnHistoryQuery = z.infer<typeof tryOnHistoryQuerySchema>;
+export type TryOnSettingsUpdateInput = z.infer<typeof tryOnSettingsUpdateSchema>;

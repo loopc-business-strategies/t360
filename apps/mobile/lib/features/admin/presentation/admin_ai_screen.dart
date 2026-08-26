@@ -208,6 +208,11 @@ class _AdminAiScreenState extends ConsumerState<AdminAiScreen> {
             onPressed: () => context.push('/admin/ai-settings'),
             icon: const Icon(Icons.settings_outlined),
           ),
+          IconButton(
+            onPressed: () => context.push('/admin/try-on'),
+            icon: const Icon(Icons.checkroom_outlined),
+            tooltip: 'Virtual Try-On',
+          ),
         ],
       ),
       body: ListView(
@@ -331,7 +336,7 @@ class _AdminAiScreenState extends ConsumerState<AdminAiScreen> {
           const SizedBox(height: 16),
           FilledButton(
             onPressed: _busy || _productId == null || _imageId == null ? null : _generate,
-            child: Text(_busy ? 'Submitting…' : 'GENERATE'),
+            child: Text(_busy ? 'Submitting…' : (_showAdvanced ? 'Generate AI Image' : 'Quick Generate')),
           ),
           if (_error != null) ...[
             const SizedBox(height: 8),

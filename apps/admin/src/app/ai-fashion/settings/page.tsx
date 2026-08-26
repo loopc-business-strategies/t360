@@ -275,7 +275,9 @@ export default function AiFashionSettingsPage() {
       </Card>
 
       <Card>
-        <h2 className="font-display text-xl">Usage</h2>
+        <h2 id="usage" className="font-display text-xl">
+          Usage
+        </h2>
         {usage.isLoading ? <LoadingState label="…" /> : null}
         {usage.data?.data ? (
           <dl className="mt-3 grid gap-2 text-sm sm:grid-cols-3">

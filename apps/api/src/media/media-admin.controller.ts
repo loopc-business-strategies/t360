@@ -41,7 +41,14 @@ export class MediaAdminController {
   }
 
   @Post("upload")
-  @RequireAnyPermissions("products.update", "products.create")
+  @RequireAnyPermissions(
+    "products.update",
+    "products.create",
+    "ai_models.create",
+    "ai_models.update",
+    "ai.fashion",
+    "ai_fashion.generate",
+  )
   @ApiConsumes("multipart/form-data")
   @ApiBody({
     schema: {
