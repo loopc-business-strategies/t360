@@ -53,11 +53,15 @@ export function ProductsBrowser({
   const [total, setTotal] = React.useState(initialMeta?.total ?? initialProducts.length);
   const [pageSize] = React.useState(initialMeta?.pageSize ?? 24);
   const [loading, setLoading] = React.useState(false);
+  const requestSeq = React.useRef(0);
 
   const catOptions = flattenCategories(categories);
 
   async function runSearch(overrides: Record<string, string> = {}, nextPage = page) {
+    const seq = ++requestSeq.current;
     setLoading(true);
+    setProducts([]);
+    setTotal(0);
     try {
       const params = new URLSearchParams({ pageSize: String(pageSize), page: String(nextPage), sort });
       if (q) params.set("q", q);
@@ -81,13 +85,14 @@ export function ProductsBrowser({
       });
       const res = await fetch(`${API_URL}/products?${params}`);
       const json = await res.json();
+      if (seq !== requestSeq.current) return;
       setProducts(json.data ?? []);
       setTotal(json.meta?.total ?? 0);
       setPage(nextPage);
       const path = category ? `/categories/${category}` : "/products";
       router.replace(`${path}?${params.toString()}`);
     } finally {
-      setLoading(false);
+      if (seq === requestSeq.current) setLoading(false);
     }
   }
 
@@ -224,7 +229,7 @@ export function ProductsBrowser({
           </div>
           {!products.length ? (
             <p className="mt-10 text-center text-muted">
-              {t.emptyTitle} — {t.emptyDescription}
+              {loading ? "Loading…" : `${t.emptyTitle} — ${t.emptyDescription}`}
             </p>
           ) : null}
           <div className="mt-10 flex justify-center">

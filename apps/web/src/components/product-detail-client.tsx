@@ -47,8 +47,11 @@ export function ProductDetailClient({
 
   React.useEffect(() => {
     const slug = product.category?.slug;
-    const params = new URLSearchParams({ pageSize: "8", sort: "newest" });
-    if (slug) params.set("category", slug);
+    if (!slug) {
+      setRelated([]);
+      return;
+    }
+    const params = new URLSearchParams({ pageSize: "8", sort: "newest", category: slug });
     void fetch(`${API_URL}/products?${params}`)
       .then((r) => r.json())
       .then((json) => {

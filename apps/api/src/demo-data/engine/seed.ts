@@ -5,7 +5,6 @@ import {
   COLORS,
   DEMO_BATCH_ID,
   DEMO_IMAGES,
-  DEMO_VIDEOS,
   KIDS_SIZES,
   KIDS_TREE,
   LEGACY_EMPTY_CATEGORY_SLUGS,
@@ -18,6 +17,13 @@ import {
   slugify,
   type CatDef,
 } from "./constants";
+import {
+  buildDemoDescription,
+  buildDemoProductName,
+  expectedNameTokens,
+  getDemoImagesForCategory,
+  getDemoVideoForCategory,
+} from "./category-media";
 
 type SeedResult = {
   products: number;
@@ -80,12 +86,6 @@ function tryMeEligible(slug: string): boolean {
     slug.includes("lehenga") ||
     slug.includes("sherwani")
   );
-}
-
-function productName(segment: string, leafName: string, n: number): string {
-  const adjectives = ["Essential", "Studio", "City", "Weekend", "Luxe", "Air", "Core", "Motion", "Heritage", "Nova"];
-  const adj = adjectives[n % adjectives.length];
-  return `T360 ${adj} ${leafName} ${n + 1}`;
 }
 
 async function upsertTree(
@@ -291,7 +291,8 @@ export async function seedDemoCatalog(prisma: PrismaClient): Promise<SeedResult>
     plan: { leafSlug: string; leafName: string; index: number },
     catIds: Record<string, string>,
   ) {
-    const name = productName(segment, plan.leafName, plan.index);
+    const name = buildDemoProductName(segment, plan.leafSlug, plan.leafName, plan.index);
+    const description = buildDemoDescription(plan.leafSlug, segment, name);
     const slug = slugify(`t360-demo-${segment}-${plan.leafSlug}-${plan.index + 1}`);
     const { price, salePrice } = priceFor(plan.leafSlug, plan.index);
     const tryOn = tryMeEligible(plan.leafSlug) && plan.index % 2 === 0;
@@ -308,14 +309,17 @@ export async function seedDemoCatalog(prisma: PrismaClient): Promise<SeedResult>
       ...(plan.index % 3 === 0 ? [COLORS[(globalIndex + 7) % COLORS.length]] : []),
     ];
     const sizes = sizesFor(plan.leafSlug, segment);
-    const imgBase = globalIndex % DEMO_IMAGES.length;
+    const stills = getDemoImagesForCategory(plan.leafSlug, segment, plan.index);
+    if (!catIds[plan.leafSlug]) {
+      throw new Error(`CATEGORY_MISMATCH missing categoryId for leaf=${plan.leafSlug}`);
+    }
 
     const product = await prisma.product.upsert({
       where: { slug },
       create: {
         name,
         slug,
-        description: `${name}. Soft premium fabric for everyday wear. Part of the T360 demo catalog (${DEMO_BATCH_ID}).`,
+        description,
         status: "published",
         categoryId: catIds[plan.leafSlug],
         brandId: brand.id,
@@ -329,7 +333,7 @@ export async function seedDemoCatalog(prisma: PrismaClient): Promise<SeedResult>
       },
       update: {
         name,
-        description: `${name}. Soft premium fabric for everyday wear. Part of the T360 demo catalog (${DEMO_BATCH_ID}).`,
+        description,
         status: "published",
         categoryId: catIds[plan.leafSlug],
         brandId: brand.id,
@@ -345,7 +349,6 @@ export async function seedDemoCatalog(prisma: PrismaClient): Promise<SeedResult>
     });
 
     await prisma.productImage.deleteMany({ where: { productId: product.id } });
-    const stills = [0, 1, 2, 3].map((o) => DEMO_IMAGES[(imgBase + o) % DEMO_IMAGES.length]);
     for (let i = 0; i < stills.length; i++) {
       await prisma.productImage.create({
         data: {
@@ -361,18 +364,21 @@ export async function seedDemoCatalog(prisma: PrismaClient): Promise<SeedResult>
       imageCount++;
     }
     if (flags.isFeatured || globalIndex % 5 === 0) {
-      await prisma.productImage.create({
-        data: {
-          productId: product.id,
-          url: DEMO_VIDEOS[globalIndex % DEMO_VIDEOS.length],
-          publicId: `demo/${DEMO_BATCH_ID}/${slug}/video`,
-          alt: `${name} video`,
-          mediaType: "video",
-          isTryOnSource: false,
-          sortOrder: 10,
-        },
-      });
-      videoCount++;
+      const videoUrl = getDemoVideoForCategory(segment, plan.index);
+      if (videoUrl) {
+        await prisma.productImage.create({
+          data: {
+            productId: product.id,
+            url: videoUrl,
+            publicId: `demo/${DEMO_BATCH_ID}/${slug}/video`,
+            alt: `${name} video`,
+            mediaType: "video",
+            isTryOnSource: false,
+            sortOrder: 10,
+          },
+        });
+        videoCount++;
+      }
     }
 
     const existingVariants = await prisma.productVariant.findMany({
@@ -525,6 +531,8 @@ export async function seedDemoCatalog(prisma: PrismaClient): Promise<SeedResult>
     });
   }
 
+  await validateDemoCatalog(prisma);
+
   return {
     products: built.length,
     categories: categoryCount,
@@ -534,6 +542,45 @@ export async function seedDemoCatalog(prisma: PrismaClient): Promise<SeedResult>
     tryMe: tryMeCount,
     variants: variantCount,
   };
+}
+
+/** Loud integrity check after seed — demo batch only. */
+export async function validateDemoCatalog(prisma: PrismaClient): Promise<void> {
+  const products = await prisma.product.findMany({
+    where: { seedBatchId: DEMO_BATCH_ID, deletedAt: null },
+    include: {
+      category: true,
+      images: { orderBy: { sortOrder: "asc" } },
+    },
+  });
+  for (const p of products) {
+    if (!p.categoryId || !p.category || p.category.deletedAt || p.category.status !== "active") {
+      throw new Error(
+        `CATEGORY_MISMATCH PRODUCT_ID=${p.id} PRODUCT_NAME=${p.name} CATEGORY=${p.category?.slug ?? "null"} EXPECTED_CATEGORY=active`,
+      );
+    }
+    const leaf = p.category.slug;
+    const tokens = expectedNameTokens(leaf);
+    const hay = `${p.name} ${p.description}`.toLowerCase();
+    if (tokens.length && !tokens.some((t) => hay.includes(t.toLowerCase()))) {
+      throw new Error(
+        `CATEGORY_MISMATCH PRODUCT_ID=${p.id} PRODUCT_NAME=${p.name} CATEGORY=${leaf} IMAGE_URL=${p.images[0]?.url ?? ""} EXPECTED_CATEGORY_TOKENS=${tokens.join(",")}`,
+      );
+    }
+    if (!p.images.some((i) => i.mediaType === "image")) {
+      throw new Error(
+        `CATEGORY_MISMATCH PRODUCT_ID=${p.id} PRODUCT_NAME=${p.name} CATEGORY=${leaf} IMAGE_URL=missing EXPECTED_CATEGORY=has_image`,
+      );
+    }
+    if (p.tryOnEnabled) {
+      const src = p.images.find((i) => i.isTryOnSource && i.mediaType === "image");
+      if (!src || src.productId !== p.id) {
+        throw new Error(
+          `CATEGORY_MISMATCH PRODUCT_ID=${p.id} PRODUCT_NAME=${p.name} CATEGORY=${leaf} IMAGE_URL=${src?.url ?? "none"} EXPECTED_CATEGORY=try_on_source`,
+        );
+      }
+    }
+  }
 }
 
 export async function removeDemoCatalog(prisma: PrismaClient): Promise<{ removedProducts: number }> {
