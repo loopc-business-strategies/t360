@@ -491,6 +491,26 @@ export async function seedDemoCatalog(prisma: PrismaClient): Promise<SeedResult>
     if (b.gender === "men") links.push("mens-edit");
     if (b.gender === "women" || b.gender === "sarees") links.push("womens-edit");
     if (b.gender === "kids") links.push("kids-essentials");
+    if (b.gender === "sarees" || b.leafSlug.includes("saree")) links.push("saree-edit");
+    if (b.gender === "wedding" || b.leafSlug.includes("wedding") || b.leafSlug.includes("lehenga") || b.leafSlug.includes("sherwani") || b.leafSlug.includes("reception")) {
+      links.push("wedding-edit");
+    }
+    if (b.gender === "festival" || b.leafSlug.includes("festival") || b.leafSlug.includes("festive")) {
+      links.push("festive-edit");
+    }
+    if (
+      b.leafSlug.includes("kurta") ||
+      b.leafSlug.includes("kurti") ||
+      b.leafSlug.includes("chudidar") ||
+      b.leafSlug.includes("salwar") ||
+      b.leafSlug.includes("anarkali") ||
+      b.leafSlug.includes("palazzo") ||
+      b.leafSlug.includes("ethnic") ||
+      b.leafSlug.includes("nehru") ||
+      b.leafSlug.includes("saree")
+    ) {
+      links.push("ethnic-edit");
+    }
     if (b.leafSlug.includes("active")) links.push("activewear");
     if (
       b.leafSlug.includes("hoodie") ||

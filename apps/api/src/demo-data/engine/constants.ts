@@ -207,6 +207,10 @@ export const COLLECTION_DEFS = [
   { name: "Kids Essentials", slug: "kids-essentials", featured: false },
   { name: "Women's Edit", slug: "womens-edit", featured: true },
   { name: "Men's Edit", slug: "mens-edit", featured: true },
+  { name: "Saree Edit", slug: "saree-edit", featured: true },
+  { name: "Wedding Edit", slug: "wedding-edit", featured: true },
+  { name: "Festive Edit", slug: "festive-edit", featured: true },
+  { name: "Ethnic Edit", slug: "ethnic-edit", featured: true },
   { name: "T360 Originals", slug: "t360-originals", featured: true },
   { name: "Sale", slug: "sale", featured: true },
 ] as const;
