@@ -120,7 +120,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                 color: authInk,
               ),
             ),
-            const AuthBrandLogo(height: 88),
+            const AuthBrandLogo(height: 120),
             const SizedBox(height: 20),
             const Text(
               'Welcome back',

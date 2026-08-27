@@ -135,7 +135,7 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
                 color: authInk,
               ),
             ),
-            const AuthBrandLogo(height: 80),
+            const AuthBrandLogo(height: 120),
             const SizedBox(height: 16),
             const Text(
               'Create Your Account',

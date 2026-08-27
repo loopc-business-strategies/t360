@@ -51,9 +51,9 @@ export function SiteFooter() {
           <img
             src="/logo.png"
             alt={t.brand}
-            className="h-12 w-auto"
-            width={192}
-            height={48}
+            className="h-16 w-auto sm:h-20"
+            width={256}
+            height={80}
           />
           <p className="mt-2 text-sm text-muted">{t.footerTagline}</p>
         </div>

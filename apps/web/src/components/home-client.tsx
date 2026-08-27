@@ -202,9 +202,9 @@ export function HomeClient({
                 <img
                   src="/logo.png"
                   alt={t.brand}
-                  className="h-20 w-auto max-w-[min(100%,18rem)] sm:h-24 md:h-28"
-                  width={280}
-                  height={112}
+                  className="h-32 w-auto max-w-[min(100%,22rem)] drop-shadow-[0_10px_28px_rgba(0,0,0,0.45)] sm:h-40 sm:max-w-[26rem] md:h-48 md:max-w-[28rem] lg:h-52"
+                  width={448}
+                  height={208}
                 />
                 <h1
                   className={`mt-6 font-display text-3xl text-elevated sm:text-4xl ${

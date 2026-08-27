@@ -59,7 +59,7 @@ class HomeHeroSection extends ConsumerWidget {
               children: [
                 Image.asset(
                   'assets/branding/tharagai_logo.png',
-                  height: 88,
+                  height: 140,
                   fit: BoxFit.contain,
                   alignment: Alignment.centerLeft,
                   semanticLabel: t.brand,

@@ -39,7 +39,7 @@ class WelcomeAuthScreen extends StatelessWidget {
               padding: const EdgeInsets.fromLTRB(28, 24, 28, 20),
               child: Column(
                 children: [
-                  const AuthBrandLogo(height: 100, onDark: true),
+                  const AuthBrandLogo(height: 140, onDark: true),
                   const Spacer(flex: 2),
                   Text.rich(
                     TextSpan(

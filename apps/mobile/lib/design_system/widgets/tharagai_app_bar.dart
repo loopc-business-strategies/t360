@@ -11,16 +11,21 @@ class TharagaiAppBar extends StatelessWidget implements PreferredSizeWidget {
   final String? title;
   final bool showLogo;
 
+  static const double _logoToolbarHeight = 64;
+
   @override
-  Size get preferredSize => const Size.fromHeight(kToolbarHeight);
+  Size get preferredSize => Size.fromHeight(
+        showLogo ? _logoToolbarHeight : kToolbarHeight,
+      );
 
   @override
   Widget build(BuildContext context) {
     return AppBar(
+      toolbarHeight: showLogo ? _logoToolbarHeight : kToolbarHeight,
       title: showLogo
           ? Image.asset(
               'assets/branding/tharagai_logo.png',
-              height: 36,
+              height: 52,
               fit: BoxFit.contain,
               semanticLabel: title ?? 'THARAGAI',
             )
