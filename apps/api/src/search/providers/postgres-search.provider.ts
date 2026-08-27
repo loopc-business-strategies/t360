@@ -34,7 +34,21 @@ export class PostgresSearchProvider implements SearchProvider {
 
     if (query.category) {
       params.push(query.category);
-      where.push(`(c.slug = $${params.length} OR c.id::text = $${params.length})`);
+      // Match category by slug/id, or any descendant under that parent (e.g. /men → men-t-shirts).
+      where.push(`(
+        c.slug = $${params.length} OR c.id::text = $${params.length}
+        OR c.id IN (
+          WITH RECURSIVE cat_tree AS (
+            SELECT id FROM "Category"
+            WHERE (slug = $${params.length} OR id::text = $${params.length}) AND "deletedAt" IS NULL
+            UNION ALL
+            SELECT child.id FROM "Category" child
+            INNER JOIN cat_tree parent ON child."parentId" = parent.id
+            WHERE child."deletedAt" IS NULL
+          )
+          SELECT id FROM cat_tree
+        )
+      )`);
     }
     if (query.brand) {
       params.push(query.brand);
