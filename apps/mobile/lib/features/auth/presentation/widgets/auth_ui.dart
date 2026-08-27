@@ -167,24 +167,16 @@ class AuthBrandLogo extends StatelessWidget {
   const AuthBrandLogo({super.key, this.height = 96, this.onDark = false});
 
   final double height;
+  /// Kept for call-site compatibility; gold-on-black logo needs no plate.
   final bool onDark;
 
   @override
   Widget build(BuildContext context) {
-    final image = Image.asset(
+    return Image.asset(
       'assets/branding/tharagai_logo.png',
       height: height,
       fit: BoxFit.contain,
       semanticLabel: 'THARAGAI Fashion',
-    );
-    if (!onDark) return image;
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-      decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.92),
-        borderRadius: BorderRadius.circular(16),
-      ),
-      child: image,
     );
   }
 }

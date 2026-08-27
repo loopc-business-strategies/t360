@@ -59,6 +59,6 @@ flutter_launcher_icons:
   android: true
   ios: true
   image_path: assets/branding/tharagai_icon.png
-  adaptive_icon_background: "#F3EEE6"
+  adaptive_icon_background: "#000000"
   adaptive_icon_foreground: assets/branding/tharagai_icon.png
   remove_alpha_ios: true
