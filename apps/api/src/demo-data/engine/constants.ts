@@ -131,6 +131,54 @@ export const KIDS_TREE: CatDef = {
   ],
 };
 
+/** Ethnic / occasion roots seeded as demo “Other” categories. */
+export const OTHER_TREES: CatDef[] = [
+  {
+    name: "Sarees",
+    slug: "sarees",
+    children: [
+      { name: "Silk Sarees", slug: "sarees-silk" },
+      { name: "Cotton Sarees", slug: "sarees-cotton" },
+      { name: "Party Sarees", slug: "sarees-party" },
+      { name: "Everyday Sarees", slug: "sarees-everyday" },
+    ],
+  },
+  {
+    name: "Wedding",
+    slug: "wedding",
+    children: [
+      { name: "Lehengas", slug: "wedding-lehengas" },
+      { name: "Sherwanis", slug: "wedding-sherwanis" },
+      { name: "Kurta Sets", slug: "wedding-kurta-sets" },
+      { name: "Reception Wear", slug: "wedding-reception" },
+    ],
+  },
+  {
+    name: "Festival",
+    slug: "festival",
+    children: [
+      { name: "Festive Kurtas", slug: "festival-kurtas" },
+      { name: "Festive Dresses", slug: "festival-dresses" },
+      { name: "Ethnic Sets", slug: "festival-sets" },
+      { name: "Festive Accessories", slug: "festival-accessories" },
+    ],
+  },
+];
+
+/** Empty legacy category slugs to hide from the public tree when seeding demo. */
+export const LEGACY_EMPTY_CATEGORY_SLUGS = [
+  "mens-shirts",
+  "womens-kurtis",
+  "new-arrivals",
+  "offers",
+] as const;
+
+/** Products per Men / Women / Kids root. */
+export const PER_GENDER_COUNT = 60;
+
+/** Products per Other root (sarees / wedding / festival). */
+export const PER_OTHER_COUNT = 10;
+
 export const COLLECTION_DEFS = [
   { name: "New Arrivals", slug: "new-arrivals", featured: true },
   { name: "Bestsellers", slug: "bestsellers", featured: true },

@@ -4,7 +4,7 @@ import * as React from "react";
 import Link from "next/link";
 import type { CategoryNode, CollectionItem } from "../../lib/catalog-api";
 
-export type MegaPanelId = "new" | "men" | "women" | "kids" | "collections" | "sale";
+export type MegaPanelId = "new" | "men" | "women" | "kids" | "other" | "collections" | "sale";
 
 function findCategory(categories: CategoryNode[], slug: string): CategoryNode | null {
   for (const c of categories) {
@@ -59,7 +59,9 @@ function GenderPanel({
   onClose: () => void;
 }) {
   const cat = findCategory(categories, gender);
-  const children = cat?.children ?? [];
+  const children = (cat?.children ?? []).filter(
+    (child) => child.slug.startsWith(`${gender}-`),
+  );
   const mid = Math.ceil(children.length / 2);
   const colA = children.slice(0, mid);
   const colB = children.slice(mid);
@@ -233,6 +235,61 @@ export function MegaMenu({
       ) : null}
       {panel === "kids" ? (
         <GenderPanel gender="kids" label="Kids" categories={categories} onClose={onClose} />
+      ) : null}
+
+      {panel === "other" ? (
+        <div className="mx-auto grid max-w-6xl gap-8 px-6 py-8 sm:grid-cols-2 lg:grid-cols-4">
+          {(["sarees", "wedding", "festival"] as const).map((slug) => {
+            const cat = findCategory(categories, slug);
+            if (!cat) return null;
+            return (
+              <div key={slug}>
+                <Link
+                  href={`/categories/${cat.slug}`}
+                  className="text-xs font-medium uppercase tracking-wider text-ink hover:text-wine"
+                  onClick={onClose}
+                >
+                  {cat.name}
+                </Link>
+                <ul className="mt-3 space-y-2">
+                  {(cat.children ?? []).map((child) => (
+                    <li key={child.id}>
+                      <Link
+                        href={`/categories/${child.slug}`}
+                        className="text-sm text-muted hover:text-wine"
+                        onClick={onClose}
+                      >
+                        {child.name}
+                      </Link>
+                    </li>
+                  ))}
+                  {!cat.children?.length ? (
+                    <li>
+                      <Link
+                        href={`/categories/${cat.slug}`}
+                        className="text-sm text-muted hover:text-wine"
+                        onClick={onClose}
+                      >
+                        Shop all
+                      </Link>
+                    </li>
+                  ) : null}
+                </ul>
+              </div>
+            );
+          })}
+          <div className="rounded-md bg-linen/80 p-5">
+            <p className="font-display text-lg text-ink">Ethnic &amp; occasion</p>
+            <p className="mt-2 text-sm text-muted">Sarees, wedding, and festival edits.</p>
+            <Link
+              href="/categories/sarees"
+              className="mt-4 inline-block text-sm font-medium text-wine hover:underline"
+              onClick={onClose}
+            >
+              Shop sarees →
+            </Link>
+          </div>
+        </div>
       ) : null}
 
       {panel === "collections" ? (

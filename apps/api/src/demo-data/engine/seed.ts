@@ -8,7 +8,11 @@ import {
   DEMO_VIDEOS,
   KIDS_SIZES,
   KIDS_TREE,
+  LEGACY_EMPTY_CATEGORY_SLUGS,
   MEN_TREE,
+  OTHER_TREES,
+  PER_GENDER_COUNT,
+  PER_OTHER_COUNT,
   WAIST_SIZES,
   WOMEN_TREE,
   slugify,
@@ -25,19 +29,25 @@ type SeedResult = {
   variants: number;
 };
 
+type Segment = "men" | "women" | "kids" | "sarees" | "wedding" | "festival";
+
 function priceFor(kind: string, i: number): { price: number; salePrice: number | null } {
   const base =
-    kind.includes("jacket") || kind.includes("bomber")
-      ? 2999 + (i % 5) * 800
-      : kind.includes("hoodie") || kind.includes("sweat")
-        ? 1999 + (i % 4) * 500
-        : kind.includes("dress") || kind.includes("maxi") || kind.includes("mini")
-          ? 1499 + (i % 5) * 700
-          : kind.includes("jean") || kind.includes("chino") || kind.includes("cargo") || kind.includes("pant")
-            ? 1499 + (i % 4) * 600
-            : kind.includes("kids")
-              ? 699 + (i % 5) * 300
-              : 999 + (i % 6) * 350;
+    kind.includes("saree") || kind.includes("lehenga") || kind.includes("sherwani")
+      ? 3999 + (i % 5) * 1200
+      : kind.includes("wedding") || kind.includes("festival") || kind.includes("kurta")
+        ? 2499 + (i % 5) * 800
+        : kind.includes("jacket") || kind.includes("bomber")
+          ? 2999 + (i % 5) * 800
+          : kind.includes("hoodie") || kind.includes("sweat")
+            ? 1999 + (i % 4) * 500
+            : kind.includes("dress") || kind.includes("maxi") || kind.includes("mini")
+              ? 1499 + (i % 5) * 700
+              : kind.includes("jean") || kind.includes("chino") || kind.includes("cargo") || kind.includes("pant")
+                ? 1499 + (i % 4) * 600
+                : kind.includes("kids")
+                  ? 699 + (i % 5) * 300
+                  : 999 + (i % 6) * 350;
   const onSale = i % 4 === 0;
   return {
     price: base,
@@ -45,17 +55,17 @@ function priceFor(kind: string, i: number): { price: number; salePrice: number |
   };
 }
 
-function sizesFor(slug: string, gender: "men" | "women" | "kids"): string[] {
-  if (gender === "kids") return KIDS_SIZES.slice(0, 5);
+function sizesFor(slug: string, segment: Segment): string[] {
+  if (segment === "kids") return KIDS_SIZES.slice(0, 5);
+  if (slug.includes("saree") || slug.includes("accessor")) return ["ONE"];
   if (slug.includes("jean") || slug.includes("chino") || slug.includes("cargo") || slug.includes("pant")) {
     return WAIST_SIZES.slice(1, 6);
   }
-  if (slug.includes("accessor")) return ["ONE"];
-  return ADULT_SIZES.slice(1, 6); // XS–XXL subset
+  return ADULT_SIZES.slice(1, 6);
 }
 
 function tryMeEligible(slug: string): boolean {
-  if (slug.includes("accessor") || slug.includes("sleepwear")) return false;
+  if (slug.includes("accessor") || slug.includes("sleepwear") || slug.includes("saree")) return false;
   return (
     slug.includes("t-shirt") ||
     slug.includes("tee") ||
@@ -65,11 +75,14 @@ function tryMeEligible(slug: string): boolean {
     slug.includes("top") ||
     slug.includes("blouse") ||
     slug.includes("polo") ||
-    slug.includes("sweat")
+    slug.includes("sweat") ||
+    slug.includes("kurta") ||
+    slug.includes("lehenga") ||
+    slug.includes("sherwani")
   );
 }
 
-function productName(gender: string, leafName: string, n: number): string {
+function productName(segment: string, leafName: string, n: number): string {
   const adjectives = ["Essential", "Studio", "City", "Weekend", "Luxe", "Air", "Core", "Motion", "Heritage", "Nova"];
   const adj = adjectives[n % adjectives.length];
   return `T360 ${adj} ${leafName} ${n + 1}`;
@@ -97,6 +110,7 @@ async function upsertTree(
       deletedAt: null,
       isDemo: true,
       seedBatchId: DEMO_BATCH_ID,
+      sortOrder: sortBase,
     },
   });
   ids[tree.slug] = root.id;
@@ -129,7 +143,6 @@ async function upsertTree(
 }
 
 function leafPlans(
-  gender: "men" | "women" | "kids",
   tree: CatDef,
   total: number,
 ): Array<{ leafSlug: string; leafName: string; index: number }> {
@@ -165,8 +178,41 @@ async function softDeleteLegacyDemo(prisma: PrismaClient) {
   });
 }
 
+/** Hide empty legacy category rows that clutter mega menu / PLPs. */
+async function softDeleteEmptyLegacyCategories(prisma: PrismaClient) {
+  const now = new Date();
+  await prisma.category.updateMany({
+    where: {
+      slug: { in: [...LEGACY_EMPTY_CATEGORY_SLUGS] },
+      deletedAt: null,
+    },
+    data: { deletedAt: now, status: "inactive" },
+  });
+
+  const allowed = new Set([
+    ...(MEN_TREE.children ?? []).map((c) => c.slug),
+    ...(WOMEN_TREE.children ?? []).map((c) => c.slug),
+    ...(KIDS_TREE.children ?? []).map((c) => c.slug),
+  ]);
+  const stray = await prisma.category.findMany({
+    where: {
+      deletedAt: null,
+      parent: { slug: { in: ["men", "women", "kids"] } },
+      NOT: { slug: { in: [...allowed] } },
+    },
+    select: { id: true },
+  });
+  if (stray.length) {
+    await prisma.category.updateMany({
+      where: { id: { in: stray.map((s) => s.id) } },
+      data: { deletedAt: now, status: "inactive" },
+    });
+  }
+}
+
 export async function seedDemoCatalog(prisma: PrismaClient): Promise<SeedResult> {
   await softDeleteLegacyDemo(prisma);
+  await softDeleteEmptyLegacyCategories(prisma);
 
   await prisma.brand.upsert({
     where: { slug: "t360-originals" },
@@ -178,11 +224,19 @@ export async function seedDemoCatalog(prisma: PrismaClient): Promise<SeedResult>
   const menIds = await upsertTree(prisma, MEN_TREE, 0);
   const womenIds = await upsertTree(prisma, WOMEN_TREE, 1);
   const kidsIds = await upsertTree(prisma, KIDS_TREE, 2);
+  const otherIdMaps: Array<{ tree: CatDef; ids: Record<string, string> }> = [];
+  for (let i = 0; i < OTHER_TREES.length; i++) {
+    const tree = OTHER_TREES[i];
+    otherIdMaps.push({ tree, ids: await upsertTree(prisma, tree, 10 + i) });
+  }
+
   const categoryCount =
     3 +
+    OTHER_TREES.length +
     (MEN_TREE.children?.length ?? 0) +
     (WOMEN_TREE.children?.length ?? 0) +
-    (KIDS_TREE.children?.length ?? 0);
+    (KIDS_TREE.children?.length ?? 0) +
+    OTHER_TREES.reduce((n, t) => n + (t.children?.length ?? 0), 0);
 
   const collectionIds: Record<string, string> = {};
   for (let i = 0; i < COLLECTION_DEFS.length; i++) {
@@ -212,14 +266,14 @@ export async function seedDemoCatalog(prisma: PrismaClient): Promise<SeedResult>
     collectionIds[c.slug] = row.id;
   }
 
-  const menPlans = leafPlans("men", MEN_TREE, 40);
-  const womenPlans = leafPlans("women", WOMEN_TREE, 40);
-  const kidsPlans = leafPlans("kids", KIDS_TREE, 40);
+  const menPlans = leafPlans(MEN_TREE, PER_GENDER_COUNT);
+  const womenPlans = leafPlans(WOMEN_TREE, PER_GENDER_COUNT);
+  const kidsPlans = leafPlans(KIDS_TREE, PER_GENDER_COUNT);
 
   type Built = {
     id: string;
     slug: string;
-    gender: "men" | "women" | "kids";
+    gender: Segment;
     leafSlug: string;
     tryOn: boolean;
     flags: { isNew: boolean; isBestseller: boolean; isTrending: boolean; isFeatured: boolean; onSale: boolean };
@@ -233,12 +287,12 @@ export async function seedDemoCatalog(prisma: PrismaClient): Promise<SeedResult>
   const stockQueue: Array<{ variantId: string; qty: number }> = [];
 
   async function createProduct(
-    gender: "men" | "women" | "kids",
+    segment: Segment,
     plan: { leafSlug: string; leafName: string; index: number },
     catIds: Record<string, string>,
   ) {
-    const name = productName(gender, plan.leafName, plan.index);
-    const slug = slugify(`t360-demo-${gender}-${plan.leafSlug}-${plan.index + 1}`);
+    const name = productName(segment, plan.leafName, plan.index);
+    const slug = slugify(`t360-demo-${segment}-${plan.leafSlug}-${plan.index + 1}`);
     const { price, salePrice } = priceFor(plan.leafSlug, plan.index);
     const tryOn = tryMeEligible(plan.leafSlug) && plan.index % 2 === 0;
     const flags = {
@@ -253,7 +307,7 @@ export async function seedDemoCatalog(prisma: PrismaClient): Promise<SeedResult>
       COLORS[(globalIndex + 3) % COLORS.length],
       ...(plan.index % 3 === 0 ? [COLORS[(globalIndex + 7) % COLORS.length]] : []),
     ];
-    const sizes = sizesFor(plan.leafSlug, gender);
+    const sizes = sizesFor(plan.leafSlug, segment);
     const imgBase = globalIndex % DEMO_IMAGES.length;
 
     const product = await prisma.product.upsert({
@@ -290,7 +344,6 @@ export async function seedDemoCatalog(prisma: PrismaClient): Promise<SeedResult>
       },
     });
 
-    // Replace images for idempotency
     await prisma.productImage.deleteMany({ where: { productId: product.id } });
     const stills = [0, 1, 2, 3].map((o) => DEMO_IMAGES[(imgBase + o) % DEMO_IMAGES.length]);
     for (let i = 0; i < stills.length; i++) {
@@ -322,7 +375,6 @@ export async function seedDemoCatalog(prisma: PrismaClient): Promise<SeedResult>
       videoCount++;
     }
 
-    // Variants: wipe demo SKUs for this product then recreate
     const existingVariants = await prisma.productVariant.findMany({
       where: { productId: product.id },
       select: { id: true },
@@ -334,10 +386,11 @@ export async function seedDemoCatalog(prisma: PrismaClient): Promise<SeedResult>
     }
 
     let skuN = 0;
+    const segCode = segment.slice(0, 1).toUpperCase();
     for (const color of colors) {
       for (const size of sizes) {
         skuN++;
-        const sku = `T360-D-${gender[0].toUpperCase()}${String(globalIndex + 1).padStart(3, "0")}-${size}-${color.name.slice(0, 3).toUpperCase()}-${skuN}`;
+        const sku = `T360-D-${segCode}${String(globalIndex + 1).padStart(3, "0")}-${size}-${color.name.slice(0, 3).toUpperCase()}-${skuN}`;
         const variant = await prisma.productVariant.create({
           data: {
             productId: product.id,
@@ -350,7 +403,7 @@ export async function seedDemoCatalog(prisma: PrismaClient): Promise<SeedResult>
         });
         variantCount++;
         let qty = 12 + ((skuN * 3 + globalIndex) % 30);
-        if (size === "XXS" || size === "3XL" || size === "2Y") qty = 2;
+        if (size === "XXS" || size === "3XL" || size === "2Y" || size === "ONE") qty = 2;
         if (globalIndex % 17 === 0 && size === "M") qty = 0;
         if (globalIndex % 11 === 0 && size === "S") qty = 3;
         stockQueue.push({ variantId: variant.id, qty });
@@ -361,7 +414,7 @@ export async function seedDemoCatalog(prisma: PrismaClient): Promise<SeedResult>
     built.push({
       id: product.id,
       slug,
-      gender,
+      gender: segment,
       leafSlug: plan.leafSlug,
       tryOn,
       flags,
@@ -372,8 +425,11 @@ export async function seedDemoCatalog(prisma: PrismaClient): Promise<SeedResult>
   for (const p of menPlans) await createProduct("men", p, menIds);
   for (const p of womenPlans) await createProduct("women", p, womenIds);
   for (const p of kidsPlans) await createProduct("kids", p, kidsIds);
+  for (const { tree, ids } of otherIdMaps) {
+    const plans = leafPlans(tree, PER_OTHER_COUNT);
+    for (const p of plans) await createProduct(tree.slug as Segment, p, ids);
+  }
 
-  // Ensure demo branch
   const branch = await prisma.branch.upsert({
     where: { code: "PDK01" },
     create: {
@@ -398,7 +454,6 @@ export async function seedDemoCatalog(prisma: PrismaClient): Promise<SeedResult>
     });
   }
 
-  // Collection memberships
   for (const b of built) {
     const links: string[] = [];
     if (b.flags.isNew) links.push("new-arrivals");
@@ -435,7 +490,6 @@ export async function seedDemoCatalog(prisma: PrismaClient): Promise<SeedResult>
     }
   }
 
-  // Sparse demo reviews (no real customers — skip if no customer; create placeholder customer)
   let demoCustomer = await prisma.customer.findFirst({
     where: { name: "T360 Demo Reviewer" },
   });
@@ -511,7 +565,6 @@ export async function removeDemoCatalog(prisma: PrismaClient): Promise<{ removed
     await prisma.productImage.deleteMany({ where: { productId: { in: productIds } } });
     await prisma.productAttributeValue.deleteMany({ where: { productId: { in: productIds } } });
     await prisma.productVariant.deleteMany({ where: { productId: { in: productIds } } });
-    // Soft-delete try-on sessions referencing demo products
     await prisma.tryOnSession.updateMany({
       where: { productId: { in: productIds } },
       data: { deletedAt: new Date() },
@@ -524,11 +577,9 @@ export async function removeDemoCatalog(prisma: PrismaClient): Promise<{ removed
   });
   await prisma.collection.deleteMany({ where: { seedBatchId: DEMO_BATCH_ID, isDemo: true } });
 
-  // Only delete demo leaf categories (keep men/women/kids roots if they may be shared — but plan marks them demo; delete children first)
   await prisma.category.deleteMany({
     where: { seedBatchId: DEMO_BATCH_ID, isDemo: true, parentId: { not: null } },
   });
-  // Soft-retain roots if non-demo products reference them; otherwise delete
   const roots = await prisma.category.findMany({
     where: { seedBatchId: DEMO_BATCH_ID, isDemo: true, parentId: null },
   });

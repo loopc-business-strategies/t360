@@ -16,6 +16,7 @@ const NAV: Array<{ id: MegaPanelId; href: string; fallback: string }> = [
   { id: "men", href: "/men", fallback: "Men" },
   { id: "women", href: "/women", fallback: "Women" },
   { id: "kids", href: "/kids", fallback: "Kids" },
+  { id: "other", href: "/categories/sarees", fallback: "Other" },
   { id: "collections", href: "/products", fallback: "Collections" },
   { id: "sale", href: "/sale", fallback: "Sale" },
 ];
@@ -137,6 +138,12 @@ export function StoreHeader({
     return fallback;
   };
 
+  const hasOther =
+    Boolean(findCategory(categories, "sarees")) ||
+    Boolean(findCategory(categories, "wedding")) ||
+    Boolean(findCategory(categories, "festival"));
+  const navItems = NAV.filter((item) => item.id !== "other" || hasOther);
+
   return (
     <>
       {announcement?.message ? (
@@ -163,7 +170,7 @@ export function StoreHeader({
           </div>
 
           <nav className="hidden items-center gap-1 lg:flex" aria-label="Primary">
-            {NAV.map((item) => {
+            {navItems.map((item) => {
               const label = labelFor(item.id, item.fallback);
               const active =
                 pathname === item.href ||
@@ -241,13 +248,19 @@ export function StoreHeader({
         {mobileNav ? (
           <nav className="border-t border-border px-4 py-4 lg:hidden" aria-label="Mobile">
             <ul className="space-y-1">
-              {NAV.map((item) => {
+              {navItems.map((item) => {
                 const label = labelFor(item.id, item.fallback);
                 const expanded = mobileExpanded === item.id;
                 const cat =
                   item.id === "men" || item.id === "women" || item.id === "kids"
                     ? findCategory(categories, item.id)
                     : null;
+                const otherRoots =
+                  item.id === "other"
+                    ? (["sarees", "wedding", "festival"] as const)
+                        .map((slug) => findCategory(categories, slug))
+                        .filter(Boolean)
+                    : [];
                 return (
                   <li key={item.id}>
                     <div className="flex items-center gap-2">
@@ -282,7 +295,9 @@ export function StoreHeader({
                               </li>
                             ))
                           : null}
-                        {cat?.children?.map((child) => (
+                        {cat?.children
+                          ?.filter((child) => child.slug.startsWith(`${item.id}-`))
+                          .map((child) => (
                           <li key={child.id}>
                             <Link
                               href={`/${item.id}/${
@@ -297,6 +312,32 @@ export function StoreHeader({
                             </Link>
                           </li>
                         ))}
+                        {otherRoots.map((root) =>
+                          root ? (
+                            <li key={root.id}>
+                              <Link
+                                href={`/categories/${root.slug}`}
+                                className="block py-1.5 text-sm font-medium text-muted"
+                                onClick={() => setMobileNav(false)}
+                              >
+                                {root.name}
+                              </Link>
+                              <ul className="pl-2">
+                                {(root.children ?? []).map((child) => (
+                                  <li key={child.id}>
+                                    <Link
+                                      href={`/categories/${child.slug}`}
+                                      className="block py-1 text-sm text-muted"
+                                      onClick={() => setMobileNav(false)}
+                                    >
+                                      {child.name}
+                                    </Link>
+                                  </li>
+                                ))}
+                              </ul>
+                            </li>
+                          ) : null,
+                        )}
                         {item.id === "new" ? (
                           <>
                             <li>
