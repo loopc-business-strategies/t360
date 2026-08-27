@@ -84,7 +84,7 @@ jobs:
           # Run from repo root — project Root Directory is already apps/web.
           npx vercel@latest pull --yes --environment=preview --token="$VERCEL_TOKEN"
           npx vercel@latest build --token="$VERCEL_TOKEN"
-          npx vercel@latest deploy --prebuilt --token="$VERCEL_TOKEN"
+          npx vercel@latest deploy --prebuilt --archive=tgz --token="$VERCEL_TOKEN"
 
       - name: Deploy admin to Vercel (staging)
         if: steps.gate.outputs.skip == 'false'
@@ -95,7 +95,7 @@ jobs:
         run: |
           npx vercel@latest pull --yes --environment=preview --token="$VERCEL_TOKEN"
           npx vercel@latest build --token="$VERCEL_TOKEN"
-          npx vercel@latest deploy --prebuilt --token="$VERCEL_TOKEN"
+          npx vercel@latest deploy --prebuilt --archive=tgz --token="$VERCEL_TOKEN"
 
       - name: Deploy API to Railway (staging)
         if: steps.gate.outputs.skip == 'false'
@@ -179,7 +179,7 @@ jobs:
         run: |
           npx vercel@latest pull --yes --environment=production --token="$VERCEL_TOKEN"
           npx vercel@latest build --prod --token="$VERCEL_TOKEN"
-          npx vercel@latest deploy --prebuilt --prod --token="$VERCEL_TOKEN"
+          npx vercel@latest deploy --prebuilt --prod --archive=tgz --token="$VERCEL_TOKEN"
 
       - name: Deploy admin to Vercel (production)
         if: steps.gate.outputs.skip == 'false'
@@ -190,7 +190,7 @@ jobs:
         run: |
           npx vercel@latest pull --yes --environment=production --token="$VERCEL_TOKEN"
           npx vercel@latest build --prod --token="$VERCEL_TOKEN"
-          npx vercel@latest deploy --prebuilt --prod --token="$VERCEL_TOKEN"
+          npx vercel@latest deploy --prebuilt --prod --archive=tgz --token="$VERCEL_TOKEN"
 
       - name: Deploy API to Railway (production)
         if: steps.gate.outputs.skip == 'false'
