@@ -182,6 +182,16 @@ describe("TryOnService", () => {
     expect(url).toBe("garment.jpg");
   });
 
+  it("resolved garment URL is always from the provided product image list", () => {
+    const service = createService();
+    const images = [
+      { url: "https://cdn.example.com/a.jpg", mediaType: "image", isTryOnSource: false, sortOrder: 0 },
+      { url: "https://cdn.example.com/b.jpg", mediaType: "image", isTryOnSource: true, sortOrder: 1 },
+    ];
+    const url = service.resolveGarmentUrl(images);
+    expect(images.map((i) => i.url)).toContain(url);
+  });
+
   it("destroys Cloudinary assets when customer deletes try-on", async () => {
     const service = createService();
     prisma.tryOnSession.findFirst.mockResolvedValue({

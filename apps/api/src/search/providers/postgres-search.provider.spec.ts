@@ -58,4 +58,15 @@ describe("PostgresSearchProvider category filter", () => {
     expect(captured[0].params).toContain("men");
     expect(captured[0].sql).toContain("cat_tree");
   });
+
+  it("leaf category query retains category when q is cross-gender", async () => {
+    await create().searchProducts({
+      category: "men-t-shirts",
+      q: "saree",
+      page: 1,
+      pageSize: 12,
+    });
+    expect(captured[0].params).toContain("men-t-shirts");
+    expect(captured[0].sql).toMatch(/cat_tree|RECURSIVE/i);
+  });
 });

@@ -46,20 +46,19 @@ export function ProductDetailClient({
   }, []);
 
   React.useEffect(() => {
-    const slug = product.category?.slug;
+    const slug = product.slug;
     if (!slug) {
       setRelated([]);
       return;
     }
-    const params = new URLSearchParams({ pageSize: "8", sort: "newest", category: slug });
-    void fetch(`${API_URL}/products?${params}`)
+    void fetch(`${API_URL}/products/${encodeURIComponent(slug)}/related`)
       .then((r) => r.json())
       .then((json) => {
         const items = (json.data as ProductListItem[] | undefined) ?? [];
         setRelated(items.filter((p) => p.id !== product.id).slice(0, 8));
       })
       .catch(() => setRelated([]));
-  }, [product.id, product.category?.slug]);
+  }, [product.id, product.slug]);
 
   async function onBranchChange(code: string) {
     setBranch(code === "__" ? "" : code);

@@ -73,6 +73,22 @@ const POOLS = {
     u("photo-1595777457583-95e059d581b8"),
     u("photo-1566174053879-31528523f8ae"),
   ],
+  womenEthnic: [
+    u("photo-1583391733956-3750e0ff4e8b"),
+    u("photo-1610030469983-98e550d6193c"),
+    u("photo-1490481651871-ab68de25d43d"),
+    u("photo-1469334031218-e382a71b716b"),
+  ],
+  womenChudidar: [
+    u("photo-1583391733956-3750e0ff4e8b"),
+    u("photo-1610030469983-98e550d6193c"),
+    u("photo-1483985988355-763728e1935b"),
+  ],
+  womenKurtis: [
+    u("photo-1583391733956-3750e0ff4e8b"),
+    u("photo-1490481651871-ab68de25d43d"),
+    u("photo-1515886657613-9f3515b0c78f"),
+  ],
   womenHoodies: [
     u("photo-1578587018452-892bacefd3f2"),
     u("photo-1556821840-3a63f95609a7"),
@@ -124,6 +140,11 @@ const POOLS = {
     u("photo-1518831959646-742c3a14ebf7"),
     u("photo-1622290291468-a28f7a7dc6a8"),
     u("photo-1515488042361-ee00e0ddd4e4"),
+  ],
+  kidsEthnic: [
+    u("photo-1515488042361-ee00e0ddd4e4"),
+    u("photo-1518831959646-742c3a14ebf7"),
+    u("photo-1503454537195-1dcabb73ffb9"),
   ],
   kidsSleep: [
     u("photo-1515488042361-ee00e0ddd4e4"),
@@ -214,6 +235,13 @@ const LEAF_POOL: Record<string, PoolKey> = {
   "women-casual-dresses": "womenDresses",
   "women-maxi-dresses": "womenDresses",
   "women-mini-dresses": "womenDresses",
+  "women-party-dresses": "womenDresses",
+  "women-kurtis": "womenKurtis",
+  "women-chudidars": "womenChudidar",
+  "women-salwar-sets": "womenEthnic",
+  "women-anarkali": "womenEthnic",
+  "women-palazzo-sets": "womenEthnic",
+  "women-ethnic-sets": "womenEthnic",
   "women-hoodies": "womenHoodies",
   "women-sweatshirts": "womenHoodies",
   "women-jackets": "womenJackets",
@@ -227,6 +255,9 @@ const LEAF_POOL: Record<string, PoolKey> = {
   "women-skirts": "womenSkirts",
   "women-activewear": "womenActive",
   "women-accessories": "womenAccessories",
+  "men-kurtas": "kurtas",
+  "men-kurta-sets": "kurtas",
+  "men-nehru-jackets": "sherwanis",
   "kids-boys": "kidsTees",
   "kids-girls": "kidsDresses",
   "kids-t-shirts": "kidsTees",
@@ -240,6 +271,8 @@ const LEAF_POOL: Record<string, PoolKey> = {
   "kids-joggers": "kidsBottoms",
   "kids-shorts": "kidsBottoms",
   "kids-dresses": "kidsDresses",
+  "kids-frocks": "kidsDresses",
+  "kids-ethnic": "kidsEthnic",
   "kids-activewear": "kidsTees",
   "kids-sleepwear": "kidsSleep",
   "kids-accessories": "kidsAccessories",
@@ -247,6 +280,7 @@ const LEAF_POOL: Record<string, PoolKey> = {
   "sarees-cotton": "sarees",
   "sarees-party": "sarees",
   "sarees-everyday": "sarees",
+  "sarees-festive": "sarees",
   "wedding-lehengas": "lehengas",
   "wedding-sherwanis": "sherwanis",
   "wedding-kurta-sets": "kurtas",
@@ -261,17 +295,26 @@ const LEAF_POOL: Record<string, PoolKey> = {
 const FALLBACK_LEAF: Record<string, string> = {
   "women-mini-dresses": "women-casual-dresses",
   "women-maxi-dresses": "women-casual-dresses",
+  "women-party-dresses": "women-casual-dresses",
+  "women-salwar-sets": "women-chudidars",
+  "women-anarkali": "women-kurtis",
+  "women-palazzo-sets": "women-ethnic-sets",
   "men-oversized-tees": "men-t-shirts",
   "men-graphic-tees": "men-t-shirts",
   "men-bombers": "men-jackets",
   "men-denim-jackets": "men-jackets",
   "men-sweatshirts": "men-hoodies",
+  "men-kurta-sets": "men-kurtas",
+  "men-nehru-jackets": "men-kurtas",
   "women-denim-jackets": "women-jackets",
   "women-sweatshirts": "women-hoodies",
   "kids-graphic-tees": "kids-t-shirts",
+  "kids-frocks": "kids-dresses",
+  "kids-ethnic": "kids-dresses",
   "sarees-cotton": "sarees-silk",
   "sarees-party": "sarees-silk",
   "sarees-everyday": "sarees-silk",
+  "sarees-festive": "sarees-silk",
 };
 
 const SEGMENT_POOL: Record<string, PoolKey> = {
@@ -283,20 +326,31 @@ const SEGMENT_POOL: Record<string, PoolKey> = {
   festival: "festivalSets",
 };
 
-const SEGMENT_VIDEOS: Record<string, string[]> = {
-  men: [
+const TYPE_VIDEOS: Record<string, string[]> = {
+  tops: [
     "https://videos.pexels.com/video-files/3129957/3129957-sd_640_360_30fps.mp4",
     "https://videos.pexels.com/video-files/3045163/3045163-sd_640_360_30fps.mp4",
   ],
-  women: [
-    "https://videos.pexels.com/video-files/5532855/5532855-sd_640_360_30fps.mp4",
-    "https://videos.pexels.com/video-files/3129957/3129957-sd_640_360_30fps.mp4",
-  ],
-  kids: ["https://videos.pexels.com/video-files/3045163/3045163-sd_640_360_30fps.mp4"],
-  sarees: ["https://videos.pexels.com/video-files/5532855/5532855-sd_640_360_30fps.mp4"],
-  wedding: ["https://videos.pexels.com/video-files/5532855/5532855-sd_640_360_30fps.mp4"],
-  festival: ["https://videos.pexels.com/video-files/3129957/3129957-sd_640_360_30fps.mp4"],
+  dresses: ["https://videos.pexels.com/video-files/5532855/5532855-sd_640_360_30fps.mp4"],
+  ethnic: ["https://videos.pexels.com/video-files/5532855/5532855-sd_640_360_30fps.mp4"],
+  saree: ["https://videos.pexels.com/video-files/5532855/5532855-sd_640_360_30fps.mp4"],
+  bridal: ["https://videos.pexels.com/video-files/5532855/5532855-sd_640_360_30fps.mp4"],
+  bottoms: ["https://videos.pexels.com/video-files/3045163/3045163-sd_640_360_30fps.mp4"],
+  outerwear: ["https://videos.pexels.com/video-files/3129957/3129957-sd_640_360_30fps.mp4"],
+  active: ["https://videos.pexels.com/video-files/3045163/3045163-sd_640_360_30fps.mp4"],
 };
+
+const SEGMENT_VIDEOS: Record<string, string[]> = {
+  men: TYPE_VIDEOS.tops,
+  women: TYPE_VIDEOS.dresses,
+  kids: ["https://videos.pexels.com/video-files/3045163/3045163-sd_640_360_30fps.mp4"],
+  sarees: TYPE_VIDEOS.saree,
+  wedding: TYPE_VIDEOS.bridal,
+  festival: TYPE_VIDEOS.ethnic,
+};
+
+const GENERIC_VIDEO =
+  "https://videos.pexels.com/video-files/3129957/3129957-sd_640_360_30fps.mp4";
 
 function resolvePool(categorySlug: string, segment: string): readonly string[] {
   const direct = LEAF_POOL[categorySlug];
@@ -309,6 +363,19 @@ function resolvePool(categorySlug: string, segment: string): readonly string[] {
   if (segKey) return POOLS[segKey];
 
   return POOLS.generic;
+}
+
+/** Allowed still URLs for a leaf (pool + explicit fallbacks) — for validation. */
+export function allowedImageUrlsForCategory(categorySlug: string, segment: string): Set<string> {
+  const urls = new Set<string>();
+  const add = (pool: readonly string[]) => pool.forEach((u) => urls.add(u));
+  add(resolvePool(categorySlug, segment));
+  const via = FALLBACK_LEAF[categorySlug];
+  if (via) add(resolvePool(via, segment));
+  const segKey = SEGMENT_POOL[segment];
+  if (segKey) add(POOLS[segKey]);
+  add(POOLS.generic);
+  return urls;
 }
 
 /** Deterministic 4 stills for a category leaf. */
@@ -325,14 +392,117 @@ export function getDemoImagesForCategory(
   return out;
 }
 
-export function getDemoVideoForCategory(segment: string, productIndex: number): string | null {
-  const pool = SEGMENT_VIDEOS[segment] ?? SEGMENT_VIDEOS.men;
-  if (!pool?.length) return null;
-  return pool[productIndex % pool.length];
+export function getDemoVideoForCategory(
+  categorySlugOrSegment: string,
+  productIndexOrSegment?: number | string,
+  maybeIndex?: number,
+): string | null {
+  // New signature: (leafSlug, segment, index)
+  // Legacy: (segment, index)
+  let leafSlug = "";
+  let segment = categorySlugOrSegment;
+  let productIndex = 0;
+  if (typeof productIndexOrSegment === "string") {
+    leafSlug = categorySlugOrSegment;
+    segment = productIndexOrSegment;
+    productIndex = maybeIndex ?? 0;
+  } else {
+    productIndex = productIndexOrSegment ?? 0;
+  }
+
+  const typeKey = leafSlug.includes("saree")
+    ? "saree"
+    : leafSlug.includes("lehenga") || leafSlug.includes("sherwani") || leafSlug.includes("reception")
+      ? "bridal"
+      : leafSlug.includes("kurta") ||
+          leafSlug.includes("chudidar") ||
+          leafSlug.includes("kurti") ||
+          leafSlug.includes("anarkali") ||
+          leafSlug.includes("ethnic") ||
+          leafSlug.includes("salwar") ||
+          leafSlug.includes("palazzo")
+        ? "ethnic"
+        : leafSlug.includes("dress") || leafSlug.includes("frock")
+          ? "dresses"
+          : leafSlug.includes("jean") ||
+              leafSlug.includes("chino") ||
+              leafSlug.includes("cargo") ||
+              leafSlug.includes("jogger") ||
+              leafSlug.includes("short") ||
+              leafSlug.includes("skirt") ||
+              leafSlug.includes("legging")
+            ? "bottoms"
+            : leafSlug.includes("jacket") ||
+                leafSlug.includes("hoodie") ||
+                leafSlug.includes("sweat") ||
+                leafSlug.includes("bomber")
+              ? "outerwear"
+              : leafSlug.includes("active")
+                ? "active"
+                : leafSlug.includes("t-shirt") ||
+                    leafSlug.includes("tee") ||
+                    leafSlug.includes("shirt") ||
+                    leafSlug.includes("top") ||
+                    leafSlug.includes("blouse") ||
+                    leafSlug.includes("polo")
+                  ? "tops"
+                  : "";
+
+  const typePool = typeKey ? TYPE_VIDEOS[typeKey] : undefined;
+  if (typePool?.length) return typePool[productIndex % typePool.length];
+  const segPool = SEGMENT_VIDEOS[segment];
+  if (segPool?.length) return segPool[productIndex % segPool.length];
+  return GENERIC_VIDEO;
+}
+
+export type MediaValidationResult = {
+  ok: boolean;
+  status: "PASS" | "MEDIA_MISMATCH" | "TRYON_MISMATCH";
+  detail?: string;
+};
+
+export function validateProductMedia(product: {
+  categorySlug: string;
+  segment: string;
+  images: Array<{ url: string; mediaType: string; isTryOnSource?: boolean; productId?: string }>;
+  tryOnEnabled?: boolean;
+  productId?: string;
+}): MediaValidationResult {
+  const stills = product.images.filter((i) => i.mediaType === "image");
+  if (!stills.length) {
+    return { ok: false, status: "MEDIA_MISMATCH", detail: "no_image" };
+  }
+  const allowed = allowedImageUrlsForCategory(product.categorySlug, product.segment);
+  for (const img of stills) {
+    if (!allowed.has(img.url)) {
+      return { ok: false, status: "MEDIA_MISMATCH", detail: img.url };
+    }
+  }
+  if (product.tryOnEnabled) {
+    const src = stills.find((i) => i.isTryOnSource);
+    if (!src) return { ok: false, status: "TRYON_MISMATCH", detail: "missing_source" };
+    if (product.productId && src.productId && src.productId !== product.productId) {
+      return { ok: false, status: "TRYON_MISMATCH", detail: "wrong_product" };
+    }
+  }
+  return { ok: true, status: "PASS" };
 }
 
 /** Expected keyword tokens for integrity checks (any match OK). */
 export function expectedNameTokens(categorySlug: string): string[] {
+  if (categorySlug.includes("chudidar") || categorySlug.includes("churidar")) {
+    return ["chudidar", "churidar"];
+  }
+  if (categorySlug.includes("kurti")) return ["kurti"];
+  if (categorySlug.includes("salwar")) return ["salwar"];
+  if (categorySlug.includes("anarkali")) return ["anarkali"];
+  if (categorySlug.includes("palazzo")) return ["palazzo"];
+  if (categorySlug.includes("nehru")) return ["nehru", "jacket"];
+  if (categorySlug.includes("frock")) return ["frock", "dress"];
+  if (categorySlug.includes("reception")) return ["reception", "wedding", "lehenga", "dress"];
+  if (categorySlug.includes("ethnic") && categorySlug.includes("festival")) {
+    return ["ethnic", "set", "festive"];
+  }
   if (categorySlug.includes("saree")) return ["saree"];
   if (categorySlug.includes("lehenga")) return ["lehenga"];
   if (categorySlug.includes("sherwani")) return ["sherwani"];
@@ -357,6 +527,7 @@ export function expectedNameTokens(categorySlug: string): string[] {
   if (categorySlug.includes("active")) return ["active", "sport"];
   if (categorySlug.includes("sleep")) return ["sleep", "pyjama", "pajama"];
   if (categorySlug.includes("wide-leg")) return ["wide", "pant"];
+  if (categorySlug.includes("ethnic")) return ["ethnic", "kids", "set"];
   if (categorySlug.includes("boys") || categorySlug.includes("girls")) return ["kids", "boy", "girl"];
   return [];
 }
@@ -378,6 +549,10 @@ export function buildDemoProductName(
     "Motion",
     "Heritage",
     "Nova",
+    "Embroidered",
+    "Classic",
+    "Premium",
+    "Signature",
   ];
   const adj = adjectives[n % adjectives.length];
   const segLabel =
@@ -402,12 +577,22 @@ export function buildDemoProductName(
         ? "Cotton Saree"
         : leafSlug.includes("party")
           ? "Party Saree"
-          : "Everyday Saree";
+          : leafSlug.includes("festive")
+            ? "Festive Saree"
+            : "Everyday Saree";
     return `T360 ${adj} ${kind} ${n + 1}`;
   }
+  if (leafSlug.includes("chudidar")) return `T360 ${adj} Embroidered Chudidar Set ${n + 1}`;
+  if (leafSlug.includes("kurti")) return `T360 ${adj} Women's Kurti ${n + 1}`;
+  if (leafSlug.includes("salwar")) return `T360 ${adj} Salwar Set ${n + 1}`;
+  if (leafSlug.includes("anarkali")) return `T360 ${adj} Anarkali Suit ${n + 1}`;
+  if (leafSlug.includes("palazzo")) return `T360 ${adj} Palazzo Set ${n + 1}`;
+  if (leafSlug.includes("nehru")) return `T360 ${adj} Nehru Jacket ${n + 1}`;
+  if (leafSlug.includes("frock")) return `T360 ${adj} Kids Frock ${n + 1}`;
   if (leafSlug.includes("lehenga")) return `T360 ${adj} Bridal Lehenga ${n + 1}`;
   if (leafSlug.includes("sherwani")) return `T360 ${adj} Sherwani ${n + 1}`;
   if (leafSlug.includes("kurta")) return `T360 ${adj} Kurta Set ${n + 1}`;
+  if (leafSlug.includes("reception")) return `T360 ${adj} Wedding Reception Wear ${n + 1}`;
 
   const gendered =
     segment === "men" || segment === "women"
@@ -422,13 +607,31 @@ export function buildDemoProductName(
 export function buildDemoDescription(leafSlug: string, segment: string, name: string): string {
   let body: string;
   if (leafSlug.includes("saree")) {
-    body = "Premium saree with an elegant traditional finish.";
+    body =
+      "Premium saree with blouse-ready finish, crafted for traditional and festive occasions.";
+  } else if (leafSlug.includes("chudidar")) {
+    body =
+      "Women's embroidered chudidar set designed for festive and traditional occasions.";
+  } else if (leafSlug.includes("kurti")) {
+    body = "Elegant women's kurti designed for everyday ethnic and festive wear.";
+  } else if (leafSlug.includes("salwar")) {
+    body = "Complete salwar set with comfortable fit for festive gatherings.";
+  } else if (leafSlug.includes("anarkali")) {
+    body = "Flowy anarkali suit crafted for celebrations and wedding guests.";
+  } else if (leafSlug.includes("palazzo")) {
+    body = "Ethnic palazzo set designed for comfort and festive styling.";
+  } else if (leafSlug.includes("nehru")) {
+    body = "Classic Nehru jacket for festive and wedding occasions.";
   } else if (leafSlug.includes("lehenga")) {
     body = "Festive bridal-style lehenga designed for wedding occasions.";
   } else if (leafSlug.includes("sherwani")) {
     body = "Classic sherwani crafted for wedding and celebration wear.";
   } else if (leafSlug.includes("kurta")) {
     body = "Comfortable ethnic kurta set suited for festive gatherings.";
+  } else if (leafSlug.includes("reception")) {
+    body = "Reception-ready wedding wear designed for evening celebrations.";
+  } else if (leafSlug.includes("frock")) {
+    body = "Charming kids frock designed for playdates and occasions.";
   } else if (leafSlug.includes("dress")) {
     body =
       segment === "kids"
@@ -464,6 +667,8 @@ export function buildDemoDescription(leafSlug: string, segment: string, name: st
     body = "Soft sleepwear designed for restful comfort.";
   } else if (leafSlug.includes("accessor")) {
     body = "Finishing accessory to complete the look.";
+  } else if (leafSlug.includes("ethnic")) {
+    body = "Ethnic wear designed for festivals and family celebrations.";
   } else if (segment === "kids") {
     body = "Comfortable kidswear designed for everyday movement and play.";
   } else {
@@ -473,4 +678,4 @@ export function buildDemoDescription(leafSlug: string, segment: string, name: st
 }
 
 /** Exported for tests. */
-export const __test = { LEAF_POOL, FALLBACK_LEAF, resolvePool, POOLS };
+export const __test = { LEAF_POOL, FALLBACK_LEAF, resolvePool, POOLS, TYPE_VIDEOS };

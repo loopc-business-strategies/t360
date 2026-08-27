@@ -10,8 +10,6 @@ import {
   LEGACY_EMPTY_CATEGORY_SLUGS,
   MEN_TREE,
   OTHER_TREES,
-  PER_GENDER_COUNT,
-  PER_OTHER_COUNT,
   WAIST_SIZES,
   WOMEN_TREE,
   slugify,
@@ -23,7 +21,15 @@ import {
   expectedNameTokens,
   getDemoImagesForCategory,
   getDemoVideoForCategory,
+  validateProductMedia,
 } from "./category-media";
+import {
+  CATEGORY_META,
+  DEMO_BRANDS,
+  getCategoryMeta,
+  priceForBand,
+  type SizeProfile,
+} from "./category-meta";
 
 type SeedResult = {
   products: number;
@@ -37,55 +43,11 @@ type SeedResult = {
 
 type Segment = "men" | "women" | "kids" | "sarees" | "wedding" | "festival";
 
-function priceFor(kind: string, i: number): { price: number; salePrice: number | null } {
-  const base =
-    kind.includes("saree") || kind.includes("lehenga") || kind.includes("sherwani")
-      ? 3999 + (i % 5) * 1200
-      : kind.includes("wedding") || kind.includes("festival") || kind.includes("kurta")
-        ? 2499 + (i % 5) * 800
-        : kind.includes("jacket") || kind.includes("bomber")
-          ? 2999 + (i % 5) * 800
-          : kind.includes("hoodie") || kind.includes("sweat")
-            ? 1999 + (i % 4) * 500
-            : kind.includes("dress") || kind.includes("maxi") || kind.includes("mini")
-              ? 1499 + (i % 5) * 700
-              : kind.includes("jean") || kind.includes("chino") || kind.includes("cargo") || kind.includes("pant")
-                ? 1499 + (i % 4) * 600
-                : kind.includes("kids")
-                  ? 699 + (i % 5) * 300
-                  : 999 + (i % 6) * 350;
-  const onSale = i % 4 === 0;
-  return {
-    price: base,
-    salePrice: onSale ? Math.round(base * 0.85) : null,
-  };
-}
-
-function sizesFor(slug: string, segment: Segment): string[] {
-  if (segment === "kids") return KIDS_SIZES.slice(0, 5);
-  if (slug.includes("saree") || slug.includes("accessor")) return ["ONE"];
-  if (slug.includes("jean") || slug.includes("chino") || slug.includes("cargo") || slug.includes("pant")) {
-    return WAIST_SIZES.slice(1, 6);
-  }
-  return ADULT_SIZES.slice(1, 6);
-}
-
-function tryMeEligible(slug: string): boolean {
-  if (slug.includes("accessor") || slug.includes("sleepwear") || slug.includes("saree")) return false;
-  return (
-    slug.includes("t-shirt") ||
-    slug.includes("tee") ||
-    slug.includes("shirt") ||
-    slug.includes("hoodie") ||
-    slug.includes("dress") ||
-    slug.includes("top") ||
-    slug.includes("blouse") ||
-    slug.includes("polo") ||
-    slug.includes("sweat") ||
-    slug.includes("kurta") ||
-    slug.includes("lehenga") ||
-    slug.includes("sherwani")
-  );
+function sizesForProfile(profile: SizeProfile): string[] {
+  if (profile === "kids") return KIDS_SIZES.slice(0, 6);
+  if (profile === "one") return ["ONE"];
+  if (profile === "waist") return WAIST_SIZES.slice(1, 7);
+  return ADULT_SIZES.slice(1, 8); // XS–3XL
 }
 
 async function upsertTree(
@@ -142,18 +104,18 @@ async function upsertTree(
   return ids;
 }
 
-function leafPlans(
+/** Build product plans from per-leaf quotas in CATEGORY_META. */
+function quotaPlans(
   tree: CatDef,
-  total: number,
 ): Array<{ leafSlug: string; leafName: string; index: number }> {
   const children = tree.children ?? [];
   const plans: Array<{ leafSlug: string; leafName: string; index: number }> = [];
-  let n = 0;
-  while (plans.length < total) {
-    const leaf = children[n % children.length];
-    const localIndex = Math.floor(n / children.length);
-    plans.push({ leafSlug: leaf.slug, leafName: leaf.name, index: localIndex });
-    n++;
+  for (const leaf of children) {
+    const meta = CATEGORY_META[leaf.slug];
+    const quota = meta?.quota ?? 3;
+    for (let i = 0; i < quota; i++) {
+      plans.push({ leafSlug: leaf.slug, leafName: leaf.name, index: i });
+    }
   }
   return plans;
 }
@@ -178,7 +140,6 @@ async function softDeleteLegacyDemo(prisma: PrismaClient) {
   });
 }
 
-/** Hide empty legacy category rows that clutter mega menu / PLPs. */
 async function softDeleteEmptyLegacyCategories(prisma: PrismaClient) {
   const now = new Date();
   await prisma.category.updateMany({
@@ -214,12 +175,16 @@ export async function seedDemoCatalog(prisma: PrismaClient): Promise<SeedResult>
   await softDeleteLegacyDemo(prisma);
   await softDeleteEmptyLegacyCategories(prisma);
 
-  await prisma.brand.upsert({
-    where: { slug: "t360-originals" },
-    create: { name: "T360 Originals", slug: "t360-originals", status: "active" },
-    update: { name: "T360 Originals", status: "active", deletedAt: null },
-  });
-  const brand = await prisma.brand.findUniqueOrThrow({ where: { slug: "t360-originals" } });
+  const brandIds: Record<string, string> = {};
+  for (const b of DEMO_BRANDS) {
+    await prisma.brand.upsert({
+      where: { slug: b.slug },
+      create: { name: b.name, slug: b.slug, status: "active" },
+      update: { name: b.name, status: "active", deletedAt: null },
+    });
+    const row = await prisma.brand.findUniqueOrThrow({ where: { slug: b.slug } });
+    brandIds[b.slug] = row.id;
+  }
 
   const menIds = await upsertTree(prisma, MEN_TREE, 0);
   const womenIds = await upsertTree(prisma, WOMEN_TREE, 1);
@@ -266,9 +231,9 @@ export async function seedDemoCatalog(prisma: PrismaClient): Promise<SeedResult>
     collectionIds[c.slug] = row.id;
   }
 
-  const menPlans = leafPlans(MEN_TREE, PER_GENDER_COUNT);
-  const womenPlans = leafPlans(WOMEN_TREE, PER_GENDER_COUNT);
-  const kidsPlans = leafPlans(KIDS_TREE, PER_GENDER_COUNT);
+  const menPlans = quotaPlans(MEN_TREE);
+  const womenPlans = quotaPlans(WOMEN_TREE);
+  const kidsPlans = quotaPlans(KIDS_TREE);
 
   type Built = {
     id: string;
@@ -276,7 +241,13 @@ export async function seedDemoCatalog(prisma: PrismaClient): Promise<SeedResult>
     gender: Segment;
     leafSlug: string;
     tryOn: boolean;
-    flags: { isNew: boolean; isBestseller: boolean; isTrending: boolean; isFeatured: boolean; onSale: boolean };
+    flags: {
+      isNew: boolean;
+      isBestseller: boolean;
+      isTrending: boolean;
+      isFeatured: boolean;
+      onSale: boolean;
+    };
   };
   const built: Built[] = [];
   let imageCount = 0;
@@ -285,17 +256,21 @@ export async function seedDemoCatalog(prisma: PrismaClient): Promise<SeedResult>
   let variantCount = 0;
   let globalIndex = 0;
   const stockQueue: Array<{ variantId: string; qty: number }> = [];
+  const skuSeq: Record<string, number> = {};
 
   async function createProduct(
     segment: Segment,
     plan: { leafSlug: string; leafName: string; index: number },
     catIds: Record<string, string>,
   ) {
+    const meta = getCategoryMeta(plan.leafSlug);
     const name = buildDemoProductName(segment, plan.leafSlug, plan.leafName, plan.index);
     const description = buildDemoDescription(plan.leafSlug, segment, name);
     const slug = slugify(`t360-demo-${segment}-${plan.leafSlug}-${plan.index + 1}`);
-    const { price, salePrice } = priceFor(plan.leafSlug, plan.index);
-    const tryOn = tryMeEligible(plan.leafSlug) && plan.index % 2 === 0;
+    const { price, salePrice } = priceForBand(meta?.priceBand ?? "tee", plan.index);
+    const tryOn = Boolean(meta?.tryOnSupported) && plan.index % 2 === 0;
+    const brandSlug = meta?.brandSlug ?? "t360-originals";
+    const brandId = brandIds[brandSlug] ?? brandIds["t360-originals"];
     const flags = {
       isNew: globalIndex % 5 === 0,
       isBestseller: globalIndex % 7 === 0,
@@ -308,10 +283,22 @@ export async function seedDemoCatalog(prisma: PrismaClient): Promise<SeedResult>
       COLORS[(globalIndex + 3) % COLORS.length],
       ...(plan.index % 3 === 0 ? [COLORS[(globalIndex + 7) % COLORS.length]] : []),
     ];
-    const sizes = sizesFor(plan.leafSlug, segment);
+    const sizes = sizesForProfile(meta?.sizeProfile ?? "adult");
     const stills = getDemoImagesForCategory(plan.leafSlug, segment, plan.index);
     if (!catIds[plan.leafSlug]) {
       throw new Error(`CATEGORY_MISMATCH missing categoryId for leaf=${plan.leafSlug}`);
+    }
+
+    const mediaCheck = validateProductMedia({
+      categorySlug: plan.leafSlug,
+      segment,
+      images: stills.map((url) => ({ url, mediaType: "image" })),
+      tryOnEnabled: false,
+    });
+    if (!mediaCheck.ok) {
+      throw new Error(
+        `MEDIA_MISMATCH leaf=${plan.leafSlug} detail=${mediaCheck.detail ?? mediaCheck.status}`,
+      );
     }
 
     const product = await prisma.product.upsert({
@@ -322,7 +309,7 @@ export async function seedDemoCatalog(prisma: PrismaClient): Promise<SeedResult>
         description,
         status: "published",
         categoryId: catIds[plan.leafSlug],
-        brandId: brand.id,
+        brandId,
         tryOnEnabled: tryOn,
         isDemo: true,
         seedBatchId: DEMO_BATCH_ID,
@@ -336,7 +323,7 @@ export async function seedDemoCatalog(prisma: PrismaClient): Promise<SeedResult>
         description,
         status: "published",
         categoryId: catIds[plan.leafSlug],
-        brandId: brand.id,
+        brandId,
         tryOnEnabled: tryOn,
         deletedAt: null,
         isDemo: true,
@@ -364,7 +351,7 @@ export async function seedDemoCatalog(prisma: PrismaClient): Promise<SeedResult>
       imageCount++;
     }
     if (flags.isFeatured || globalIndex % 5 === 0) {
-      const videoUrl = getDemoVideoForCategory(segment, plan.index);
+      const videoUrl = getDemoVideoForCategory(plan.leafSlug, segment, plan.index);
       if (videoUrl) {
         await prisma.productImage.create({
           data: {
@@ -391,12 +378,14 @@ export async function seedDemoCatalog(prisma: PrismaClient): Promise<SeedResult>
       await prisma.productVariant.deleteMany({ where: { productId: product.id } });
     }
 
+    const skuType = meta?.skuType ?? "GEN";
+    skuSeq[skuType] = (skuSeq[skuType] ?? 0) + 1;
+    const baseSku = `T360-${skuType}-${String(skuSeq[skuType]).padStart(4, "0")}`;
     let skuN = 0;
-    const segCode = segment.slice(0, 1).toUpperCase();
     for (const color of colors) {
       for (const size of sizes) {
         skuN++;
-        const sku = `T360-D-${segCode}${String(globalIndex + 1).padStart(3, "0")}-${size}-${color.name.slice(0, 3).toUpperCase()}-${skuN}`;
+        const sku = `${baseSku}-${size}-${color.name.slice(0, 3).toUpperCase()}-${skuN}`;
         const variant = await prisma.productVariant.create({
           data: {
             productId: product.id,
@@ -432,8 +421,40 @@ export async function seedDemoCatalog(prisma: PrismaClient): Promise<SeedResult>
   for (const p of womenPlans) await createProduct("women", p, womenIds);
   for (const p of kidsPlans) await createProduct("kids", p, kidsIds);
   for (const { tree, ids } of otherIdMaps) {
-    const plans = leafPlans(tree, PER_OTHER_COUNT);
+    const plans = quotaPlans(tree);
     for (const p of plans) await createProduct(tree.slug as Segment, p, ids);
+  }
+
+  // Soft-delete demo products from previous denser/thinner runs that are not in this batch slug set
+  const keepSlugs = new Set(built.map((b) => b.slug));
+  const stale = await prisma.product.findMany({
+    where: {
+      seedBatchId: DEMO_BATCH_ID,
+      deletedAt: null,
+      slug: { notIn: [...keepSlugs] },
+    },
+    select: { id: true },
+  });
+  if (stale.length) {
+    const ids = stale.map((s) => s.id);
+    const variants = await prisma.productVariant.findMany({
+      where: { productId: { in: ids } },
+      select: { id: true },
+    });
+    const vids = variants.map((v) => v.id);
+    if (vids.length) {
+      await prisma.inventory.deleteMany({ where: { variantId: { in: vids } } });
+      await prisma.cartItem.deleteMany({ where: { variantId: { in: vids } } });
+      await prisma.wishlistItem.deleteMany({ where: { variantId: { in: vids } } });
+    }
+    await prisma.productReview.deleteMany({ where: { productId: { in: ids } } });
+    await prisma.collectionProduct.deleteMany({ where: { productId: { in: ids } } });
+    await prisma.productImage.deleteMany({ where: { productId: { in: ids } } });
+    await prisma.productVariant.deleteMany({ where: { productId: { in: ids } } });
+    await prisma.product.updateMany({
+      where: { id: { in: ids } },
+      data: { deletedAt: new Date(), status: "archived" },
+    });
   }
 
   const branch = await prisma.branch.upsert({
@@ -468,17 +489,29 @@ export async function seedDemoCatalog(prisma: PrismaClient): Promise<SeedResult>
     if (b.flags.isFeatured) links.push("t360-originals");
     if (b.flags.onSale) links.push("sale");
     if (b.gender === "men") links.push("mens-edit");
-    if (b.gender === "women") links.push("womens-edit");
+    if (b.gender === "women" || b.gender === "sarees") links.push("womens-edit");
     if (b.gender === "kids") links.push("kids-essentials");
     if (b.leafSlug.includes("active")) links.push("activewear");
-    if (b.leafSlug.includes("hoodie") || b.leafSlug.includes("graphic") || b.leafSlug.includes("oversized")) {
+    if (
+      b.leafSlug.includes("hoodie") ||
+      b.leafSlug.includes("graphic") ||
+      b.leafSlug.includes("oversized")
+    ) {
       links.push("streetwear");
     }
     links.push("everyday");
-    if (b.leafSlug.includes("linen") || b.leafSlug.includes("short") || b.leafSlug.includes("maxi")) {
+    if (
+      b.leafSlug.includes("linen") ||
+      b.leafSlug.includes("short") ||
+      b.leafSlug.includes("maxi")
+    ) {
       links.push("summer");
     }
-    if (b.leafSlug.includes("jacket") || b.leafSlug.includes("hoodie") || b.leafSlug.includes("sweat")) {
+    if (
+      b.leafSlug.includes("jacket") ||
+      b.leafSlug.includes("hoodie") ||
+      b.leafSlug.includes("sweat")
+    ) {
       links.push("winter");
     }
     if (b.flags.isFeatured) links.push("premium");
@@ -514,8 +547,8 @@ export async function seedDemoCatalog(prisma: PrismaClient): Promise<SeedResult>
       update: { name: "T360 Demo Reviewer" },
     });
   }
-  for (let i = 0; i < Math.min(20, built.length); i++) {
-    const p = built[i * 3] ?? built[i];
+  for (let i = 0; i < Math.min(40, built.length); i++) {
+    const p = built[i * 5] ?? built[i];
     if (!p) continue;
     await prisma.productReview.upsert({
       where: { productId_customerId: { productId: p.id, customerId: demoCustomer.id } },
@@ -531,7 +564,12 @@ export async function seedDemoCatalog(prisma: PrismaClient): Promise<SeedResult>
     });
   }
 
-  await validateDemoCatalog(prisma);
+  const audit = await auditDemoCatalog(prisma);
+  const critical = audit.filter((r) => r.status !== "PASS");
+  if (critical.length) {
+    const sample = critical.slice(0, 5).map((r) => `${r.status}:${r.slug}`).join("; ");
+    throw new Error(`DEMO_CATALOG_AUDIT_FAILED count=${critical.length} sample=${sample}`);
+  }
 
   return {
     products: built.length,
@@ -544,8 +582,27 @@ export async function seedDemoCatalog(prisma: PrismaClient): Promise<SeedResult>
   };
 }
 
-/** Loud integrity check after seed — demo batch only. */
-export async function validateDemoCatalog(prisma: PrismaClient): Promise<void> {
+export type AuditRow = {
+  productId: string;
+  slug: string;
+  name: string;
+  category: string;
+  media: string;
+  video: string;
+  tryOn: boolean;
+  status:
+    | "PASS"
+    | "CATEGORY_MISMATCH"
+    | "MEDIA_MISMATCH"
+    | "VIDEO_MISMATCH"
+    | "TRYON_MISMATCH"
+    | "NAME_MISMATCH"
+    | "DESCRIPTION_MISMATCH"
+    | "ATTRIBUTE_MISMATCH";
+};
+
+/** Loud integrity scan — demo batch only. */
+export async function auditDemoCatalog(prisma: PrismaClient): Promise<AuditRow[]> {
   const products = await prisma.product.findMany({
     where: { seedBatchId: DEMO_BATCH_ID, deletedAt: null },
     include: {
@@ -553,33 +610,73 @@ export async function validateDemoCatalog(prisma: PrismaClient): Promise<void> {
       images: { orderBy: { sortOrder: "asc" } },
     },
   });
+  const rows: AuditRow[] = [];
   for (const p of products) {
+    const leaf = p.category?.slug ?? "";
+    const segment =
+      leaf.startsWith("men-")
+        ? "men"
+        : leaf.startsWith("women-")
+          ? "women"
+          : leaf.startsWith("kids-")
+            ? "kids"
+            : leaf.startsWith("sarees-")
+              ? "sarees"
+              : leaf.startsWith("wedding-")
+                ? "wedding"
+                : leaf.startsWith("festival-")
+                  ? "festival"
+                  : "men";
+    const primary = p.images.find((i) => i.mediaType === "image")?.url ?? "";
+    const hasVideo = p.images.some((i) => i.mediaType === "video");
+    let status: AuditRow["status"] = "PASS";
+
     if (!p.categoryId || !p.category || p.category.deletedAt || p.category.status !== "active") {
-      throw new Error(
-        `CATEGORY_MISMATCH PRODUCT_ID=${p.id} PRODUCT_NAME=${p.name} CATEGORY=${p.category?.slug ?? "null"} EXPECTED_CATEGORY=active`,
-      );
-    }
-    const leaf = p.category.slug;
-    const tokens = expectedNameTokens(leaf);
-    const hay = `${p.name} ${p.description}`.toLowerCase();
-    if (tokens.length && !tokens.some((t) => hay.includes(t.toLowerCase()))) {
-      throw new Error(
-        `CATEGORY_MISMATCH PRODUCT_ID=${p.id} PRODUCT_NAME=${p.name} CATEGORY=${leaf} IMAGE_URL=${p.images[0]?.url ?? ""} EXPECTED_CATEGORY_TOKENS=${tokens.join(",")}`,
-      );
-    }
-    if (!p.images.some((i) => i.mediaType === "image")) {
-      throw new Error(
-        `CATEGORY_MISMATCH PRODUCT_ID=${p.id} PRODUCT_NAME=${p.name} CATEGORY=${leaf} IMAGE_URL=missing EXPECTED_CATEGORY=has_image`,
-      );
-    }
-    if (p.tryOnEnabled) {
-      const src = p.images.find((i) => i.isTryOnSource && i.mediaType === "image");
-      if (!src || src.productId !== p.id) {
-        throw new Error(
-          `CATEGORY_MISMATCH PRODUCT_ID=${p.id} PRODUCT_NAME=${p.name} CATEGORY=${leaf} IMAGE_URL=${src?.url ?? "none"} EXPECTED_CATEGORY=try_on_source`,
-        );
+      status = "CATEGORY_MISMATCH";
+    } else {
+      const tokens = getCategoryMeta(leaf)?.nameTokens ?? expectedNameTokens(leaf);
+      const hay = `${p.name} ${p.description}`.toLowerCase();
+      if (tokens.length && !tokens.some((t) => hay.includes(t.toLowerCase()))) {
+        status = "NAME_MISMATCH";
+      } else {
+        const media = validateProductMedia({
+          categorySlug: leaf,
+          segment,
+          images: p.images.map((i) => ({
+            url: i.url,
+            mediaType: i.mediaType,
+            isTryOnSource: i.isTryOnSource,
+            productId: i.productId,
+          })),
+          tryOnEnabled: p.tryOnEnabled,
+          productId: p.id,
+        });
+        if (!media.ok) status = media.status === "TRYON_MISMATCH" ? "TRYON_MISMATCH" : "MEDIA_MISMATCH";
       }
     }
+
+    rows.push({
+      productId: p.id,
+      slug: p.slug,
+      name: p.name,
+      category: leaf,
+      media: primary,
+      video: hasVideo ? "yes" : "no",
+      tryOn: p.tryOnEnabled,
+      status,
+    });
+  }
+  return rows;
+}
+
+/** @deprecated Prefer auditDemoCatalog — kept for callers. */
+export async function validateDemoCatalog(prisma: PrismaClient): Promise<void> {
+  const audit = await auditDemoCatalog(prisma);
+  const bad = audit.find((r) => r.status !== "PASS");
+  if (bad) {
+    throw new Error(
+      `${bad.status} PRODUCT_ID=${bad.productId} PRODUCT_NAME=${bad.name} CATEGORY=${bad.category} IMAGE_URL=${bad.media}`,
+    );
   }
 }
 

@@ -54,6 +54,19 @@ export function ProductsBrowser({
   const [pageSize] = React.useState(initialMeta?.pageSize ?? 24);
   const [loading, setLoading] = React.useState(false);
   const requestSeq = React.useRef(0);
+  const syncedCategory = React.useRef(initialParams.category ?? "");
+
+  React.useEffect(() => {
+    const nextCat = initialParams.category ?? "";
+    if (syncedCategory.current === nextCat) return;
+    syncedCategory.current = nextCat;
+    setCategory(nextCat);
+    setQ(initialParams.q ?? "");
+    setSort(initialParams.sort ?? "newest");
+    setProducts(initialProducts);
+    setTotal(initialMeta?.total ?? initialProducts.length);
+    setPage(Number(initialParams.page ?? initialMeta?.page ?? 1));
+  }, [initialParams.category, initialParams.q, initialParams.sort, initialParams.page, initialProducts, initialMeta]);
 
   const catOptions = flattenCategories(categories);
 

@@ -47,6 +47,16 @@ export class CatalogPublicController {
   }
 
   @Public()
+  @Get("products/:slugOrId/related")
+  async related(@Param("slugOrId") slugOrId: string, @Req() req: Request) {
+    return {
+      success: true,
+      data: await this.catalog.listRelatedProducts(slugOrId),
+      requestId: (req as Request & { requestId?: string }).requestId,
+    };
+  }
+
+  @Public()
   @Get("products/:slugOrId")
   async product(
     @Param("slugOrId") slugOrId: string,

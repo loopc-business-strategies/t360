@@ -1,6 +1,7 @@
 import {
   Injectable,
   NotFoundException,
+  BadRequestException,
   Inject,
   Optional,
   Logger,
@@ -15,6 +16,7 @@ import { SEARCH_PROVIDER, type SearchProvider } from "../search/providers/search
 import { isUuid, parseProductCsv, slugify, validateCsvProductRow } from "./catalog.utils";
 import type { ProductCreateInput, ProductListQuery } from "@t360/validation";
 import { AiFashionService } from "../ai-fashion/ai-fashion.service";
+import { resolveRelatedCategorySlugs } from "../demo-data/engine/category-meta";
 
 const productInclude = {
   category: true,
@@ -71,6 +73,45 @@ export class CatalogService {
       items: withRatings,
       meta: { page, pageSize, total: hit.total },
     };
+  }
+
+  async listRelatedProducts(slugOrId: string, limit = 8) {
+    const product = await this.prisma.product.findFirst({
+      where: {
+        deletedAt: null,
+        status: "published",
+        ...(isUuid(slugOrId)
+          ? { OR: [{ slug: slugOrId }, { id: slugOrId }] }
+          : { slug: slugOrId }),
+      },
+      include: { category: true },
+    });
+    if (!product?.category?.slug) {
+      throw new NotFoundException({ code: "PRODUCT_NOT_FOUND", message: "Product not found" });
+    }
+    const slugs = resolveRelatedCategorySlugs(product.category.slug);
+    const collected: string[] = [];
+    for (const cat of slugs) {
+      if (collected.length >= limit) break;
+      const hit = await this.search.searchProducts(
+        { category: cat, page: 1, pageSize: limit + 4, sort: "newest" },
+        undefined,
+      );
+      for (const id of hit.ids) {
+        if (id === product.id) continue;
+        if (collected.includes(id)) continue;
+        collected.push(id);
+        if (collected.length >= limit) break;
+      }
+    }
+    if (!collected.length) return [];
+    const products = await this.prisma.product.findMany({
+      where: { id: { in: collected } },
+      include: productInclude,
+    });
+    const byId = new Map(products.map((p) => [p.id, p]));
+    const ordered = collected.map((id) => byId.get(id)).filter(Boolean);
+    return this.attachAvailability(ordered as typeof products);
   }
 
   async getProduct(slugOrId: string, opts?: { admin?: boolean; branch?: string }) {
@@ -233,6 +274,7 @@ export class CatalogService {
   }
 
   async createProduct(input: ProductCreateInput, actorId?: string) {
+    await this.assertActiveCategory(input.categoryId);
     const slug = input.slug ?? slugify(input.name);
     const product = await this.prisma.$transaction(async (tx) => {
       const created = await tx.product.create({
@@ -310,6 +352,7 @@ export class CatalogService {
     },
     actorId?: string,
   ) {
+    if (input.categoryId) await this.assertActiveCategory(input.categoryId);
     await this.prisma.product.update({
       where: { id },
       data: {
@@ -329,10 +372,16 @@ export class CatalogService {
         data: { isTryOnSource: false },
       });
       if (input.tryOnImageId) {
-        await this.prisma.productImage.updateMany({
+        const updated = await this.prisma.productImage.updateMany({
           where: { id: input.tryOnImageId, productId: id },
           data: { isTryOnSource: true },
         });
+        if (updated.count === 0) {
+          throw new BadRequestException({
+            code: "TRYON_IMAGE_INVALID",
+            message: "tryOnImageId must belong to this product",
+          });
+        }
       }
     }
 
@@ -416,22 +465,44 @@ export class CatalogService {
 
   async importCsv(content: string, actorId?: string) {
     const rows = parseProductCsv(content);
-    const errors: Array<{ row: number; errors: string[] }> = [];
+    const errors: Array<{
+      row: number;
+      errors: string[];
+      field?: string;
+      value?: string;
+      reason?: string;
+    }> = [];
     let created = 0;
 
     for (let i = 0; i < rows.length; i++) {
       const row = rows[i];
       const rowErrors = validateCsvProductRow(row);
       if (rowErrors.length) {
-        errors.push({ row: i + 2, errors: rowErrors });
+        errors.push({
+          row: i + 2,
+          errors: rowErrors,
+          field: "row",
+          value: row.name ?? "",
+          reason: rowErrors.join("; "),
+        });
         continue;
       }
       const categorySlug = row.category_slug || row.category;
       const category = await this.prisma.category.findFirst({
-        where: { OR: [{ slug: categorySlug }, { name: categorySlug }], deletedAt: null },
+        where: {
+          OR: [{ slug: categorySlug }, { name: categorySlug }],
+          deletedAt: null,
+          status: "active",
+        },
       });
       if (!category) {
-        errors.push({ row: i + 2, errors: [`category not found: ${categorySlug}`] });
+        errors.push({
+          row: i + 2,
+          errors: [`category not found: ${categorySlug}`],
+          field: "category_slug",
+          value: String(categorySlug ?? ""),
+          reason: "Category slug missing or inactive",
+        });
         continue;
       }
       let brandId: string | null = null;
@@ -475,6 +546,9 @@ export class CatalogService {
         errors.push({
           row: i + 2,
           errors: [e instanceof Error ? e.message : "import failed"],
+          field: "import",
+          value: row.sku ?? row.name ?? "",
+          reason: e instanceof Error ? e.message : "import failed",
         });
       }
     }
@@ -538,6 +612,18 @@ export class CatalogService {
       where: { deletedAt: null },
       orderBy: { name: "asc" },
     });
+  }
+
+  private async assertActiveCategory(categoryId: string) {
+    const cat = await this.prisma.category.findFirst({
+      where: { id: categoryId, deletedAt: null, status: "active" },
+    });
+    if (!cat) {
+      throw new BadRequestException({
+        code: "CATEGORY_NOT_FOUND",
+        message: "Category must exist and be active",
+      });
+    }
   }
 
   private buildTree(

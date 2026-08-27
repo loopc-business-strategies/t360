@@ -78,6 +78,9 @@ export const MEN_TREE: CatDef = {
     { name: "Joggers", slug: "men-joggers" },
     { name: "Shorts", slug: "men-shorts" },
     { name: "Activewear", slug: "men-activewear" },
+    { name: "Kurtas", slug: "men-kurtas" },
+    { name: "Kurta Sets", slug: "men-kurta-sets" },
+    { name: "Nehru Jackets", slug: "men-nehru-jackets" },
     { name: "Accessories", slug: "men-accessories" },
   ],
 };
@@ -92,6 +95,13 @@ export const WOMEN_TREE: CatDef = {
     { name: "Casual Dresses", slug: "women-casual-dresses" },
     { name: "Maxi Dresses", slug: "women-maxi-dresses" },
     { name: "Mini Dresses", slug: "women-mini-dresses" },
+    { name: "Party Dresses", slug: "women-party-dresses" },
+    { name: "Kurtis", slug: "women-kurtis" },
+    { name: "Chudidars", slug: "women-chudidars" },
+    { name: "Salwar Sets", slug: "women-salwar-sets" },
+    { name: "Anarkali", slug: "women-anarkali" },
+    { name: "Palazzo Sets", slug: "women-palazzo-sets" },
+    { name: "Ethnic Sets", slug: "women-ethnic-sets" },
     { name: "Hoodies", slug: "women-hoodies" },
     { name: "Sweatshirts", slug: "women-sweatshirts" },
     { name: "Jackets", slug: "women-jackets" },
@@ -125,6 +135,8 @@ export const KIDS_TREE: CatDef = {
     { name: "Joggers", slug: "kids-joggers" },
     { name: "Shorts", slug: "kids-shorts" },
     { name: "Dresses", slug: "kids-dresses" },
+    { name: "Frocks", slug: "kids-frocks" },
+    { name: "Ethnic Wear", slug: "kids-ethnic" },
     { name: "Activewear", slug: "kids-activewear" },
     { name: "Sleepwear", slug: "kids-sleepwear" },
     { name: "Accessories", slug: "kids-accessories" },
@@ -141,6 +153,7 @@ export const OTHER_TREES: CatDef[] = [
       { name: "Cotton Sarees", slug: "sarees-cotton" },
       { name: "Party Sarees", slug: "sarees-party" },
       { name: "Everyday Sarees", slug: "sarees-everyday" },
+      { name: "Festive Sarees", slug: "sarees-festive" },
     ],
   },
   {
@@ -173,10 +186,10 @@ export const LEGACY_EMPTY_CATEGORY_SLUGS = [
   "offers",
 ] as const;
 
-/** Products per Men / Women / Kids root. */
+/** @deprecated Prefer per-leaf quotas in category-meta.ts */
 export const PER_GENDER_COUNT = 60;
 
-/** Products per Other root (sarees / wedding / festival). */
+/** @deprecated Prefer per-leaf quotas in category-meta.ts */
 export const PER_OTHER_COUNT = 10;
 
 export const COLLECTION_DEFS = [
