@@ -297,7 +297,7 @@ export function MegaMenu({
           <div>
             <p className="text-xs font-medium uppercase tracking-wider text-muted">Collections</p>
             <ul className="mt-3 space-y-2">
-              {collections.slice(0, 10).map((c) => (
+              {collections.slice(0, 14).map((c) => (
                 <li key={c.id}>
                   <Link
                     href={`/collections/${c.slug}`}
@@ -339,6 +339,42 @@ export function MegaMenu({
                 </Link>
               </li>
               <li>
+                <Link
+                  href="/collections/saree-edit"
+                  className="text-sm hover:text-wine"
+                  onClick={onClose}
+                >
+                  Saree Edit
+                </Link>
+              </li>
+              <li>
+                <Link
+                  href="/collections/wedding-edit"
+                  className="text-sm hover:text-wine"
+                  onClick={onClose}
+                >
+                  Wedding Edit
+                </Link>
+              </li>
+              <li>
+                <Link
+                  href="/collections/festive-edit"
+                  className="text-sm hover:text-wine"
+                  onClick={onClose}
+                >
+                  Festive Edit
+                </Link>
+              </li>
+              <li>
+                <Link
+                  href="/collections/ethnic-edit"
+                  className="text-sm hover:text-wine"
+                  onClick={onClose}
+                >
+                  Ethnic Edit
+                </Link>
+              </li>
+              <li>
                 <Link href="/collections/sale" className="text-sm hover:text-wine" onClick={onClose}>
                   Sale
                 </Link>
@@ -346,14 +382,16 @@ export function MegaMenu({
             </ul>
           </div>
           <div className="rounded-md bg-linen/80 p-5">
-            <p className="font-display text-lg">Curated edits</p>
-            <p className="mt-2 text-sm text-muted">Seasonal looks and everyday essentials.</p>
+            <p className="font-display text-lg">Ethnic &amp; festive edits</p>
+            <p className="mt-2 text-sm text-muted">
+              Sarees, wedding wear, and festive looks curated for the season.
+            </p>
             <Link
-              href="/products"
+              href="/collections/ethnic-edit"
               className="mt-4 inline-block text-sm font-medium text-wine hover:underline"
               onClick={onClose}
             >
-              Browse all →
+              Shop Ethnic Edit →
             </Link>
           </div>
         </div>

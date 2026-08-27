@@ -283,7 +283,7 @@ export function StoreHeader({
                     {expanded ? (
                       <ul className="mb-2 space-y-1 border-l border-border pl-3">
                         {item.id === "collections"
-                          ? collections.slice(0, 8).map((c) => (
+                          ? collections.slice(0, 12).map((c) => (
                               <li key={c.id}>
                                 <Link
                                   href={`/collections/${c.slug}`}
