@@ -9,6 +9,24 @@ export interface ProductGalleryImage {
   mediaType?: "image" | "video";
 }
 
+const PLACEHOLDER =
+  "data:image/svg+xml," +
+  encodeURIComponent(
+    `<svg xmlns="http://www.w3.org/2000/svg" width="400" height="500"><rect fill="#F3EEE6" width="100%" height="100%"/><text x="50%" y="50%" text-anchor="middle" fill="#8A8076" font-family="sans-serif" font-size="14">Image unavailable</text></svg>`,
+  );
+
+function dedupeImages(images: ProductGalleryImage[]): ProductGalleryImage[] {
+  const seen = new Set<string>();
+  const out: ProductGalleryImage[] = [];
+  for (const img of images) {
+    const key = `${img.mediaType ?? "image"}:${img.src}`;
+    if (seen.has(key)) continue;
+    seen.add(key);
+    out.push(img);
+  }
+  return out;
+}
+
 export function ProductGallery({
   images,
   className,
@@ -16,23 +34,31 @@ export function ProductGallery({
   images: ProductGalleryImage[];
   className?: string;
 }) {
+  const unique = React.useMemo(() => dedupeImages(images), [images]);
   const [index, setIndex] = React.useState(0);
   const [videoFailed, setVideoFailed] = React.useState(false);
-  const current = images[index] ?? images[0];
+  const [mainFailed, setMainFailed] = React.useState(false);
+  const current = unique[index] ?? unique[0];
 
   React.useEffect(() => {
     setVideoFailed(false);
+    setMainFailed(false);
   }, [index, current?.src]);
 
   if (!current) return null;
 
   const isVideo = current.mediaType === "video" && !videoFailed;
   const fallbackImage =
-    images.find((img) => img.mediaType !== "video") ?? images.find((img) => img.src !== current.src);
+    unique.find((img) => img.mediaType !== "video") ?? unique.find((img) => img.src !== current.src);
+  const mainSrc = mainFailed
+    ? PLACEHOLDER
+    : videoFailed && fallbackImage
+      ? fallbackImage.src
+      : current.src;
 
   return (
     <div className={cn("grid gap-3", className)}>
-      <div className="relative aspect-[4/5] overflow-hidden rounded-lg bg-linen">
+      <div className="relative aspect-[4/5] min-h-[12rem] overflow-hidden rounded-lg bg-linen">
         {isVideo ? (
           <video
             key={current.src}
@@ -47,15 +73,16 @@ export function ProductGallery({
         ) : (
           // eslint-disable-next-line @next/next/no-img-element
           <img
-            key={videoFailed && fallbackImage ? fallbackImage.src : current.src}
-            src={videoFailed && fallbackImage ? fallbackImage.src : current.src}
+            key={mainSrc}
+            src={mainSrc}
             alt={current.alt}
             className="h-full w-full object-cover animate-fade-in"
+            onError={() => setMainFailed(true)}
           />
         )}
       </div>
       <div className="flex gap-2 overflow-x-auto">
-        {images.map((image, i) => (
+        {unique.map((image, i) => (
           <button
             key={`${image.src}-${i}`}
             type="button"
@@ -75,6 +102,7 @@ export function ProductGallery({
             <img
               src={image.mediaType === "video" ? (fallbackImage?.src ?? image.src) : image.src}
               alt=""
+              loading="lazy"
               className="h-full w-full object-cover"
               onError={(e) => {
                 (e.target as HTMLImageElement).style.display = "none";

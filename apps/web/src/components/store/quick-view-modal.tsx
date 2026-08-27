@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import Link from "next/link";
-import { Button, Price, ProductGallery } from "@t360/ui";
+import { Button, Price } from "@t360/ui";
 import type { ProductListItem } from "../../lib/catalog-api";
 import { productPrice } from "../../lib/catalog-api";
 
@@ -19,20 +19,30 @@ export function QuickViewModal({
   addLabel: string;
   tryMeLabel: string;
 }) {
+  const closeRef = React.useRef<HTMLButtonElement>(null);
+
   React.useEffect(() => {
     if (!open) return;
     function onKey(e: KeyboardEvent) {
       if (e.key === "Escape") onClose();
     }
     window.addEventListener("keydown", onKey);
+    closeRef.current?.focus();
     return () => window.removeEventListener("keydown", onKey);
   }, [open, onClose]);
 
   if (!open || !product) return null;
 
   const price = productPrice(product);
+  const images = Array.from(
+    new Map(
+      (product.images ?? [])
+        .filter((i) => i.url)
+        .map((i) => [i.url, i]),
+    ).values(),
+  );
   const image =
-    product.images?.[0]?.url ??
+    images[0]?.url ??
     "https://images.unsplash.com/photo-1596755094514-f87e34085b2c?auto=format&fit=crop&w=800&q=80";
 
   return (
@@ -46,9 +56,23 @@ export function QuickViewModal({
       >
         <div className="grid gap-0 sm:grid-cols-2">
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={image} alt={product.name} className="aspect-square w-full object-cover sm:rounded-l-lg" />
+          <img
+            src={image}
+            alt={product.name}
+            loading="lazy"
+            className="aspect-square w-full object-cover sm:rounded-l-lg"
+            onError={(e) => {
+              (e.target as HTMLImageElement).style.opacity = "0.3";
+            }}
+          />
           <div className="p-6">
-            <button type="button" className="float-right text-muted" onClick={onClose} aria-label="Close">
+            <button
+              ref={closeRef}
+              type="button"
+              className="float-right text-muted"
+              onClick={onClose}
+              aria-label="Close"
+            >
               ×
             </button>
             <p className="text-xs uppercase tracking-wide text-muted">{product.brand?.name}</p>
@@ -61,7 +85,7 @@ export function QuickViewModal({
                 <Button>{addLabel}</Button>
               </Link>
               {product.tryOnEnabled ? (
-                <Link href={`/products/${product.slug}#try-me`}>
+                <Link href={`/products/${product.slug}?tryOn=1#try-me`}>
                   <Button variant="secondary">{tryMeLabel}</Button>
                 </Link>
               ) : null}

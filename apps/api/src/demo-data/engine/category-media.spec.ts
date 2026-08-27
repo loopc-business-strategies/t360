@@ -45,6 +45,20 @@ describe("getDemoImagesForCategory", () => {
   it("uses sibling fallback for women-mini-dresses", () => {
     expect(__test.FALLBACK_LEAF["women-mini-dresses"]).toBe("women-casual-dresses");
   });
+
+  it("never repeats a URL inside one product gallery", () => {
+    for (let i = 0; i < 12; i++) {
+      const stills = getDemoImagesForCategory("men-t-shirts", "men", i);
+      expect(new Set(stills).size).toBe(stills.length);
+    }
+  });
+
+  it("rotates primaries across products in the same leaf", () => {
+    const primaries = new Set(
+      Array.from({ length: 8 }, (_, i) => getDemoImagesForCategory("men-t-shirts", "men", i)[0]),
+    );
+    expect(primaries.size).toBeGreaterThan(1);
+  });
 });
 
 describe("buildDemoProductName / description", () => {

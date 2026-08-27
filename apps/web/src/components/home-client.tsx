@@ -335,14 +335,18 @@ export function HomeClient({
               <form
                 className="mt-6 flex flex-col gap-2 sm:flex-row"
                 onSubmit={(e) => e.preventDefault()}
+                aria-label={t.newsletterTitle ?? "Newsletter"}
               >
                 <input
                   type="email"
-                  placeholder={t.emailPlaceholder ?? "Email address"}
-                  className="h-11 flex-1 rounded-md border border-border bg-elevated px-3 text-sm"
+                  disabled
+                  placeholder="Email (coming soon)"
+                  className="h-11 flex-1 rounded-md border border-border bg-elevated px-3 text-sm disabled:opacity-60"
                   aria-label={t.emailPlaceholder ?? "Email"}
                 />
-                <Button type="submit">{t.newsletterCta ?? "Subscribe"}</Button>
+                <Button type="submit" disabled>
+                  Coming soon
+                </Button>
               </form>
             </div>
           </motion.section>

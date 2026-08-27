@@ -48,6 +48,7 @@ export function TryOnModal({
   const [busy, setBusy] = React.useState(false);
   const [savePhotoConsent, setSavePhotoConsent] = React.useState(false);
   const fileRef = React.useRef<HTMLInputElement>(null);
+  const closeRef = React.useRef<HTMLButtonElement>(null);
   const videoRef = React.useRef<HTMLVideoElement>(null);
   const [cameraOn, setCameraOn] = React.useState(false);
   const streamRef = React.useRef<MediaStream | null>(null);
@@ -70,6 +71,11 @@ export function TryOnModal({
     setSession(null);
     setError(null);
     setSavePhotoConsent(false);
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose();
+    };
+    window.addEventListener("keydown", onKey);
+    closeRef.current?.focus();
     void apiFetch<{
       allowCamera: boolean;
       allowUpload: boolean;
@@ -77,7 +83,8 @@ export function TryOnModal({
     }>("/ai/fashion/try-on/config")
       .then((r) => setCfg(r.data))
       .catch(() => undefined);
-  }, [open, reusedPhotoUrl]);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [open, reusedPhotoUrl, onClose]);
 
   React.useEffect(() => () => stopCamera(), []);
 
@@ -270,7 +277,13 @@ export function TryOnModal({
             </h2>
             <p className="mt-1 text-sm text-muted">{productName}</p>
           </div>
-          <button type="button" className="rounded-md px-2 py-1 text-sm text-muted hover:text-ink" onClick={onClose} aria-label={t.tryMeCancel}>
+          <button
+            ref={closeRef}
+            type="button"
+            className="rounded-md px-2 py-1 text-sm text-muted hover:text-ink"
+            onClick={onClose}
+            aria-label={t.tryMeCancel}
+          >
             ✕
           </button>
         </div>

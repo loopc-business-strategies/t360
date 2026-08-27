@@ -22,6 +22,7 @@ import {
   getDemoImagesForCategory,
   getDemoVideoForCategory,
   validateProductMedia,
+  allowedImageUrlsForCategory,
 } from "./category-media";
 import {
   CATEGORY_META,
@@ -631,6 +632,9 @@ export async function auditDemoCatalog(prisma: PrismaClient): Promise<AuditRow[]
     },
   });
   const rows: AuditRow[] = [];
+  const primaryByLeaf = new Map<string, Map<string, number>>();
+  const poolSizeByLeaf = new Map<string, number>();
+
   for (const p of products) {
     const leaf = p.category?.slug ?? "";
     const segment =
@@ -647,7 +651,8 @@ export async function auditDemoCatalog(prisma: PrismaClient): Promise<AuditRow[]
                 : leaf.startsWith("festival-")
                   ? "festival"
                   : "men";
-    const primary = p.images.find((i) => i.mediaType === "image")?.url ?? "";
+    const stills = p.images.filter((i) => i.mediaType === "image");
+    const primary = stills[0]?.url ?? "";
     const hasVideo = p.images.some((i) => i.mediaType === "video");
     let status: AuditRow["status"] = "PASS";
 
@@ -659,19 +664,33 @@ export async function auditDemoCatalog(prisma: PrismaClient): Promise<AuditRow[]
       if (tokens.length && !tokens.some((t) => hay.includes(t.toLowerCase()))) {
         status = "NAME_MISMATCH";
       } else {
-        const media = validateProductMedia({
-          categorySlug: leaf,
-          segment,
-          images: p.images.map((i) => ({
-            url: i.url,
-            mediaType: i.mediaType,
-            isTryOnSource: i.isTryOnSource,
-            productId: i.productId,
-          })),
-          tryOnEnabled: p.tryOnEnabled,
-          productId: p.id,
-        });
-        if (!media.ok) status = media.status === "TRYON_MISMATCH" ? "TRYON_MISMATCH" : "MEDIA_MISMATCH";
+        const stillUrls = stills.map((i) => i.url);
+        if (stillUrls.length !== new Set(stillUrls).size) {
+          status = "MEDIA_MISMATCH";
+        } else {
+          const media = validateProductMedia({
+            categorySlug: leaf,
+            segment,
+            images: p.images.map((i) => ({
+              url: i.url,
+              mediaType: i.mediaType,
+              isTryOnSource: i.isTryOnSource,
+              productId: i.productId,
+            })),
+            tryOnEnabled: p.tryOnEnabled,
+            productId: p.id,
+          });
+          if (!media.ok) status = media.status === "TRYON_MISMATCH" ? "TRYON_MISMATCH" : "MEDIA_MISMATCH";
+        }
+      }
+    }
+
+    if (primary && leaf) {
+      if (!primaryByLeaf.has(leaf)) primaryByLeaf.set(leaf, new Map());
+      const m = primaryByLeaf.get(leaf)!;
+      m.set(primary, (m.get(primary) ?? 0) + 1);
+      if (!poolSizeByLeaf.has(leaf)) {
+        poolSizeByLeaf.set(leaf, allowedImageUrlsForCategory(leaf, segment).size);
       }
     }
 
@@ -686,6 +705,28 @@ export async function auditDemoCatalog(prisma: PrismaClient): Promise<AuditRow[]
       status,
     });
   }
+
+  // Within each leaf, distinct primaries must equal min(productCount, effectivePoolCap).
+  // Catches stride collapse where every product shares one primary.
+  for (const [leaf, counts] of primaryByLeaf) {
+    const productCount = [...counts.values()].reduce((a, b) => a + b, 0);
+    const distinct = counts.size;
+    const expectedMin = Math.min(productCount, Math.min(4, poolSizeByLeaf.get(leaf) ?? 4));
+    // With stride-1, we expect min(productCount, poolUnique) distinct primaries (capped by pool).
+    // Fail hard if only 1 primary for 2+ products when pool has more than 1 image.
+    const poolUnique = Math.min(12, poolSizeByLeaf.get(leaf) ?? 1);
+    if (productCount > 1 && distinct < Math.min(productCount, Math.max(2, Math.min(poolUnique, 6)))) {
+      for (const row of rows) {
+        if (row.category === leaf && row.status === "PASS") {
+          row.status = "MEDIA_MISMATCH";
+        }
+      }
+      console.warn(
+        `[demo-audit] leaf primary uniqueness fail leaf=${leaf} distinct=${distinct} products=${productCount} expectedMin=${expectedMin}`,
+      );
+    }
+  }
+
   return rows;
 }
 

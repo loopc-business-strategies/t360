@@ -29,6 +29,15 @@ export function ProductDetailClient({
   const [related, setRelated] = React.useState<ProductListItem[]>([]);
   const [infoTab, setInfoTab] = React.useState<"materials" | "care" | "shipping">("materials");
 
+  React.useEffect(() => {
+    if (typeof window === "undefined") return;
+    const params = new URLSearchParams(window.location.search);
+    const hash = window.location.hash.replace(/^#/, "");
+    if ((params.get("tryOn") === "1" || hash === "try-me") && product.tryOnEnabled) {
+      setTryOnOpen(true);
+    }
+  }, [product.tryOnEnabled, product.id]);
+
   const variant = product.variants?.find((v) => v.id === selected) ?? product.variants?.[0];
   const sizes = Array.from(
     new Set((product.variants ?? []).map((v) => v.attributes?.size).filter(Boolean)),
@@ -238,6 +247,7 @@ export function ProductDetailClient({
             {t.addToCart}
           </Button>
           <Button
+            id="try-me"
             type="button"
             variant="secondary"
             disabled={!product.tryOnEnabled || busy}
@@ -254,8 +264,8 @@ export function ProductDetailClient({
           <Button variant="secondary" type="button" disabled={busy} onClick={() => void toggleWishlist()}>
             {variant && wishIds.includes(variant.id) ? t.wishlistRemove : t.wishlistAdd}
           </Button>
-          <Link href="/policies/returns" className="self-center text-sm text-wine hover:underline">
-            {t.sizeGuide ?? "Size guide"}
+          <Link href="/policies/shipping" className="self-center text-sm text-wine hover:underline">
+            Fit &amp; shipping
           </Link>
           <a href={waUrl} target="_blank" rel="noopener noreferrer">
             <Button variant="outline" type="button">

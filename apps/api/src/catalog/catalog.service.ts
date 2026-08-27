@@ -89,20 +89,24 @@ export class CatalogService {
     if (!product?.category?.slug) {
       throw new NotFoundException({ code: "PRODUCT_NOT_FOUND", message: "Product not found" });
     }
-    const slugs = resolveRelatedCategorySlugs(product.category.slug);
+    const slugs = resolveRelatedCategorySlugs(product.category.slug).slice(0, 6);
+    const hits = await Promise.all(
+      slugs.map((cat) =>
+        this.search.searchProducts(
+          { category: cat, page: 1, pageSize: limit + 4, sort: "newest" },
+          undefined,
+        ),
+      ),
+    );
     const collected: string[] = [];
-    for (const cat of slugs) {
-      if (collected.length >= limit) break;
-      const hit = await this.search.searchProducts(
-        { category: cat, page: 1, pageSize: limit + 4, sort: "newest" },
-        undefined,
-      );
+    for (const hit of hits) {
       for (const id of hit.ids) {
         if (id === product.id) continue;
         if (collected.includes(id)) continue;
         collected.push(id);
         if (collected.length >= limit) break;
       }
+      if (collected.length >= limit) break;
     }
     if (!collected.length) return [];
     const products = await this.prisma.product.findMany({

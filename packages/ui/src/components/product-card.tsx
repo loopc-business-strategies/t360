@@ -71,19 +71,30 @@ export function ProductCard({
         <img
           src={imageUrl}
           alt={imageAlt}
+          loading="lazy"
+          decoding="async"
           className={cn(
             "h-full w-full object-cover transition duration-500 ease-out",
-            secondImageUrl
+            secondImageUrl && secondImageUrl !== imageUrl
               ? "group-hover:opacity-0"
               : "group-hover:scale-[1.06]",
           )}
+          onError={(e) => {
+            (e.target as HTMLImageElement).src =
+              "data:image/svg+xml," +
+              encodeURIComponent(
+                `<svg xmlns="http://www.w3.org/2000/svg" width="400" height="500"><rect fill="#F3EEE6" width="100%" height="100%"/></svg>`,
+              );
+          }}
         />
-        {secondImageUrl ? (
+        {secondImageUrl && secondImageUrl !== imageUrl ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img
             src={secondImageUrl}
             alt=""
             aria-hidden
+            loading="lazy"
+            decoding="async"
             className="absolute inset-0 h-full w-full object-cover opacity-0 transition duration-500 ease-out group-hover:scale-[1.06] group-hover:opacity-100"
           />
         ) : null}

@@ -6,7 +6,7 @@
 const u = (id: string) =>
   `https://images.unsplash.com/${id}?auto=format&fit=crop&w=900&q=80`;
 
-/** Shared type pools (license-safe Unsplash). */
+/** Shared type pools (license-safe Unsplash). Each pool ≥6 unique URLs. */
 const POOLS = {
   menTees: [
     u("photo-1521572163474-6864f9cf17ab"),
@@ -14,57 +14,95 @@ const POOLS = {
     u("photo-1576566588028-4147f3842f27"),
     u("photo-1618354691373-d851c5c3c990"),
     u("photo-1562157873-818bc0726f68"),
-  ],
-  menShirts: [
-    u("photo-1596755094514-f87e34085b2c"),
-    u("photo-1602810318383-e386cc2a3ccf"),
-    u("photo-1598033129183-c4f50c736f10"),
-    u("photo-1620012253295-c5d1852f465e"),
+    u("photo-1529374255404-311a2a4f1fd9"),
+    u("photo-1581655353564-df123a1eb820"),
+    u("photo-1618354691438-25bc045586c5"),
+    u("photo-1627225924765-552d49cf47ad"),
+    u("photo-1571945155157-e3bbc7f27c0f"),
   ],
   menHoodies: [
     u("photo-1556821840-3a63f95609a7"),
     u("photo-1620799140408-edc6dcb6d633"),
     u("photo-1578768079052-aa76e5058fe8"),
     u("photo-1509942772901-7630589a4f12"),
+    u("photo-1578587018452-892bacefd3f2"),
+    u("photo-1620799140188-3b2a02fd9a77"),
+    u("photo-1618354691373-d851c5c3c990"),
+    u("photo-1529374255404-311a2a4f1fd9"),
   ],
   menJackets: [
     u("photo-1551028719-00167b16eac5"),
     u("photo-1591047139829-d91aecb6caea"),
     u("photo-1548126032-079a0fb0099d"),
     u("photo-1521223890158-f9f7c3d5d504"),
+    u("photo-1544022613-e87ca75a784a"),
+    u("photo-1487222477894-8943e31ef7b2"),
+    u("photo-1509631179647-0177331693ae"),
+    u("photo-1552374196-1ab2a1c593e8"),
   ],
   menBottoms: [
     u("photo-1542272454315-4c01d7ab9144"),
     u("photo-1473966968600-fa801b869a1a"),
     u("photo-1624378439575-d8705ad7efc4"),
     u("photo-1506629082955-511b1aa78283"),
+    u("photo-1541099649105-f69ad21f3246"),
+    u("photo-1584370848010-d7cdb331668c"),
+    u("photo-1604176354204-9268737828e4"),
+    u("photo-1591195853828-11db59a44f6b"),
+  ],
+  menShirts: [
+    u("photo-1596755094514-f87e34085b2c"),
+    u("photo-1602810318383-e386cc2a3ccf"),
+    u("photo-1598033129183-c4f50c736f10"),
+    u("photo-1620012253295-c5d1852f465e"),
+    u("photo-1603252109303-2751441dd157"),
+    u("photo-1594938298603-c8148c4dae35"),
+    u("photo-1563630423918-b58f07336ac9"),
+    u("photo-1521572163474-6864f9cf17ab"),
   ],
   menShorts: [
     u("photo-1591195853828-11db59a44f6b"),
     u("photo-1565084888279-aca607ecce0c"),
     u("photo-1519238263530-99bdd11df2ea"),
+    u("photo-1506629082955-511b1aa78283"),
+    u("photo-1542272454315-4c01d7ab9144"),
+    u("photo-1624378439575-d8705ad7efc4"),
   ],
   menActive: [
     u("photo-1571019614242-c5c5dee9f50b"),
     u("photo-1517836357463-d25dfeac3438"),
     u("photo-1534438327276-14e5300c3a48"),
+    u("photo-1518611012118-696072aa579a"),
+    u("photo-1518310383802-640c2de311b2"),
+    u("photo-1571019613454-1cb2f99b2d8b"),
   ],
   menAccessories: [
     u("photo-1523275335684-37898b6baf30"),
     u("photo-1627123424574-724758594e93"),
     u("photo-1553062407-98eeb64c6a62"),
+    u("photo-1584917865442-de89df76afd3"),
+    u("photo-1611923134239-b9be5816e23c"),
+    u("photo-1591561954557-26941169b49e"),
   ],
   womenTees: [
     u("photo-1503342217505-b0a15ec77ed5"),
     u("photo-1489987707025-afc232f7ea0f"),
     u("photo-1554568218-0f1715e72254"),
     u("photo-1434389677669-e08b4cac3105"),
+    u("photo-1515886657613-9f3515b0c78f"),
+    u("photo-1564257631407-4deb1f99d992"),
+    u("photo-1594633312681-425c7b97ccd1"),
+    u("photo-1487222477894-8943e31ef7b2"),
   ],
   womenTops: [
     u("photo-1487222477894-8943e31ef7b2"),
     u("photo-1594633312681-425c7b97ccd1"),
     u("photo-1564257631407-4deb1f99d992"),
     u("photo-1515886657613-9f3515b0c78f"),
+    u("photo-1503342217505-b0a15ec77ed5"),
+    u("photo-1554568218-0f1715e72254"),
+    u("photo-1434389677669-e08b4cac3105"),
+    u("photo-1489987707025-afc232f7ea0f"),
   ],
   womenDresses: [
     u("photo-1496747611176-843222e1e57c"),
@@ -72,6 +110,9 @@ const POOLS = {
     u("photo-1572804013309-59a88b7e92f1"),
     u("photo-1595777457583-95e059d581b8"),
     u("photo-1566174053879-31528523f8ae"),
+    u("photo-1539008835657-9e441115744e"),
+    u("photo-1612336307429-8a898d10e223"),
+    u("photo-1596783074918-c41064844748"),
   ],
   womenEthnic: [
     u("photo-1583391733956-3750e0ff4e8b"),
@@ -79,88 +120,141 @@ const POOLS = {
     u("photo-1490481651871-ab68de25d43d"),
     u("photo-1469334031218-e382a71b716b"),
     u("photo-1581044777550-4cfa60707c03"),
+    u("photo-1509631179647-0177331693ae"),
+    u("photo-1483985988355-763728e1935b"),
+    u("photo-1496747611176-843222e1e57c"),
   ],
   womenChudidar: [
     u("photo-1583391733956-3750e0ff4e8b"),
     u("photo-1610030469983-98e550d6193c"),
     u("photo-1509631179647-0177331693ae"),
     u("photo-1581044777550-4cfa60707c03"),
+    u("photo-1490481651871-ab68de25d43d"),
+    u("photo-1469334031218-e382a71b716b"),
+    u("photo-1483985988355-763728e1935b"),
+    u("photo-1572804013309-59a88b7e92f1"),
   ],
   womenKurtis: [
     u("photo-1490481651871-ab68de25d43d"),
     u("photo-1469334031218-e382a71b716b"),
     u("photo-1515886657613-9f3515b0c78f"),
-    u("photo-1487222477894-8943e31ef7b2"),
+    u("photo-1581044777550-4cfa60707c03"),
+    u("photo-1509631179647-0177331693ae"),
+    u("photo-1610030469983-98e550d6193c"),
+    u("photo-1583391733956-3750e0ff4e8b"),
+    u("photo-1566174053879-31528523f8ae"),
   ],
   womenHoodies: [
     u("photo-1578587018452-892bacefd3f2"),
     u("photo-1556821840-3a63f95609a7"),
     u("photo-1620799140188-3b2a02fd9a77"),
+    u("photo-1620799140408-edc6dcb6d633"),
+    u("photo-1509942772901-7630589a4f12"),
+    u("photo-1578768079052-aa76e5058fe8"),
   ],
   womenJackets: [
     u("photo-1548126032-079a0fb0099d"),
     u("photo-1591047139829-d91aecb6caea"),
     u("photo-1551028719-00167b16eac5"),
+    u("photo-1521223890158-f9f7c3d5d504"),
+    u("photo-1544022613-e87ca75a784a"),
+    u("photo-1487222477894-8943e31ef7b2"),
   ],
   womenBottoms: [
     u("photo-1541099649105-f69ad21f3246"),
     u("photo-1584370848010-d7cdb331668c"),
     u("photo-1506629082955-511b1aa78283"),
     u("photo-1594633313593-bab3825d0cfc"),
+    u("photo-1542272454315-4c01d7ab9144"),
+    u("photo-1604176354204-9268737828e4"),
   ],
   womenShorts: [
     u("photo-1594633313593-bab3825d0cfc"),
     u("photo-1583496661160-fb5886a0aaaa"),
     u("photo-1518310383802-640c2de311b2"),
+    u("photo-1577900232427-18219b9166a0"),
+    u("photo-1558171813-4c0880cf959e"),
+    u("photo-1506629082955-511b1aa78283"),
   ],
   womenSkirts: [
     u("photo-1583496661160-fb5886a0aaaa"),
     u("photo-1577900232427-18219b9166a0"),
     u("photo-1558171813-4c0880cf959e"),
+    u("photo-1594633313593-bab3825d0cfc"),
+    u("photo-1515372039744-b8f02a3ae446"),
+    u("photo-1595777457583-95e059d581b8"),
   ],
   womenActive: [
     u("photo-1518310383802-640c2de311b2"),
     u("photo-1571019614242-c5c5dee9f50b"),
     u("photo-1518611012118-696072aa579a"),
+    u("photo-1517836357463-d25dfeac3438"),
+    u("photo-1534438327276-14e5300c3a48"),
+    u("photo-1571019613454-1cb2f99b2d8b"),
   ],
   womenAccessories: [
     u("photo-1591561954557-26941169b49e"),
     u("photo-1584917865442-de89df76afd3"),
     u("photo-1611923134239-b9be5816e23c"),
+    u("photo-1523275335684-37898b6baf30"),
+    u("photo-1627123424574-724758594e93"),
+    u("photo-1553062407-98eeb64c6a62"),
   ],
   kidsTees: [
     u("photo-1503919547998-4c22e5bb7e32"),
     u("photo-1519238263530-99bdd11df2ea"),
     u("photo-1503454537195-1dcabb73ffb9"),
     u("photo-1471286174890-9c112ffca5b4"),
+    u("photo-1489710437720-ebb67ec84dd2"),
+    u("photo-1519457431-44ccd64a579b"),
   ],
   kidsHoodies: [
     u("photo-1519238263530-99bdd11df2ea"),
     u("photo-1503919547998-4c22e5bb7e32"),
     u("photo-1489710437720-ebb67ec84dd2"),
+    u("photo-1503454537195-1dcabb73ffb9"),
+    u("photo-1471286174890-9c112ffca5b4"),
+    u("photo-1519457431-44ccd64a579b"),
   ],
   kidsBottoms: [
     u("photo-1519457431-44ccd64a579b"),
     u("photo-1503454537195-1dcabb73ffb9"),
     u("photo-1471286174890-9c112ffca5b4"),
+    u("photo-1503919547998-4c22e5bb7e32"),
+    u("photo-1519238263530-99bdd11df2ea"),
+    u("photo-1489710437720-ebb67ec84dd2"),
   ],
   kidsDresses: [
     u("photo-1518831959646-742c3a14ebf7"),
     u("photo-1622290291468-a28f7a7dc6a8"),
     u("photo-1515488042361-ee00e0ddd4e4"),
+    u("photo-1503454537195-1dcabb73ffb9"),
+    u("photo-1471286174890-9c112ffca5b4"),
+    u("photo-1503919547998-4c22e5bb7e32"),
   ],
   kidsEthnic: [
     u("photo-1515488042361-ee00e0ddd4e4"),
     u("photo-1518831959646-742c3a14ebf7"),
     u("photo-1503454537195-1dcabb73ffb9"),
+    u("photo-1622290291468-a28f7a7dc6a8"),
+    u("photo-1471286174890-9c112ffca5b4"),
+    u("photo-1519238263530-99bdd11df2ea"),
   ],
   kidsSleep: [
     u("photo-1515488042361-ee00e0ddd4e4"),
     u("photo-1503454537195-1dcabb73ffb9"),
+    u("photo-1471286174890-9c112ffca5b4"),
+    u("photo-1518831959646-742c3a14ebf7"),
+    u("photo-1503919547998-4c22e5bb7e32"),
+    u("photo-1489710437720-ebb67ec84dd2"),
   ],
   kidsAccessories: [
     u("photo-1515488042361-ee00e0ddd4e4"),
     u("photo-1503919547998-4c22e5bb7e32"),
+    u("photo-1523275335684-37898b6baf30"),
+    u("photo-1591561954557-26941169b49e"),
+    u("photo-1584917865442-de89df76afd3"),
+    u("photo-1611923134239-b9be5816e23c"),
   ],
   sarees: [
     u("photo-1610030469983-98e550d6193c"),
@@ -169,54 +263,84 @@ const POOLS = {
     u("photo-1469334031218-e382a71b716b"),
     u("photo-1509631179647-0177331693ae"),
     u("photo-1581044777550-4cfa60707c03"),
+    u("photo-1483985988355-763728e1935b"),
+    u("photo-1496747611176-843222e1e57c"),
+    u("photo-1572804013309-59a88b7e92f1"),
+    u("photo-1595777457583-95e059d581b8"),
   ],
   lehengas: [
     u("photo-1583391733956-3750e0ff4e8b"),
     u("photo-1610030469983-98e550d6193c"),
     u("photo-1496747611176-843222e1e57c"),
     u("photo-1572804013309-59a88b7e92f1"),
+    u("photo-1490481651871-ab68de25d43d"),
+    u("photo-1469334031218-e382a71b716b"),
+    u("photo-1566174053879-31528523f8ae"),
+    u("photo-1539008835657-9e441115744e"),
   ],
   sherwanis: [
     u("photo-1594938298603-c8148c4dae35"),
     u("photo-1552374196-1ab2a1c593e8"),
     u("photo-1602810318383-e386cc2a3ccf"),
     u("photo-1620012253295-c5d1852f465e"),
+    u("photo-1596755094514-f87e34085b2c"),
+    u("photo-1598033129183-c4f50c736f10"),
   ],
   kurtas: [
     u("photo-1594938298603-c8148c4dae35"),
     u("photo-1552374196-1ab2a1c593e8"),
     u("photo-1602810318383-e386cc2a3ccf"),
     u("photo-1583391733956-3750e0ff4e8b"),
+    u("photo-1620012253295-c5d1852f465e"),
+    u("photo-1596755094514-f87e34085b2c"),
   ],
   festivalSets: [
     u("photo-1583391733956-3750e0ff4e8b"),
     u("photo-1610030469983-98e550d6193c"),
     u("photo-1490481651871-ab68de25d43d"),
     u("photo-1594938298603-c8148c4dae35"),
+    u("photo-1469334031218-e382a71b716b"),
+    u("photo-1509631179647-0177331693ae"),
   ],
   festivalAccessories: [
     u("photo-1591561954557-26941169b49e"),
     u("photo-1584917865442-de89df76afd3"),
     u("photo-1611923134239-b9be5816e23c"),
+    u("photo-1523275335684-37898b6baf30"),
+    u("photo-1627123424574-724758594e93"),
+    u("photo-1553062407-98eeb64c6a62"),
   ],
   genericMen: [
     u("photo-1487222477894-8943e31ef7b2"),
     u("photo-1552374196-1ab2a1c593e8"),
     u("photo-1509631179647-0177331693ae"),
+    u("photo-1521572163474-6864f9cf17ab"),
+    u("photo-1596755094514-f87e34085b2c"),
+    u("photo-1556821840-3a63f95609a7"),
   ],
   genericWomen: [
     u("photo-1469334031218-e382a71b716b"),
     u("photo-1490481651871-ab68de25d43d"),
     u("photo-1483985988355-763728e1935b"),
+    u("photo-1496747611176-843222e1e57c"),
+    u("photo-1515886657613-9f3515b0c78f"),
+    u("photo-1503342217505-b0a15ec77ed5"),
   ],
   genericKids: [
     u("photo-1503919547998-4c22e5bb7e32"),
     u("photo-1503454537195-1dcabb73ffb9"),
+    u("photo-1519238263530-99bdd11df2ea"),
+    u("photo-1471286174890-9c112ffca5b4"),
+    u("photo-1518831959646-742c3a14ebf7"),
+    u("photo-1515488042361-ee00e0ddd4e4"),
   ],
   generic: [
     u("photo-1445205170230-053b83016050"),
     u("photo-1467043232772-3e1e5bfae434"),
     u("photo-1554568218-0f1715e72254"),
+    u("photo-1483985988355-763728e1935b"),
+    u("photo-1490481651871-ab68de25d43d"),
+    u("photo-1469334031218-e382a71b716b"),
   ],
 } as const;
 
@@ -392,16 +516,34 @@ export function allowedImageUrlsForCategory(categorySlug: string, segment: strin
   return urls;
 }
 
-/** Deterministic 4 stills for a category leaf. */
+function hashSlug(slug: string): number {
+  let h = 0;
+  for (let i = 0; i < slug.length; i++) h = (h * 31 + slug.charCodeAt(i)) >>> 0;
+  return h;
+}
+
+function uniquePool(pool: readonly string[]): string[] {
+  return [...new Set(pool)];
+}
+
+/**
+ * Deterministic unique stills for a category leaf.
+ * Stride-1 from (hash(leaf)+index) so shared type pools don't all start at 0.
+ * Never pads by repeating URLs — returns up to 4 unique images.
+ */
 export function getDemoImagesForCategory(
   categorySlug: string,
   segment: string,
   productIndex: number,
 ): string[] {
-  const pool = resolvePool(categorySlug, segment);
+  const pool = uniquePool(resolvePool(categorySlug, segment));
+  if (!pool.length) return [];
+  const start = (hashSlug(categorySlug) + productIndex) % pool.length;
   const out: string[] = [];
-  for (let i = 0; i < 4; i++) {
-    out.push(pool[(productIndex * 4 + i) % pool.length]);
+  const want = Math.min(4, pool.length);
+  for (let i = 0; i < pool.length && out.length < want; i++) {
+    const url = pool[(start + i) % pool.length];
+    if (!out.includes(url)) out.push(url);
   }
   return out;
 }

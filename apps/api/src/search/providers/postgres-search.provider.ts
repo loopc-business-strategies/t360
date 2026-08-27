@@ -36,15 +36,15 @@ export class PostgresSearchProvider implements SearchProvider {
       params.push(query.category);
       // Match category by slug/id, or any descendant under that parent (e.g. /men → men-t-shirts).
       where.push(`(
-        c.slug = $${params.length} OR c.id::text = $${params.length}
+        (c.slug = $${params.length} OR c.id::text = $${params.length}) AND c."deletedAt" IS NULL AND c.status = 'active'
         OR c.id IN (
           WITH RECURSIVE cat_tree AS (
             SELECT id FROM "Category"
-            WHERE (slug = $${params.length} OR id::text = $${params.length}) AND "deletedAt" IS NULL
+            WHERE (slug = $${params.length} OR id::text = $${params.length}) AND "deletedAt" IS NULL AND status = 'active'
             UNION ALL
             SELECT child.id FROM "Category" child
             INNER JOIN cat_tree parent ON child."parentId" = parent.id
-            WHERE child."deletedAt" IS NULL
+            WHERE child."deletedAt" IS NULL AND child.status = 'active'
           )
           SELECT id FROM cat_tree
         )
