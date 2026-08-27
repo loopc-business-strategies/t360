@@ -125,16 +125,6 @@ const POOLS = {
     u("photo-1556905055-8f358a7a47b2"),
     u("photo-1758915214569-6f72affed688"),
   ],
-  menAccessories: [
-    u("photo-1523275335684-37898b6baf30"),
-    u("photo-1627123424574-724758594e93"),
-    u("photo-1553062407-98eeb64c6a62"),
-    u("photo-1584917865442-de89df76afd3"),
-    u("photo-1611923134239-b9be5816e23c"),
-    u("photo-1591561954557-26941169b49e"),
-    u("photo-1631049307264-da0ec9d70304"),
-    u("photo-1445205170230-053b83016050"),
-  ],
   womenTees: [
     u("photo-1489987707025-afc232f7ea0f"),
     u("photo-1554568218-0f1715e72254"),
@@ -300,18 +290,6 @@ const POOLS = {
     u("photo-1534438327276-14e5300c3a48"),
     u("photo-1571019613454-1cb2f99b2d8b"),
   ],
-  womenAccessories: [
-    u("photo-1591561954557-26941169b49e"),
-    u("photo-1584917865442-de89df76afd3"),
-    u("photo-1611923134239-b9be5816e23c"),
-    u("photo-1523275335684-37898b6baf30"),
-    u("photo-1627123424574-724758594e93"),
-    u("photo-1553062407-98eeb64c6a62"),
-    u("photo-1631049307264-da0ec9d70304"),
-    u("photo-1445205170230-053b83016050"),
-    u("photo-1556905055-8f358a7a47b2"),
-    u("photo-1441986300917-64674bd600d8"),
-  ],
   kidsTees: [
     u("photo-1519238263530-99bdd11df2ea"),
     u("photo-1503454537195-1dcabb73ffb9"),
@@ -369,14 +347,6 @@ const POOLS = {
     u("photo-1518831959646-742c3a14ebf7"),
     u("photo-1489710437720-ebb67ec84dd2"),
     u("photo-1519457431-44ccd64a579b"),
-  ],
-  kidsAccessories: [
-    u("photo-1515488042361-ee00e0ddd4e4"),
-    u("photo-1523275335684-37898b6baf30"),
-    u("photo-1591561954557-26941169b49e"),
-    u("photo-1584917865442-de89df76afd3"),
-    u("photo-1611923134239-b9be5816e23c"),
-    u("photo-1553062407-98eeb64c6a62"),
   ],
   sarees: [
     u("photo-1694406175780-38470288c925"),
@@ -463,14 +433,6 @@ const POOLS = {
     u("photo-1469334031218-e382a71b716b"),
     u("photo-1509631179647-0177331693ae"),
   ],
-  festivalAccessories: [
-    u("photo-1591561954557-26941169b49e"),
-    u("photo-1584917865442-de89df76afd3"),
-    u("photo-1611923134239-b9be5816e23c"),
-    u("photo-1523275335684-37898b6baf30"),
-    u("photo-1627123424574-724758594e93"),
-    u("photo-1553062407-98eeb64c6a62"),
-  ],
   genericMen: [
     u("photo-1487222477894-8943e31ef7b2"),
     u("photo-1552374196-1ab2a1c593e8"),
@@ -527,7 +489,6 @@ const LEAF_POOL: Record<string, PoolKey> = {
   "men-joggers": "menBottoms",
   "men-shorts": "menShorts",
   "men-activewear": "menActive",
-  "men-accessories": "menAccessories",
   "women-t-shirts": "womenTees",
   "women-tops": "womenTops",
   "women-blouses": "womenTops",
@@ -553,7 +514,6 @@ const LEAF_POOL: Record<string, PoolKey> = {
   "women-shorts": "womenShorts",
   "women-skirts": "womenSkirts",
   "women-activewear": "womenActive",
-  "women-accessories": "womenAccessories",
   "men-kurtas": "kurtas",
   "men-kurta-sets": "kurtas",
   "men-nehru-jackets": "sherwanis",
@@ -574,7 +534,6 @@ const LEAF_POOL: Record<string, PoolKey> = {
   "kids-ethnic": "kidsEthnic",
   "kids-activewear": "kidsTees",
   "kids-sleepwear": "kidsSleep",
-  "kids-accessories": "kidsAccessories",
   "sarees-silk": "sarees",
   "sarees-cotton": "sarees",
   "sarees-party": "sarees",
@@ -587,7 +546,6 @@ const LEAF_POOL: Record<string, PoolKey> = {
   "festival-kurtas": "kurtas",
   "festival-dresses": "womenDresses",
   "festival-sets": "festivalSets",
-  "festival-accessories": "festivalAccessories",
 };
 
 /** Explicit sibling fallbacks before segment/generic. */
@@ -840,7 +798,6 @@ export function expectedNameTokens(categorySlug: string): string[] {
   if (categorySlug.includes("blouse")) return ["blouse"];
   if (categorySlug.includes("top")) return ["top"];
   if (categorySlug.includes("shirt")) return ["shirt"];
-  if (categorySlug.includes("accessor")) return ["accessor", "bag", "belt", "watch"];
   if (categorySlug.includes("active")) return ["active", "sport"];
   if (categorySlug.includes("sleep")) return ["sleep", "pyjama", "pajama"];
   if (categorySlug.includes("wide-leg")) return ["wide", "pant"];
@@ -982,8 +939,6 @@ export function buildDemoDescription(leafSlug: string, segment: string, name: st
     body = "Performance-ready activewear for training and movement.";
   } else if (leafSlug.includes("sleep")) {
     body = "Soft sleepwear designed for restful comfort.";
-  } else if (leafSlug.includes("accessor")) {
-    body = "Finishing accessory to complete the look.";
   } else if (leafSlug.includes("ethnic")) {
     body = "Ethnic wear designed for festivals and family celebrations.";
   } else if (segment === "kids") {

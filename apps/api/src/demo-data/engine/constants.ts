@@ -81,7 +81,6 @@ export const MEN_TREE: CatDef = {
     { name: "Kurtas", slug: "men-kurtas" },
     { name: "Kurta Sets", slug: "men-kurta-sets" },
     { name: "Nehru Jackets", slug: "men-nehru-jackets" },
-    { name: "Accessories", slug: "men-accessories" },
   ],
 };
 
@@ -114,7 +113,6 @@ export const WOMEN_TREE: CatDef = {
     { name: "Shorts", slug: "women-shorts" },
     { name: "Skirts", slug: "women-skirts" },
     { name: "Activewear", slug: "women-activewear" },
-    { name: "Accessories", slug: "women-accessories" },
   ],
 };
 
@@ -139,7 +137,6 @@ export const KIDS_TREE: CatDef = {
     { name: "Ethnic Wear", slug: "kids-ethnic" },
     { name: "Activewear", slug: "kids-activewear" },
     { name: "Sleepwear", slug: "kids-sleepwear" },
-    { name: "Accessories", slug: "kids-accessories" },
   ],
 };
 
@@ -173,7 +170,6 @@ export const OTHER_TREES: CatDef[] = [
       { name: "Festive Kurtas", slug: "festival-kurtas" },
       { name: "Festive Dresses", slug: "festival-dresses" },
       { name: "Ethnic Sets", slug: "festival-sets" },
-      { name: "Festive Accessories", slug: "festival-accessories" },
     ],
   },
 ];

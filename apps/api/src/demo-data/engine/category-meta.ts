@@ -13,8 +13,7 @@ export type PriceBand =
   | "ethnic"
   | "saree"
   | "bridal"
-  | "kids"
-  | "accessory";
+  | "kids";
 
 export type CategoryMeta = {
   slug: string;
@@ -44,7 +43,7 @@ function m(
   return { ...partial, nameTokens, descTokens };
 }
 
-/** Per-leaf quotas sum to ~750. */
+/** Per-leaf quotas sum to 724 (apparel only; accessories removed). */
 export const CATEGORY_META: Record<string, CategoryMeta> = {
   // â€”â€” Men (~222) â€”â€”
   "men-t-shirts": m({
@@ -315,21 +314,6 @@ export const CATEGORY_META: Record<string, CategoryMeta> = {
     nameTokens: ["active", "sport"],
     skuType: "MAC",
     brandSlug: "t360-active",
-    quota: 8,
-  }),
-  "men-accessories": m({
-    slug: "men-accessories",
-    segment: "men",
-    gender: "men",
-    productType: "accessories",
-    subType: "accessory",
-    tryOnSupported: true,
-    compatibleRelated: ["men-accessories"],
-    sizeProfile: "one",
-    priceBand: "accessory",
-    nameTokens: ["accessor", "belt", "watch", "wallet"],
-    skuType: "MAX",
-    brandSlug: "t360-essentials",
     quota: 8,
   }),
   "men-kurtas": m({
@@ -754,21 +738,6 @@ export const CATEGORY_META: Record<string, CategoryMeta> = {
     brandSlug: "t360-active",
     quota: 6,
   }),
-  "women-accessories": m({
-    slug: "women-accessories",
-    segment: "women",
-    gender: "women",
-    productType: "accessories",
-    subType: "accessory",
-    tryOnSupported: true,
-    compatibleRelated: ["women-accessories"],
-    sizeProfile: "one",
-    priceBand: "accessory",
-    nameTokens: ["accessor", "bag", "scarf"],
-    skuType: "WAX",
-    brandSlug: "t360-luxe",
-    quota: 10,
-  }),
 
   // â€”â€” Kids (~90) â€”â€”
   "kids-boys": m({
@@ -1026,21 +995,6 @@ export const CATEGORY_META: Record<string, CategoryMeta> = {
     brandSlug: "t360-kids",
     quota: 4,
   }),
-  "kids-accessories": m({
-    slug: "kids-accessories",
-    segment: "kids",
-    gender: "kids",
-    productType: "accessories",
-    subType: "accessory",
-    tryOnSupported: true,
-    compatibleRelated: ["kids-accessories"],
-    sizeProfile: "one",
-    priceBand: "accessory",
-    nameTokens: ["accessor"],
-    skuType: "KAX",
-    brandSlug: "t360-kids",
-    quota: 4,
-  }),
 
   // â€”â€” Sarees (~100) â€”â€”
   "sarees-silk": m({
@@ -1227,21 +1181,6 @@ export const CATEGORY_META: Record<string, CategoryMeta> = {
     brandSlug: "t360-festive",
     quota: 4,
   }),
-  "festival-accessories": m({
-    slug: "festival-accessories",
-    segment: "festival",
-    gender: "unisex",
-    productType: "accessories",
-    subType: "accessory",
-    tryOnSupported: true,
-    compatibleRelated: ["women-accessories"],
-    sizeProfile: "one",
-    priceBand: "accessory",
-    nameTokens: ["accessor"],
-    skuType: "FAX",
-    brandSlug: "t360-festive",
-    quota: 4,
-  }),
 };
 
 export const DEMO_BRANDS = [
@@ -1288,7 +1227,6 @@ export function priceForBand(band: PriceBand, i: number): { price: number; saleP
     saree: 1499 + (i % 10) * 1200,
     bridal: 3999 + (i % 8) * 2500,
     kids: 399 + (i % 7) * 250,
-    accessory: 199 + (i % 10) * 350,
   };
   const price = table[band] ?? 999;
   const onSale = i % 4 === 0;
