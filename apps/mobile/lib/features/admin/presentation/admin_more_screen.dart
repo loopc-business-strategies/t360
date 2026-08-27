@@ -140,6 +140,12 @@ class _AdminMoreScreenState extends ConsumerState<AdminMoreScreen> {
               title: const Text('Settings'),
               onTap: () => context.push('/admin/settings'),
             ),
+          if (adminHasAny(_perms, ['settings.manage']))
+            ListTile(
+              leading: const Icon(Icons.dataset_outlined),
+              title: const Text('Demo catalog'),
+              onTap: () => context.push('/admin/demo-data'),
+            ),
           ListTile(
             leading: const Icon(Icons.person_outline),
             title: const Text('Profile & security'),

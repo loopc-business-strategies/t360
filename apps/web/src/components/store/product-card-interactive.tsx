@@ -24,6 +24,11 @@ export function ProductCardInteractive({
   const price = productPrice(product);
   const inStock = product.inStock ?? (product.availableQty ?? 0) > 0;
   const variantId = product.variants?.[0]?.id;
+  const colorCount = new Set(
+    (product.variants ?? [])
+      .map((v) => v.attributes?.colour ?? v.attributes?.color)
+      .filter(Boolean),
+  ).size;
   const [wishIds, setWishIds] = React.useState<string[]>([]);
 
   React.useEffect(() => {
@@ -96,7 +101,8 @@ export function ProductCardInteractive({
         quickAddLabel={t.quickAdd ?? "Quick add"}
         onQuickAdd={inStock ? () => void quickAdd() : undefined}
         tryOnEnabled={Boolean((product as ProductListItem & { tryOnEnabled?: boolean }).tryOnEnabled)}
-        tryMeLabel={t.tryMe}
+        tryMeLabel={t.tryMe ?? "TRY IT ON"}
+        colorCount={colorCount > 1 ? colorCount : undefined}
         onTryMe={() => router.push(`/products/${product.slug}?tryOn=1`)}
         wishlisted={variantId ? wishIds.includes(variantId) : false}
         wishlistLabel={t.wishlistAdd}

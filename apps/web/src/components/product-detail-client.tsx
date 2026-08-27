@@ -132,6 +132,7 @@ export function ProductDetailClient({
                 ? (product.images ?? []).map((img) => ({
                     src: img.url,
                     alt: img.alt || product.name,
+                    mediaType: (img.mediaType === "video" ? "video" : "image") as "image" | "video",
                   }))
                 : [
                     {
@@ -246,7 +247,7 @@ export function ProductDetailClient({
               setTryOnOpen(true);
             }}
           >
-            {t.tryMe}
+            TRY IT ON
           </Button>
           <Button variant="secondary" type="button" disabled={busy} onClick={() => void toggleWishlist()}>
             {variant && wishIds.includes(variant.id) ? t.wishlistRemove : t.wishlistAdd}
@@ -349,7 +350,7 @@ export function ProductDetailClient({
               setTryOnOpen(true);
             }}
           >
-            {t.tryMe}
+            TRY IT ON
           </Button>
           <Button
             className="flex-[2]"

@@ -25,6 +25,7 @@ export interface ProductCardProps {
   wishlistLabel?: string;
   onWishlistToggle?: () => void;
   saleBadgeLabel?: string;
+  colorCount?: number;
   showActions?: boolean;
   className?: string;
 }
@@ -48,10 +49,15 @@ export function ProductCard({
   wishlistLabel = "Save",
   onWishlistToggle,
   saleBadgeLabel = "Sale",
+  colorCount,
   showActions = true,
   className,
 }: ProductCardProps) {
   const onSale = compareAt != null && compareAt > price;
+  const salePct =
+    onSale && compareAt
+      ? Math.max(1, Math.round(((compareAt - price) / compareAt) * 100))
+      : null;
 
   return (
     <article
@@ -83,7 +89,7 @@ export function ProductCard({
         ) : null}
         {onSale ? (
           <span className="absolute left-3 top-3 rounded-sm bg-wine px-2 py-0.5 text-[10px] font-medium uppercase tracking-wider text-elevated">
-            {saleBadgeLabel}
+            {salePct != null ? `${salePct}% off` : saleBadgeLabel}
           </span>
         ) : null}
         {tryOnEnabled ? (
@@ -135,6 +141,9 @@ export function ProductCard({
         {brand ? <p className="text-xs uppercase tracking-wide text-muted">{brand}</p> : null}
         <h3 className="font-display text-lg leading-snug text-ink">{name}</h3>
         <Price amount={price} compareAt={compareAt} />
+        {colorCount != null && colorCount > 1 ? (
+          <p className="text-xs text-muted">{colorCount} colours</p>
+        ) : null}
         {onAddToCart && !onQuickAdd ? (
           <Button
             onClick={(e) => {

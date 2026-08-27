@@ -42,6 +42,11 @@ function SectionCarousel({
     if (section.query.categorySlug) params.set("category", section.query.categorySlug);
     if (section.query.collectionSlug) params.set("collection", section.query.collectionSlug);
     if (section.query.tryOnOnly) params.set("tryOnEnabled", "true");
+    if (section.query.isNew) params.set("isNew", "true");
+    if (section.query.isBestseller) params.set("isBestseller", "true");
+    if (section.query.isTrending) params.set("isTrending", "true");
+    if (section.query.isFeatured) params.set("isFeatured", "true");
+    if (section.query.onSale) params.set("onSale", "true");
     if (section.query.productIds?.length) {
       void Promise.all(
         section.query.productIds.map((id) =>

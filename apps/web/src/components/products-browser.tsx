@@ -70,6 +70,11 @@ export function ProductsBrowser({
       if (inStockOnly) params.set("availability", "in_stock");
       if (tryOnOnly) params.set("tryOnEnabled", "true");
       if (collection) params.set("collection", collection);
+      if (initialParams.isNew) params.set("isNew", initialParams.isNew);
+      if (initialParams.isBestseller) params.set("isBestseller", initialParams.isBestseller);
+      if (initialParams.isTrending) params.set("isTrending", initialParams.isTrending);
+      if (initialParams.isFeatured) params.set("isFeatured", initialParams.isFeatured);
+      if (initialParams.onSale) params.set("onSale", initialParams.onSale);
       Object.entries(overrides).forEach(([k, v]) => {
         if (v) params.set(k, v);
         else params.delete(k);
@@ -143,6 +148,7 @@ export function ProductsBrowser({
               { value: "newest", label: t.sortNewest },
               { value: "relevance", label: t.sortRelevance },
               { value: "featured", label: "Featured" },
+              { value: "trending", label: "Trending" },
               { value: "rating", label: "Top rated" },
               { value: "bestselling", label: "Best selling" },
               { value: "price_asc", label: t.sortPriceAsc },

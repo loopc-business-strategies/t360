@@ -3,8 +3,10 @@
 import * as React from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Button, ErrorState, Input, LoadingState } from "@t360/ui";
-import { apiFetch } from "../../lib/api";
+import { apiFetch, getAdminToken } from "../../lib/api";
 import { MediaImagePicker } from "../../components/media-image-picker";
+
+const WEB_URL = process.env.NEXT_PUBLIC_WEB_URL ?? "http://localhost:3000";
 
 type HeroCopy = {
   headline?: string;
@@ -167,8 +169,20 @@ export default function StorefrontPage() {
           <Button type="button" variant="outline" onClick={() => setUseDraft((v) => !v)}>
             {useDraft ? "View live" : "Edit draft"}
           </Button>
-          <Button type="button" variant="outline" disabled>
-            Preview (save draft first)
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => {
+              const token = getAdminToken();
+              if (!token) return;
+              window.open(
+                `${WEB_URL}/preview/storefront?token=${encodeURIComponent(token)}`,
+                "_blank",
+                "noopener,noreferrer",
+              );
+            }}
+          >
+            Preview draft
           </Button>
           <Button type="button" disabled={publish.isPending} onClick={() => publish.mutate()}>
             {publish.isPending ? "Publishing…" : "Publish"}

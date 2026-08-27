@@ -659,8 +659,10 @@ async function main() {
     update: { aliases: ["shirts", "சட்டை"], active: true },
   });
 
-  const { seedCatalogue } = await import("./seed-catalogue");
-  await seedCatalogue(prisma);
+  const { seedDemoCatalog } = await import("../../apps/api/src/demo-data/engine/seed");
+  const demoResult = await seedDemoCatalog(prisma);
+  console.log("Demo catalog:", demoResult);
+  // Keep legacy inventory helper for any non-demo variants still present
   const { seedInventory } = await import("./seed-inventory");
   await seedInventory(prisma);
 

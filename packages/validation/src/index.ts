@@ -128,7 +128,18 @@ export const productListQuerySchema = z.object({
   maxPrice: z.coerce.number().optional(),
   size: z.string().optional(),
   colour: z.string().optional(),
-  sort: z.enum(["relevance", "newest", "price_asc", "price_desc", "rating", "bestselling", "featured"]).optional(),
+  sort: z
+    .enum([
+      "relevance",
+      "newest",
+      "price_asc",
+      "price_desc",
+      "rating",
+      "bestselling",
+      "featured",
+      "trending",
+    ])
+    .optional(),
   page: z.coerce.number().int().min(1).optional(),
   pageSize: z.coerce.number().int().min(1).max(100).optional(),
   status: z.enum(["draft", "published", "archived"]).optional(),
@@ -136,6 +147,11 @@ export const productListQuerySchema = z.object({
   tryOnEnabled: z.coerce.boolean().optional(),
   collection: z.string().optional(),
   branch: z.string().optional(),
+  isNew: z.coerce.boolean().optional(),
+  isBestseller: z.coerce.boolean().optional(),
+  isTrending: z.coerce.boolean().optional(),
+  isFeatured: z.coerce.boolean().optional(),
+  onSale: z.coerce.boolean().optional(),
 });
 
 export const collectionCreateSchema = z.object({
@@ -430,11 +446,18 @@ export const storefrontProductCarouselSchema = storefrontSectionBase.extend({
   title: z.string().min(1).max(120),
   subtitle: z.string().max(300).optional(),
   query: z.object({
-    sort: z.enum(["relevance", "newest", "price_asc", "price_desc", "rating", "bestselling", "featured"]).optional(),
+    sort: z
+      .enum(["relevance", "newest", "price_asc", "price_desc", "rating", "bestselling", "featured", "trending"])
+      .optional(),
     categorySlug: z.string().max(120).optional(),
     collectionSlug: z.string().max(120).optional(),
     productIds: z.array(z.string().uuid()).max(24).optional(),
     tryOnOnly: z.boolean().optional(),
+    isNew: z.boolean().optional(),
+    isBestseller: z.boolean().optional(),
+    isTrending: z.boolean().optional(),
+    isFeatured: z.boolean().optional(),
+    onSale: z.boolean().optional(),
   }),
 });
 

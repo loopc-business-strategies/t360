@@ -79,6 +79,7 @@ const NAV_GROUPS: NavGroup[] = [
       { href: "/settings", label: "General", anyOf: ["settings.manage"] },
       { href: "/settings/ai", label: "AI", anyOf: ["ai_settings.view", "settings.manage", "ai.fashion"] },
       { href: "/settings/media", label: "Media", anyOf: ["settings.manage"] },
+      { href: "/settings/demo", label: "Demo data", anyOf: ["settings.manage"] },
       { href: "/settings/security", label: "Security", anyOf: ["settings.manage"] },
       { href: "/storefront", label: "Storefront", anyOf: ["settings.manage", "cms.manage"] },
       { href: "/integrations", label: "Integrations", anyOf: ["integrations.manage"] },

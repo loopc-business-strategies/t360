@@ -27,17 +27,38 @@ export const DEFAULT_STOREFRONT_SECTIONS = [
     visible: true,
     order: 4,
     title: "New Arrivals",
-    query: { sort: "newest" as const },
+    query: { sort: "newest" as const, isNew: true },
   },
-  { type: "tryMePromo" as const, visible: true, order: 5 },
+  {
+    type: "productCarousel" as const,
+    visible: true,
+    order: 5,
+    title: "Bestsellers",
+    query: { sort: "bestselling" as const, isBestseller: true },
+  },
   {
     type: "productCarousel" as const,
     visible: true,
     order: 6,
+    title: "Trending",
+    query: { sort: "featured" as const, isTrending: true },
+  },
+  { type: "tryMePromo" as const, visible: true, order: 7 },
+  {
+    type: "productCarousel" as const,
+    visible: true,
+    order: 8,
     title: "Try On Enabled",
     query: { sort: "newest" as const, tryOnOnly: true },
   },
-  { type: "newsletter" as const, visible: true, order: 7 },
+  {
+    type: "productCarousel" as const,
+    visible: true,
+    order: 9,
+    title: "On Sale",
+    query: { sort: "featured" as const, onSale: true },
+  },
+  { type: "newsletter" as const, visible: true, order: 10 },
 ];
 
 type FieldDef = {
@@ -403,6 +424,13 @@ export class SettingsService {
           fields: [],
           status: system,
           links: [],
+        },
+        {
+          id: "demo",
+          title: "Demo catalog",
+          description: "Seed or remove the T360_DEMO_001 premium demo catalog",
+          fields: [],
+          links: [{ href: "/settings/demo", label: "Manage demo data" }],
         },
       ],
     };

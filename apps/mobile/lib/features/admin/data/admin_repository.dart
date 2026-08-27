@@ -294,6 +294,26 @@ class AdminRepository {
   Future<Map<String, dynamic>> patchSettingsCategory(String category, Map<String, dynamic> body) =>
       patchSettings(category, body);
 
+  Future<Map<String, dynamic>> getDemoDataStatus() =>
+      _api.get('/admin/demo-data/status', map: (d) => d as Map<String, dynamic>);
+
+  Future<Map<String, dynamic>> seedDemoData() =>
+      _api.post('/admin/demo-data/seed', data: {}, map: (d) => d as Map<String, dynamic>);
+
+  Future<Map<String, dynamic>> removeDemoData() =>
+      _api.post(
+        '/admin/demo-data/remove',
+        data: {'confirm': 'REMOVE_DEMO_DATA'},
+        map: (d) => d as Map<String, dynamic>,
+      );
+
+  Future<Map<String, dynamic>> resetDemoData() =>
+      _api.post(
+        '/admin/demo-data/reset',
+        data: {'confirm': 'RESET_DEMO_DATA'},
+        map: (d) => d as Map<String, dynamic>,
+      );
+
   Future<Map<String, dynamic>> getStorefrontDraft() =>
       _api.get('/settings/storefront/draft', map: (d) => d as Map<String, dynamic>);
 

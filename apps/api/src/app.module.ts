@@ -28,6 +28,7 @@ import { AiModule } from "./ai/ai.module";
 import { AiFashionModule } from "./ai-fashion/ai-fashion.module";
 import { PosModule } from "./pos/pos.module";
 import { MediaModule } from "./media/media.module";
+import { DemoDataModule } from "./demo-data/demo-data.module";
 import { JwtAuthGuard } from "./auth/guards/jwt-auth.guard";
 import { MobileAdminGuard } from "./auth/guards/mobile-admin.guard";
 import { PermissionsGuard } from "./rbac/permissions.guard";
@@ -51,6 +52,7 @@ import { RequestIdMiddleware } from "./common/middleware/request-id.middleware";
     InventoryModule,
     SearchModule,
     CatalogModule,
+    DemoDataModule,
     WishlistModule,
     PaymentsModule,
     CartModule,

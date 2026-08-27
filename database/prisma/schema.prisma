@@ -209,16 +209,18 @@ model IdempotencyKey {
 }
 
 model Category {
-  id        String    @id @default(uuid()) @db.Uuid
-  tenantId  String?   @db.Uuid
-  parentId  String?   @db.Uuid
-  name      String
-  slug      String    @unique
-  sortOrder Int       @default(0)
-  status    String    @default("active")
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
-  deletedAt DateTime?
+  id           String    @id @default(uuid()) @db.Uuid
+  tenantId     String?   @db.Uuid
+  parentId     String?   @db.Uuid
+  name         String
+  slug         String    @unique
+  sortOrder    Int       @default(0)
+  status       String    @default("active")
+  isDemo       Boolean   @default(false)
+  seedBatchId  String?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  deletedAt    DateTime?
 
   parent   Category?  @relation("CategoryTree", fields: [parentId], references: [id])
   children Category[] @relation("CategoryTree")
@@ -226,6 +228,7 @@ model Category {
 
   @@index([parentId])
   @@index([status])
+  @@index([isDemo, seedBatchId])
 }
 
 model Brand {
@@ -255,6 +258,8 @@ model Collection {
   status         String    @default("active")
   sortOrder      Int       @default(0)
   featured       Boolean   @default(false)
+  isDemo         Boolean   @default(false)
+  seedBatchId    String?
   createdAt      DateTime  @default(now())
   updatedAt      DateTime  @updatedAt
   deletedAt      DateTime?
@@ -264,6 +269,7 @@ model Collection {
   @@index([status])
   @@index([featured])
   @@index([sortOrder])
+  @@index([isDemo, seedBatchId])
 }
 
 model CollectionProduct {
@@ -311,6 +317,12 @@ model Product {
   status      String    @default("draft")
   /// Customer Virtual Try-On ("TRY ME") enabled for this product
   tryOnEnabled Boolean  @default(true)
+  isDemo       Boolean  @default(false)
+  seedBatchId  String?
+  isNew        Boolean  @default(false)
+  isBestseller Boolean  @default(false)
+  isTrending   Boolean  @default(false)
+  isFeatured   Boolean  @default(false)
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
   deletedAt   DateTime?
@@ -330,6 +342,11 @@ model Product {
   @@index([status])
   @@index([createdAt])
   @@index([tryOnEnabled])
+  @@index([isDemo, seedBatchId])
+  @@index([isNew])
+  @@index([isBestseller])
+  @@index([isTrending])
+  @@index([isFeatured])
 }
 
 model ProductVariant {

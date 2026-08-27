@@ -38,7 +38,7 @@ export type ProductListItem = {
   tryOnEnabled?: boolean;
   averageRating?: number | null;
   reviewCount?: number;
-  images?: Array<{ url: string; alt?: string }>;
+  images?: Array<{ url: string; alt?: string; mediaType?: string }>;
   variants?: Array<{
     id: string;
     sku: string;
@@ -86,6 +86,11 @@ export type StorefrontSection =
         collectionSlug?: string;
         productIds?: string[];
         tryOnOnly?: boolean;
+        isNew?: boolean;
+        isBestseller?: boolean;
+        isTrending?: boolean;
+        isFeatured?: boolean;
+        onSale?: boolean;
       };
     }
   | { type: "categoryGrid"; visible: boolean; order: number; categorySlugs?: string[] }

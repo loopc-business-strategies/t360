@@ -7,6 +7,7 @@ import '../features/ai/presentation/ai_chat_screen.dart';
 import '../features/account/presentation/account_screen.dart';
 import '../features/account/presentation/complete_profile_screen.dart';
 import '../features/account/presentation/loyalty_screen.dart';
+import '../features/admin/presentation/admin_demo_data_screen.dart';
 import '../features/admin/presentation/admin_try_on_screen.dart';
 import '../features/admin/presentation/admin_ai_models_screen.dart';
 import '../features/admin/presentation/admin_ai_screen.dart';
@@ -206,6 +207,7 @@ final goRouterProvider = Provider<GoRouter>((ref) {
       GoRoute(path: '/admin/pos', builder: (context, state) => const AdminPosScreen()),
       GoRoute(path: '/admin/reports', builder: (context, state) => const AdminReportsScreen()),
       GoRoute(path: '/admin/settings', builder: (context, state) => const AdminSettingsScreen()),
+      GoRoute(path: '/admin/demo-data', builder: (context, state) => const AdminDemoDataScreen()),
       GoRoute(
         path: '/admin/notifications',
         builder: (context, state) => const AdminNotificationsScreen(),

@@ -225,6 +225,10 @@ class _AdminSettingsScreenState extends ConsumerState<AdminSettingsScreen>
                           onPressed: () => context.push('/admin/try-on'),
                           child: const Text('TRY ME settings'),
                         ),
+                        TextButton(
+                          onPressed: () => context.push('/admin/demo-data'),
+                          child: const Text('Demo catalog'),
+                        ),
                       ],
                     ),
                     ListView(

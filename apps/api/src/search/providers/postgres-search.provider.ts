@@ -85,6 +85,22 @@ export class PostgresSearchProvider implements SearchProvider {
     if (query.tryOnEnabled === true) {
       where.push(`p."tryOnEnabled" = true`);
     }
+    if (query.isNew === true) where.push(`p."isNew" = true`);
+    if (query.isBestseller === true) where.push(`p."isBestseller" = true`);
+    if (query.isTrending === true) where.push(`p."isTrending" = true`);
+    if (query.isFeatured === true) where.push(`p."isFeatured" = true`);
+    if (query.onSale === true) {
+      where.push(
+        `EXISTS (SELECT 1 FROM "ProductVariant" v WHERE v."productId" = p.id AND v."deletedAt" IS NULL AND v."salePrice" IS NOT NULL)`,
+      );
+    }
+
+    // Hide demo catalog in production unless explicitly enabled
+    const includeDemo =
+      process.env.DEMO_CATALOG_ENABLED === "true" || process.env.NODE_ENV !== "production";
+    if (!includeDemo && !opts?.admin) {
+      where.push(`p."isDemo" = false`);
+    }
 
     if (query.collection) {
       params.push(query.collection);
@@ -131,11 +147,14 @@ export class PostgresSearchProvider implements SearchProvider {
     if (query.sort === "rating") {
       orderBy = `(SELECT COALESCE(AVG(r.rating), 0) FROM "ProductReview" r WHERE r."productId" = p.id AND r.status = 'approved') DESC NULLS LAST, p."createdAt" DESC`;
     }
-    if (query.sort === "bestselling") {
-      orderBy = `(SELECT COALESCE(SUM(oi.qty), 0) FROM "OrderItem" oi JOIN "ProductVariant" v ON v.id = oi."variantId" WHERE v."productId" = p.id) DESC NULLS LAST, p."createdAt" DESC`;
-    }
     if (query.sort === "featured") {
-      orderBy = `p."createdAt" DESC`;
+      orderBy = `p."isFeatured" DESC, p."createdAt" DESC`;
+    }
+    if (query.sort === "trending") {
+      orderBy = `p."isTrending" DESC, p."isBestseller" DESC, p."createdAt" DESC`;
+    }
+    if (query.sort === "bestselling") {
+      orderBy = `p."isBestseller" DESC, (SELECT COALESCE(SUM(oi.qty), 0) FROM "OrderItem" oi JOIN "ProductVariant" v ON v.id = oi."variantId" WHERE v."productId" = p.id) DESC NULLS LAST, p."createdAt" DESC`;
     }
 
     params.push(pageSize);
