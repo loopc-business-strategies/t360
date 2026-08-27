@@ -130,7 +130,7 @@ export function ProductDetailClient({
   };
 
   return (
-    <main className="mx-auto max-w-6xl px-6 py-10 pb-28 lg:pb-10">
+    <main className="mx-auto max-w-content px-6 py-10 pb-28 lg:pb-10">
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
       <div className="grid gap-10 lg:grid-cols-2">
       <div>
@@ -354,7 +354,7 @@ export function ProductDetailClient({
       ) : null}
 
       <div className="fixed inset-x-0 bottom-0 z-header border-t border-border bg-elevated/95 p-4 backdrop-blur-md lg:hidden">
-        <div className="mx-auto flex max-w-6xl gap-2">
+        <div className="mx-auto flex max-w-content gap-2">
           <Button
             type="button"
             variant="secondary"

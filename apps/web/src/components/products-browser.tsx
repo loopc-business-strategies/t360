@@ -110,7 +110,7 @@ export function ProductsBrowser({
   }
 
   return (
-    <main className="mx-auto max-w-6xl px-6 py-10">
+    <main className="mx-auto max-w-content px-4 py-10 sm:px-6 lg:px-8">
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
           <h1 className="font-display text-3xl">{t.navProducts}</h1>
@@ -120,7 +120,7 @@ export function ProductsBrowser({
         </div>
       </div>
 
-      <div className="mt-8 grid gap-8 lg:grid-cols-[16rem_1fr]">
+      <div className="mt-8 grid gap-8 lg:grid-cols-[18rem_1fr]">
         <FilterSidebar
           title={t.filters}
           applyLabel={t.applyFilters}
@@ -231,7 +231,7 @@ export function ProductsBrowser({
         </FilterSidebar>
 
         <div>
-          <div className="grid gap-6 sm:grid-cols-2 xl:grid-cols-3">
+          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4">
             {products.map((p) => (
               <ProductCardInteractive
                 key={p.id}

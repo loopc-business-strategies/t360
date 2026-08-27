@@ -68,7 +68,7 @@ function SectionCarousel({
 
   return (
     <motion.section
-      className="mx-auto max-w-6xl px-6 py-14"
+      className="mx-auto max-w-content px-6 py-14"
       initial={reduceMotion ? false : { opacity: 0, y: 24 }}
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true }}
@@ -115,7 +115,7 @@ function CollectionSection({
 
   return (
     <motion.section
-      className="mx-auto max-w-6xl px-6 py-14"
+      className="mx-auto max-w-content px-6 py-14"
       initial={reduceMotion ? false : { opacity: 0, y: 24 }}
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true }}
@@ -191,7 +191,7 @@ export function HomeClient({
               </picture>
             )}
             <div className="absolute inset-0 bg-gradient-to-r from-ink/90 via-ink/60 to-ink/25" />
-            <div className="relative z-10 mx-auto flex min-h-[85svh] max-w-6xl flex-col justify-end px-6 pb-16 pt-10 sm:pb-24">
+            <div className="relative z-10 mx-auto flex min-h-[85svh] max-w-content flex-col justify-end px-6 pb-16 pt-10 sm:pb-24">
               <motion.div
                 initial={reduceMotion ? false : { opacity: 0, y: 24 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -232,7 +232,7 @@ export function HomeClient({
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
           >
-            <div className="mx-auto max-w-6xl px-6 py-14 sm:py-16">
+            <div className="mx-auto max-w-content px-6 py-14 sm:py-16">
               <p className="text-xs uppercase tracking-[0.22em] text-brass">{t.storyEyebrow}</p>
               <h2 className="mt-3 max-w-2xl font-display text-2xl text-ink sm:text-3xl">
                 {t.storyTitle}
@@ -252,7 +252,7 @@ export function HomeClient({
         return (
           <motion.section
             key={`cats-${index}`}
-            className="mx-auto max-w-6xl px-6 py-14"
+            className="mx-auto max-w-content px-6 py-14"
             initial={reduceMotion ? false : { opacity: 0, y: 24 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
@@ -288,7 +288,7 @@ export function HomeClient({
             whileInView={{ opacity: 1 }}
             viewport={{ once: true }}
           >
-            <div className="mx-auto flex max-w-6xl flex-col items-start justify-between gap-6 sm:flex-row sm:items-center">
+            <div className="mx-auto flex max-w-content flex-col items-start justify-between gap-6 sm:flex-row sm:items-center">
               <div>
                 <p className="text-xs uppercase tracking-[0.2em] text-brass">{t.tryMeTitle}</p>
                 <h2 className="mt-3 max-w-lg font-display text-3xl">{t.tryMePromoHeadline ?? t.tryMeGuide}</h2>
@@ -306,7 +306,7 @@ export function HomeClient({
         return (
           <motion.section
             key={`editorial-${index}`}
-            className="mx-auto max-w-6xl px-6 py-14"
+            className="mx-auto max-w-content px-6 py-14"
             initial={reduceMotion ? false : { opacity: 0, y: 24 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
@@ -374,7 +374,7 @@ export function HomeClient({
         return (
           <motion.section
             key={`${section.type}-${index}`}
-            className="mx-auto max-w-6xl px-6 py-14"
+            className="mx-auto max-w-content px-6 py-14"
             initial={reduceMotion ? false : { opacity: 0, y: 24 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}

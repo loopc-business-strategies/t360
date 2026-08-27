@@ -67,7 +67,7 @@ function GenderPanel({
   const colB = children.slice(mid);
 
   return (
-    <div className="mx-auto grid max-w-6xl gap-8 px-6 py-8 sm:grid-cols-2 lg:grid-cols-4">
+    <div className="mx-auto grid max-w-content gap-8 px-6 py-8 sm:grid-cols-2 lg:grid-cols-4">
       <FeaturedColumn gender={gender} onClose={onClose} />
       <div>
         <p className="text-xs font-medium uppercase tracking-wider text-muted">Clothing</p>
@@ -155,7 +155,7 @@ export function MegaMenu({
       {/* Invisible bridge so pointer can move from nav to panel */}
       <div className="pointer-events-none absolute -top-2 left-0 right-0 h-2" aria-hidden />
       {panel === "new" ? (
-        <div className="mx-auto grid max-w-6xl gap-8 px-6 py-8 sm:grid-cols-3">
+        <div className="mx-auto grid max-w-content gap-8 px-6 py-8 sm:grid-cols-3">
           <div>
             <p className="text-xs font-medium uppercase tracking-wider text-muted">New & featured</p>
             <ul className="mt-3 space-y-2">
@@ -238,7 +238,7 @@ export function MegaMenu({
       ) : null}
 
       {panel === "other" ? (
-        <div className="mx-auto grid max-w-6xl gap-8 px-6 py-8 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="mx-auto grid max-w-content gap-8 px-6 py-8 sm:grid-cols-2 lg:grid-cols-4">
           {(["sarees", "wedding", "festival"] as const).map((slug) => {
             const cat = findCategory(categories, slug);
             if (!cat) return null;
@@ -293,7 +293,7 @@ export function MegaMenu({
       ) : null}
 
       {panel === "collections" ? (
-        <div className="mx-auto grid max-w-6xl gap-8 px-6 py-8 sm:grid-cols-3">
+        <div className="mx-auto grid max-w-content gap-8 px-6 py-8 sm:grid-cols-3">
           <div>
             <p className="text-xs font-medium uppercase tracking-wider text-muted">Collections</p>
             <ul className="mt-3 space-y-2">
@@ -398,7 +398,7 @@ export function MegaMenu({
       ) : null}
 
       {panel === "sale" ? (
-        <div className="mx-auto grid max-w-6xl gap-8 px-6 py-8 sm:grid-cols-3">
+        <div className="mx-auto grid max-w-content gap-8 px-6 py-8 sm:grid-cols-3">
           <div>
             <p className="text-xs font-medium uppercase tracking-wider text-muted">Sale</p>
             <ul className="mt-3 space-y-2">

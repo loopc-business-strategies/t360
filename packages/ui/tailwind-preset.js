@@ -26,6 +26,9 @@ module.exports = {
       spacing: {
         header: "var(--header-height)",
       },
+      maxWidth: {
+        content: "var(--content-max)",
+      },
       zIndex: {
         announcement: "var(--z-announcement)",
         header: "var(--z-header)",

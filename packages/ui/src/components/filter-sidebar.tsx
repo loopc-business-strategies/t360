@@ -28,7 +28,7 @@ export function FilterSidebar({
   return (
     <aside
       className={cn(
-        "space-y-6 rounded-lg border border-border bg-elevated p-5 lg:sticky lg:top-24 lg:max-h-[calc(100vh-7rem)] lg:overflow-y-auto",
+        "space-y-6 rounded-lg border border-border bg-elevated p-5 lg:sticky lg:top-[calc(var(--header-height)+0.75rem)] lg:max-h-[calc(100vh-var(--header-height)-1.5rem)] lg:overflow-y-auto",
         className,
       )}
     >

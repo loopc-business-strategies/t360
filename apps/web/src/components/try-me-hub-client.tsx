@@ -38,7 +38,7 @@ export function TryMeHubClient() {
   }, []);
 
   return (
-    <main className="mx-auto max-w-6xl px-6 py-10">
+    <main className="mx-auto max-w-content px-6 py-10">
       <h1 className="font-display text-4xl">{t.tryMeTitle ?? "TRY ME"}</h1>
       <p className="mt-3 max-w-xl text-muted">{t.tryMeGuide ?? t.tryMeDisclaimer}</p>
       <div className="mt-6 flex flex-wrap gap-3">

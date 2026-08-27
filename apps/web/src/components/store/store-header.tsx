@@ -151,7 +151,7 @@ export function StoreHeader({
       ) : null}
       <header className="sticky top-0 z-header border-b border-border/60 bg-elevated/90 shadow-[0_1px_0_rgb(20_17_15/0.04)] backdrop-blur-xl">
         <div
-          className="relative mx-auto flex h-header max-w-6xl items-center justify-between gap-3 px-4 sm:px-6"
+          className="relative mx-auto flex h-header max-w-content items-center justify-between gap-3 px-4 sm:px-6 lg:px-8"
           onMouseLeave={scheduleClose}
         >
           <div className="flex items-center gap-3">

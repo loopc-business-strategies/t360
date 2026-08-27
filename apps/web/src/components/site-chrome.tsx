@@ -45,7 +45,7 @@ export function SiteFooter() {
   const { t } = useLocale();
   return (
     <footer className="mt-auto border-t border-border bg-linen/70">
-      <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-4 px-4 py-10 sm:px-6">
+      <div className="mx-auto flex max-w-content flex-wrap items-center justify-between gap-4 px-4 py-10 sm:px-6 lg:px-8">
         <div>
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img

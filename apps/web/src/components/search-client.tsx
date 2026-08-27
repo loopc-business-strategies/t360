@@ -72,7 +72,7 @@ export function SearchClient({
   }
 
   return (
-    <main className="mx-auto max-w-6xl px-6 py-10">
+    <main className="mx-auto max-w-content px-6 py-10">
       <h1 className="font-display text-3xl">{t.searchResults ?? t.search}</h1>
       {q ? <p className="mt-2 text-sm text-muted">&ldquo;{q}&rdquo; · {total} {t.results}</p> : null}
 
