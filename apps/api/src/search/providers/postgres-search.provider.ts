@@ -82,6 +82,10 @@ export class PostgresSearchProvider implements SearchProvider {
       )`);
     }
 
+    if (query.tryOnEnabled === true) {
+      where.push(`p."tryOnEnabled" = true`);
+    }
+
     let orderBy = `p."createdAt" DESC`;
     let rankSelect = `0::float AS rank`;
     if (query.q && query.q.trim()) {

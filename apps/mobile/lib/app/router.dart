@@ -113,8 +113,8 @@ final goRouterProvider = Provider<GoRouter>((ref) {
           StatefulShellBranch(
             routes: [
               GoRoute(
-                path: '/orders',
-                builder: (context, state) => const OrdersListScreen(),
+                path: '/wishlist',
+                builder: (context, state) => const WishlistScreen(),
               ),
             ],
           ),

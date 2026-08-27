@@ -44,6 +44,9 @@ describe("SettingsService.updateStorefront", () => {
               },
             });
           }
+          if (where.key === "storefront.sections") {
+            return Promise.resolve(null);
+          }
           if (where.key === "business.name") {
             return Promise.resolve({ value: "Tharagai Readymades" });
           }
@@ -77,5 +80,6 @@ describe("SettingsService.updateStorefront", () => {
     );
     expect(result.businessName).toBe("Tharagai Readymades");
     expect(result.hero).toMatchObject({ imageUrl: "https://example.com/h.jpg" });
+    expect(Array.isArray(result.sections)).toBe(true);
   });
 });

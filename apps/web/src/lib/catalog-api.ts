@@ -35,6 +35,7 @@ export type ProductListItem = {
   availableQty?: number;
   brand?: { name: string; slug?: string } | null;
   category?: { name: string; slug: string };
+  tryOnEnabled?: boolean;
   images?: Array<{ url: string; alt?: string }>;
   variants?: Array<{
     id: string;
@@ -68,13 +69,45 @@ export type Branch = {
   hours?: unknown;
 };
 
+export type StorefrontSection =
+  | { type: "announcement"; visible: boolean; order: number; message: string; href?: string }
+  | { type: "hero"; visible: boolean; order: number }
+  | { type: "story"; visible: boolean; order: number }
+  | {
+      type: "productCarousel";
+      visible: boolean;
+      order: number;
+      title: string;
+      query: {
+        sort?: string;
+        categorySlug?: string;
+        productIds?: string[];
+        tryOnOnly?: boolean;
+      };
+    }
+  | { type: "categoryGrid"; visible: boolean; order: number; categorySlugs?: string[] }
+  | {
+      type: "editorial";
+      visible: boolean;
+      order: number;
+      imageUrl: string;
+      headline: string;
+      body?: string;
+      ctaHref?: string;
+      ctaLabel?: string;
+    }
+  | { type: "tryMePromo"; visible: boolean; order: number }
+  | { type: "newsletter"; visible: boolean; order: number };
+
 export type StorefrontSettings = {
   businessName: string;
   hero: {
     imageUrl?: string;
+    videoUrl?: string;
     en?: { headline?: string; support?: string; ctaLabel?: string };
     ta?: { headline?: string; support?: string; ctaLabel?: string };
   } | null;
+  sections?: StorefrontSection[];
   commerce?: {
     codEnabled: boolean;
     shippingFee: number;

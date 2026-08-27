@@ -63,15 +63,24 @@ export default function CartPage() {
         </div>
       ) : (
         <>
-          <ul className="mt-8 space-y-4">
+          <ul className="mt-8 divide-y divide-border rounded-lg border border-border bg-elevated">
             {cart.items.map((item) => (
-              <li key={item.id} className="flex flex-wrap items-end justify-between gap-3 border-b border-border pb-4">
-                <div>
-                  <Link href={`/products/${item.variant.product.slug}`} className="font-medium text-wine hover:underline">
+              <li key={item.id} className="flex flex-wrap gap-4 p-4 sm:flex-nowrap">
+                <div className="flex h-24 w-20 shrink-0 items-center justify-center rounded-md bg-linen text-xs text-muted">
+                  IMG
+                </div>
+                <div className="min-w-0 flex-1">
+                  <Link href={`/products/${item.variant.product.slug}`} className="font-display text-lg text-wine hover:underline">
                     {item.variant.product.name}
                   </Link>
                   <p className="text-sm text-muted">{item.variant.sku}</p>
-                  <p className="mt-1">₹{item.lineTotal}</p>
+                  <p className="mt-1 font-medium">₹{item.lineTotal}</p>
+                  <Link
+                    href={`/products/${item.variant.product.slug}?tryOn=1`}
+                    className="mt-2 inline-block text-xs text-wine hover:underline"
+                  >
+                    {t.tryMe}
+                  </Link>
                 </div>
                 <div className="flex items-end gap-2">
                   <Input

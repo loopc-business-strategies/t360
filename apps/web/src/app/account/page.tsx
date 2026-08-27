@@ -400,6 +400,23 @@ function AccountPageInner() {
 
       {error ? <p className="text-sm text-wine">{error}</p> : null}
 
+      <nav className="flex flex-wrap gap-2 border-b border-border pb-4" aria-label="Account sections">
+        {[
+          { href: "/account", label: t.profile },
+          { href: "/orders", label: t.accountOrders ?? t.navOrders },
+          { href: "/wishlist", label: t.accountWishlist ?? t.navWishlist },
+          { href: "/account/try-ons", label: t.accountTryOns ?? t.tryMeHistory },
+        ].map((item) => (
+          <Link
+            key={item.href}
+            href={item.href}
+            className="rounded-full border border-border px-3 py-1.5 text-sm hover:border-wine hover:text-wine"
+          >
+            {item.label}
+          </Link>
+        ))}
+      </nav>
+
       <section className="space-y-3">
         <h2 className="font-display text-xl">{t.profile}</h2>
         <p className="text-sm">

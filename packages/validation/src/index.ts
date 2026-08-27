@@ -133,6 +133,7 @@ export const productListQuerySchema = z.object({
   pageSize: z.coerce.number().int().min(1).max(100).optional(),
   status: z.enum(["draft", "published", "archived"]).optional(),
   availability: z.enum(["in_stock", "any"]).optional(),
+  tryOnEnabled: z.coerce.boolean().optional(),
   branch: z.string().optional(),
 });
 
@@ -367,12 +368,77 @@ export const storefrontLocaleCopySchema = z.object({
 
 export const storefrontHeroSchema = z.object({
   imageUrl: z.string().url().max(2000),
+  videoUrl: z.string().url().max(2000).optional(),
   en: storefrontLocaleCopySchema,
   ta: storefrontLocaleCopySchema,
 });
 
+const storefrontSectionBase = z.object({
+  visible: z.boolean().default(true),
+  order: z.number().int().min(0).max(100),
+});
+
+export const storefrontAnnouncementSchema = storefrontSectionBase.extend({
+  type: z.literal("announcement"),
+  message: z.string().min(1).max(300),
+  href: z.string().url().max(2000).optional(),
+});
+
+export const storefrontHeroSectionSchema = storefrontSectionBase.extend({
+  type: z.literal("hero"),
+});
+
+export const storefrontProductCarouselSchema = storefrontSectionBase.extend({
+  type: z.literal("productCarousel"),
+  title: z.string().min(1).max(120),
+  query: z.object({
+    sort: z.enum(["relevance", "newest", "price_asc", "price_desc"]).optional(),
+    categorySlug: z.string().max(120).optional(),
+    productIds: z.array(z.string().uuid()).max(24).optional(),
+    tryOnOnly: z.boolean().optional(),
+  }),
+});
+
+export const storefrontCategoryGridSchema = storefrontSectionBase.extend({
+  type: z.literal("categoryGrid"),
+  categorySlugs: z.array(z.string().max(120)).max(12).optional(),
+});
+
+export const storefrontEditorialSchema = storefrontSectionBase.extend({
+  type: z.literal("editorial"),
+  imageUrl: z.string().url().max(2000),
+  headline: z.string().min(1).max(200),
+  body: z.string().max(2000).optional(),
+  ctaHref: z.string().max(500).optional(),
+  ctaLabel: z.string().max(80).optional(),
+});
+
+export const storefrontTryMePromoSchema = storefrontSectionBase.extend({
+  type: z.literal("tryMePromo"),
+});
+
+export const storefrontNewsletterSchema = storefrontSectionBase.extend({
+  type: z.literal("newsletter"),
+});
+
+export const storefrontStorySchema = storefrontSectionBase.extend({
+  type: z.literal("story"),
+});
+
+export const storefrontSectionSchema = z.discriminatedUnion("type", [
+  storefrontAnnouncementSchema,
+  storefrontHeroSectionSchema,
+  storefrontProductCarouselSchema,
+  storefrontCategoryGridSchema,
+  storefrontEditorialSchema,
+  storefrontTryMePromoSchema,
+  storefrontNewsletterSchema,
+  storefrontStorySchema,
+]);
+
 export const storefrontUpdateSchema = z.object({
-  hero: storefrontHeroSchema,
+  hero: storefrontHeroSchema.optional(),
+  sections: z.array(storefrontSectionSchema).max(20).optional(),
 });
 
 export const settingsCategorySchema = z.enum([
@@ -408,6 +474,7 @@ export const settingsBrandingPatchSchema = z.object({
 });
 
 export type StorefrontHeroInput = z.infer<typeof storefrontHeroSchema>;
+export type StorefrontSectionInput = z.infer<typeof storefrontSectionSchema>;
 export type StorefrontUpdateInput = z.infer<typeof storefrontUpdateSchema>;
 export type SettingsCategory = z.infer<typeof settingsCategorySchema>;
 export type SettingsGeneralPatchInput = z.infer<typeof settingsGeneralPatchSchema>;

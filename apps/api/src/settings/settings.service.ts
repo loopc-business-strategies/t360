@@ -12,7 +12,31 @@ import { RedisService } from "../redis/redis.service";
 import { AuditService } from "../audit/audit.service";
 
 const HERO_KEY = "storefront.hero";
+const SECTIONS_KEY = "storefront.sections";
 const BUSINESS_NAME_KEY = "business.name";
+
+export const DEFAULT_STOREFRONT_SECTIONS = [
+  { type: "announcement" as const, visible: true, order: 0, message: "Free shipping on orders above ₹999" },
+  { type: "hero" as const, visible: true, order: 1 },
+  { type: "story" as const, visible: true, order: 2 },
+  { type: "categoryGrid" as const, visible: true, order: 3 },
+  {
+    type: "productCarousel" as const,
+    visible: true,
+    order: 4,
+    title: "New Arrivals",
+    query: { sort: "newest" as const },
+  },
+  { type: "tryMePromo" as const, visible: true, order: 5 },
+  {
+    type: "productCarousel" as const,
+    visible: true,
+    order: 6,
+    title: "Try On Enabled",
+    query: { sort: "newest" as const, tryOnOnly: true },
+  },
+  { type: "newsletter" as const, visible: true, order: 7 },
+];
 
 type FieldDef = {
   key: string;
@@ -75,8 +99,11 @@ export class SettingsService {
   }
 
   async getStorefront() {
-    const hero = await this.prisma.systemSetting.findUnique({ where: { key: HERO_KEY } });
-    const name = await this.prisma.systemSetting.findUnique({ where: { key: BUSINESS_NAME_KEY } });
+    const [hero, sectionsRow, name] = await Promise.all([
+      this.prisma.systemSetting.findUnique({ where: { key: HERO_KEY } }),
+      this.prisma.systemSetting.findUnique({ where: { key: SECTIONS_KEY } }),
+      this.prisma.systemSetting.findUnique({ where: { key: BUSINESS_NAME_KEY } }),
+    ]);
     const commerceKeys = [
       "commerce.codEnabled",
       "commerce.shippingFee",
@@ -88,9 +115,19 @@ export class SettingsService {
     const commerce = Object.fromEntries(
       commerceRows.map((r) => [r.key.replace("commerce.", ""), r.value]),
     );
+    const sectionsRaw = sectionsRow?.value as unknown[] | null | undefined;
+    const sections =
+      Array.isArray(sectionsRaw) && sectionsRaw.length
+        ? [...sectionsRaw].sort(
+            (a, b) =>
+              Number((a as { order?: number }).order ?? 0) -
+              Number((b as { order?: number }).order ?? 0),
+          )
+        : DEFAULT_STOREFRONT_SECTIONS;
     return {
       businessName: (name?.value as string) ?? "Tharagai Readymades",
       hero: (hero?.value as Record<string, unknown> | null) ?? null,
+      sections,
       commerce: {
         codEnabled: Boolean(commerce.codEnabled ?? true),
         shippingFee: Number(commerce.shippingFee ?? 49),
@@ -101,19 +138,42 @@ export class SettingsService {
   }
 
   async updateStorefront(input: StorefrontUpdateInput, actorId?: string) {
-    const value = input.hero as unknown as Prisma.InputJsonValue;
-    const row = await this.prisma.systemSetting.upsert({
-      where: { key: HERO_KEY },
-      create: { key: HERO_KEY, value },
-      update: { value },
-    });
-    await this.audit.log({
-      actorId,
-      action: "settings.storefront.update",
-      entityType: "SystemSetting",
-      entityId: row.id,
-      metadata: { key: HERO_KEY },
-    });
+    if (input.hero) {
+      const value = input.hero as unknown as Prisma.InputJsonValue;
+      const row = await this.prisma.systemSetting.upsert({
+        where: { key: HERO_KEY },
+        create: { key: HERO_KEY, value },
+        update: { value },
+      });
+      await this.audit.log({
+        actorId,
+        action: "settings.storefront.update",
+        entityType: "SystemSetting",
+        entityId: row.id,
+        metadata: { key: HERO_KEY },
+      });
+    }
+    if (input.sections) {
+      const value = input.sections as unknown as Prisma.InputJsonValue;
+      const row = await this.prisma.systemSetting.upsert({
+        where: { key: SECTIONS_KEY },
+        create: { key: SECTIONS_KEY, value },
+        update: { value },
+      });
+      await this.audit.log({
+        actorId,
+        action: "settings.storefront.update",
+        entityType: "SystemSetting",
+        entityId: row.id,
+        metadata: { key: SECTIONS_KEY },
+      });
+    }
+    if (!input.hero && !input.sections) {
+      throw new BadRequestException({
+        code: "VALIDATION",
+        message: "Provide hero and/or sections to update",
+      });
+    }
     return this.getStorefront();
   }
 

@@ -18,8 +18,8 @@ class TharagaiBottomNavigation extends StatelessWidget {
   static const _defaults = [
     Icons.home_outlined,
     Icons.grid_view_outlined,
+    Icons.auto_awesome_outlined,
     Icons.favorite_outline,
-    Icons.shopping_bag_outlined,
     Icons.person_outline,
   ];
 

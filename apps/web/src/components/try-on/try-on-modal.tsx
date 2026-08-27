@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import Link from "next/link";
-import { Button } from "@t360/ui";
+import { Button, FashionProgress } from "@t360/ui";
 import { API_URL, apiFetch, getCustomerToken } from "../../lib/api";
 import { useLocale } from "../../lib/locale";
 
@@ -255,17 +255,26 @@ export function TryOnModal({
   if (!open) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end justify-center bg-ink/50 p-0 sm:items-center sm:p-6">
-      <div className="max-h-[95vh] w-full max-w-lg overflow-y-auto rounded-t-2xl bg-elevated p-6 shadow-soft sm:rounded-2xl">
-        <div className="flex items-start justify-between gap-3">
+    <div
+      className="fixed inset-0 z-modal flex flex-col bg-elevated sm:bg-ink/55 sm:p-6"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="try-on-title"
+    >
+      <div className="flex max-h-full flex-1 flex-col overflow-hidden sm:mx-auto sm:my-auto sm:max-h-[95vh] sm:w-full sm:max-w-2xl sm:rounded-2xl sm:bg-elevated sm:shadow-soft">
+        <div className="flex items-start justify-between gap-3 border-b border-border px-6 py-4">
           <div>
-            <h2 className="font-display text-2xl">{t.tryMeTitle}</h2>
+            <p className="text-xs uppercase tracking-[0.18em] text-brass">{t.tryMeStepLabel ?? "Virtual fitting"}</p>
+            <h2 id="try-on-title" className="font-display text-2xl sm:text-3xl">
+              {t.tryMeModalTitle ?? "TRY THIS LOOK"}
+            </h2>
             <p className="mt-1 text-sm text-muted">{productName}</p>
           </div>
-          <button type="button" className="text-sm text-muted hover:text-ink" onClick={onClose}>
+          <button type="button" className="rounded-md px-2 py-1 text-sm text-muted hover:text-ink" onClick={onClose} aria-label={t.tryMeCancel}>
             ✕
           </button>
         </div>
+        <div className="flex-1 overflow-y-auto px-6 py-6">
 
         {!tryOnEnabled ? (
           <p className="mt-6 text-sm text-muted">{t.tryMeUnavailable}</p>
@@ -361,15 +370,16 @@ export function TryOnModal({
         ) : null}
 
         {tryOnEnabled && step === "processing" ? (
-          <div className="mt-6 space-y-3 text-sm">
+          <div className="mt-2 space-y-4 text-sm">
             <p className="font-medium">{t.tryMeProcessing}</p>
-            <ol className="list-decimal space-y-2 pl-5 text-muted">
-              <li>{t.tryMeStepPrepare}</li>
-              <li>{t.tryMeStepMatch}</li>
-              <li>{t.tryMeStepGenerate}</li>
-              <li>{t.tryMeStepFinish}</li>
-            </ol>
-            <p className="text-xs text-muted">Status: {session?.status ?? "QUEUED"}</p>
+            <FashionProgress
+              status={session?.status ?? "QUEUED"}
+              labels={{
+                QUEUED: t.tryMeStepPrepare,
+                PROCESSING: t.tryMeStepGenerate,
+                COMPLETED: t.tryMeStepFinish,
+              }}
+            />
             {session?.id && session.status === "QUEUED" ? (
               <Button
                 type="button"
@@ -460,6 +470,7 @@ export function TryOnModal({
             if (f) void onFile(f);
           }}
         />
+        </div>
       </div>
     </div>
   );

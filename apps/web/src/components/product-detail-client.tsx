@@ -101,13 +101,14 @@ export function ProductDetailClient({
   };
 
   return (
-    <main className="mx-auto grid max-w-6xl gap-10 px-6 py-10 lg:grid-cols-2">
+    <main className="mx-auto max-w-6xl px-6 py-10 pb-28 lg:pb-10">
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
+      <div className="grid gap-10 lg:grid-cols-2">
       <div>
         <Link href="/products" className="text-sm text-wine hover:underline">
           ← {t.navProducts}
         </Link>
-        <div className="mt-4">
+        <div className="mt-4 lg:sticky lg:top-24">
           <ProductGallery
             images={
               (product.images ?? []).length
@@ -125,7 +126,7 @@ export function ProductDetailClient({
           />
         </div>
       </div>
-      <div>
+      <div className="lg:sticky lg:top-24 lg:self-start">
         {product.brand?.name ? (
           <p className="text-xs uppercase tracking-wide text-muted">{product.brand.name}</p>
         ) : null}
@@ -184,7 +185,7 @@ export function ProductDetailClient({
           </Badge>
         </div>
 
-        <div className="mt-8 flex flex-wrap gap-3">
+        <div className="mt-8 hidden flex-wrap gap-3 lg:flex">
           <Button
             disabled={!inStock || busy}
             type="button"
@@ -210,25 +211,26 @@ export function ProductDetailClient({
           >
             {t.addToCart}
           </Button>
-          <span title={product.tryOnEnabled ? undefined : t.tryMeUnavailable}>
-            <Button
-              type="button"
-              variant="secondary"
-              disabled={!product.tryOnEnabled || busy}
-              onClick={() => {
-                if (!getCustomerToken()) {
-                  window.location.href = `/account?redirect=/products/${product.slug}`;
-                  return;
-                }
-                setTryOnOpen(true);
-              }}
-            >
-              {t.tryMe}
-            </Button>
-          </span>
+          <Button
+            type="button"
+            variant="secondary"
+            disabled={!product.tryOnEnabled || busy}
+            onClick={() => {
+              if (!getCustomerToken()) {
+                window.location.href = `/account?redirect=/products/${product.slug}`;
+                return;
+              }
+              setTryOnOpen(true);
+            }}
+          >
+            {t.tryMe}
+          </Button>
           <Button variant="secondary" type="button" disabled={busy} onClick={() => void toggleWishlist()}>
             {variant && wishIds.includes(variant.id) ? t.wishlistRemove : t.wishlistAdd}
           </Button>
+          <Link href="/policies/returns" className="self-center text-sm text-wine hover:underline">
+            {t.sizeGuide ?? "Size guide"}
+          </Link>
           <a href={waUrl} target="_blank" rel="noopener noreferrer">
             <Button variant="outline" type="button">
               {t.ctaWhatsapp}
@@ -244,6 +246,50 @@ export function ProductDetailClient({
           variantId={variant?.id}
           tryOnEnabled={Boolean(product.tryOnEnabled)}
         />
+      </div>
+      </div>
+
+      <div className="fixed inset-x-0 bottom-0 z-header border-t border-border bg-elevated/95 p-4 backdrop-blur-md lg:hidden">
+        <div className="mx-auto flex max-w-6xl gap-2">
+          <Button
+            type="button"
+            variant="secondary"
+            className="flex-1"
+            disabled={!product.tryOnEnabled || busy}
+            onClick={() => {
+              if (!getCustomerToken()) {
+                window.location.href = `/account?redirect=/products/${product.slug}`;
+                return;
+              }
+              setTryOnOpen(true);
+            }}
+          >
+            {t.tryMe}
+          </Button>
+          <Button
+            className="flex-[2]"
+            disabled={!inStock || busy}
+            type="button"
+            onClick={async () => {
+              if (!variant) return;
+              if (!getCustomerToken()) {
+                window.location.href = "/account";
+                return;
+              }
+              setBusy(true);
+              try {
+                await apiFetch("/cart/items", {
+                  method: "POST",
+                  body: JSON.stringify({ variantId: variant.id, qty: 1 }),
+                });
+              } finally {
+                setBusy(false);
+              }
+            }}
+          >
+            {t.addToCart}
+          </Button>
+        </div>
       </div>
     </main>
   );

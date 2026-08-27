@@ -23,6 +23,15 @@ module.exports = {
         md: "var(--radius-md)",
         lg: "var(--radius-lg)",
       },
+      spacing: {
+        header: "var(--header-height)",
+      },
+      zIndex: {
+        announcement: "var(--z-announcement)",
+        header: "var(--z-header)",
+        overlay: "var(--z-overlay)",
+        modal: "var(--z-modal)",
+      },
       boxShadow: {
         soft: "0 8px 24px rgba(20, 17, 15, 0.08)",
       },
