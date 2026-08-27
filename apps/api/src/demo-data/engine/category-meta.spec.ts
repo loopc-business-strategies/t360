@@ -26,6 +26,12 @@ describe("category-meta", () => {
     expect(related).toEqual(expect.arrayContaining(["women-kurtis", "women-salwar-sets"]));
     expect(related.some((s) => s.startsWith("men-"))).toBe(false);
   });
+
+  it("supports try-on on every leaf", () => {
+    for (const meta of Object.values(CATEGORY_META)) {
+      expect(meta.tryOnSupported).toBe(true);
+    }
+  });
 });
 
 describe("category-media expansion", () => {

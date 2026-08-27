@@ -21,8 +21,19 @@ export function TryMeHubClient() {
 
   React.useEffect(() => {
     if (!getCustomerToken()) return;
-    void apiFetch<Array<{ id: string; productName?: string; createdAt: string }>>("/try-on/jobs?limit=8")
-      .then((res) => setRecent(res.data))
+    void apiFetch<{ items: Array<{ id: string; product?: { name?: string }; createdAt: string }> }>(
+      "/ai/fashion/try-on/history?pageSize=8",
+    )
+      .then((res) => {
+        const items = res.data.items ?? [];
+        setRecent(
+          items.map((job) => ({
+            id: job.id,
+            productName: job.product?.name,
+            createdAt: job.createdAt,
+          })),
+        );
+      })
       .catch(() => setRecent([]));
   }, []);
 

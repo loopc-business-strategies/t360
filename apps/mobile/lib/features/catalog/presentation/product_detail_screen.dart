@@ -12,9 +12,14 @@ final productProvider = FutureProvider.family<ProductDto, String>((ref, slug) {
 });
 
 class ProductDetailScreen extends ConsumerStatefulWidget {
-  const ProductDetailScreen({super.key, required this.slug});
+  const ProductDetailScreen({
+    super.key,
+    required this.slug,
+    this.autoOpenTryOn = false,
+  });
 
   final String slug;
+  final bool autoOpenTryOn;
 
   @override
   ConsumerState<ProductDetailScreen> createState() => _ProductDetailScreenState();
@@ -24,6 +29,23 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
   String? _variantId;
   var _busy = false;
   String? _message;
+  var _didAutoOpenTryOn = false;
+
+  void _openTryOn(ProductDto p, VariantDto? selected, {required bool loggedIn}) {
+    final q = <String, String>{
+      'productId': p.id,
+      'name': p.name,
+      'slug': p.slug,
+      'tryOnEnabled': p.tryOnEnabled ? '1' : '0',
+      if (selected != null) 'variantId': selected.id,
+    };
+    final path = Uri(path: '/try-on', queryParameters: q).toString();
+    if (!loggedIn) {
+      context.push('/auth?redirect=${Uri.encodeComponent(path)}');
+      return;
+    }
+    context.push(path);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -42,6 +64,13 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
                   (v) => v.id == (_variantId ?? variants.first.id),
                   orElse: () => variants.first,
                 );
+          if (widget.autoOpenTryOn && !_didAutoOpenTryOn && p.tryOnEnabled) {
+            _didAutoOpenTryOn = true;
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              if (!mounted) return;
+              _openTryOn(p, selected, loggedIn: loggedIn);
+            });
+          }
           final price = selected?.salePrice ?? selected?.price ?? p.salePrice ?? p.price ?? 0;
           return ListView(
             padding: const EdgeInsets.all(16),
@@ -111,25 +140,7 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
                 variant: TharagaiButtonVariant.secondary,
                 onPressed: _busy || !p.tryOnEnabled
                     ? null
-                    : () {
-                        if (!loggedIn) {
-                          final redirect = Uri.encodeComponent(
-                            '/try-on?productId=${p.id}&slug=${widget.slug}',
-                          );
-                          context.push('/auth?redirect=$redirect');
-                          return;
-                        }
-                        final q = {
-                          'productId': p.id,
-                          'name': p.name,
-                          'slug': p.slug,
-                          'tryOnEnabled': '1',
-                          if (selected != null) 'variantId': selected.id,
-                        };
-                        context.push(
-                          Uri(path: '/try-on', queryParameters: q).toString(),
-                        );
-                      },
+                    : () => _openTryOn(p, selected, loggedIn: loggedIn),
               ),
               if (!p.tryOnEnabled) ...[
                 const SizedBox(height: 8),

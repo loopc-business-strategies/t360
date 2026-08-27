@@ -54,6 +54,7 @@ export function TryOnModal({
   const streamRef = React.useRef<MediaStream | null>(null);
   const pollRef = React.useRef<ReturnType<typeof setInterval> | null>(null);
   const [cfg, setCfg] = React.useState({
+    enabled: true,
     allowCamera: true,
     allowUpload: true,
     consentRequired: true,
@@ -77,11 +78,19 @@ export function TryOnModal({
     window.addEventListener("keydown", onKey);
     closeRef.current?.focus();
     void apiFetch<{
+      enabled?: boolean;
       allowCamera: boolean;
       allowUpload: boolean;
       consentRequired: boolean;
     }>("/ai/fashion/try-on/config")
-      .then((r) => setCfg(r.data))
+      .then((r) =>
+        setCfg({
+          enabled: r.data.enabled !== false,
+          allowCamera: r.data.allowCamera !== false,
+          allowUpload: r.data.allowUpload !== false,
+          consentRequired: r.data.consentRequired !== false,
+        }),
+      )
       .catch(() => undefined);
     return () => window.removeEventListener("keydown", onKey);
   }, [open, reusedPhotoUrl, onClose]);
@@ -289,11 +298,13 @@ export function TryOnModal({
         </div>
         <div className="flex-1 overflow-y-auto px-6 py-6">
 
-        {!tryOnEnabled ? (
-          <p className="mt-6 text-sm text-muted">{t.tryMeUnavailable}</p>
+        {!tryOnEnabled || !cfg.enabled ? (
+          <p className="mt-6 text-sm text-muted">
+            {t.tryMeUnavailable ?? "Try Me is unavailable for this item right now."}
+          </p>
         ) : null}
 
-        {tryOnEnabled && step === "guide" ? (
+        {tryOnEnabled && cfg.enabled && step === "guide" ? (
           <div className="mt-6 space-y-4">
             <p className="text-sm text-muted">{t.tryMeGuide}</p>
             <ul className="list-disc space-y-1 pl-5 text-sm text-ink">
@@ -320,7 +331,7 @@ export function TryOnModal({
           </div>
         ) : null}
 
-        {tryOnEnabled && step === "capture" ? (
+        {tryOnEnabled && cfg.enabled && step === "capture" ? (
           <div className="mt-6 space-y-4">
             {cameraOn ? (
               <>
@@ -338,7 +349,7 @@ export function TryOnModal({
           </div>
         ) : null}
 
-        {tryOnEnabled && step === "preview" ? (
+        {tryOnEnabled && cfg.enabled && step === "preview" ? (
           <div className="mt-6 space-y-4">
             {previewUrl ? (
               // eslint-disable-next-line @next/next/no-img-element
@@ -382,7 +393,7 @@ export function TryOnModal({
           </div>
         ) : null}
 
-        {tryOnEnabled && step === "processing" ? (
+        {tryOnEnabled && cfg.enabled && step === "processing" ? (
           <div className="mt-2 space-y-4 text-sm">
             <p className="font-medium">{t.tryMeProcessing}</p>
             <FashionProgress
@@ -415,7 +426,7 @@ export function TryOnModal({
           </div>
         ) : null}
 
-        {tryOnEnabled && step === "result" && session?.resultImageUrl ? (
+        {tryOnEnabled && cfg.enabled && step === "result" && session?.resultImageUrl ? (
           <div className="mt-6 space-y-4">
             <h3 className="font-display text-xl">{t.tryMeResult}</h3>
             {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -451,7 +462,7 @@ export function TryOnModal({
           </div>
         ) : null}
 
-        {tryOnEnabled && step === "failed" ? (
+        {tryOnEnabled && cfg.enabled && step === "failed" ? (
           <div className="mt-6 space-y-4">
             <p className="text-sm text-danger">{error || t.tryMeFailed}</p>
             <div className="flex flex-wrap gap-2">

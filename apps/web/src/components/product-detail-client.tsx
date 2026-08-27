@@ -256,7 +256,7 @@ export function ProductDetailClient({
             disabled={!product.tryOnEnabled || busy}
             onClick={() => {
               if (!getCustomerToken()) {
-                window.location.href = `/account?redirect=/products/${product.slug}`;
+                window.location.href = `/account?redirect=/products/${product.slug}?tryOn=1`;
                 return;
               }
               setTryOnOpen(true);
@@ -264,6 +264,9 @@ export function ProductDetailClient({
           >
             TRY IT ON
           </Button>
+          {!product.tryOnEnabled ? (
+            <p className="basis-full text-xs text-muted">Try Me unavailable for this item.</p>
+          ) : null}
           <Button variant="secondary" type="button" disabled={busy} onClick={() => void toggleWishlist()}>
             {variant && wishIds.includes(variant.id) ? t.wishlistRemove : t.wishlistAdd}
           </Button>
@@ -359,7 +362,7 @@ export function ProductDetailClient({
             disabled={!product.tryOnEnabled || busy}
             onClick={() => {
               if (!getCustomerToken()) {
-                window.location.href = `/account?redirect=/products/${product.slug}`;
+                window.location.href = `/account?redirect=/products/${product.slug}?tryOn=1`;
                 return;
               }
               setTryOnOpen(true);

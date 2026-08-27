@@ -62,9 +62,16 @@ class TryMeHubScreen extends ConsumerWidget {
                         addToCartLabel: t.addToCart,
                         tryOnEnabled: p.tryOnEnabled,
                         tryMeLabel: t.tryMeTab,
-                        onTryMe: () => context.push(
-                          '/try-on?productId=${p.id}&name=${Uri.encodeComponent(p.name)}&slug=${p.slug}&tryOnEnabled=1',
-                        ),
+                        onTryMe: () {
+                          final q = <String, String>{
+                            'productId': p.id,
+                            'name': p.name,
+                            'slug': p.slug,
+                            'tryOnEnabled': '1',
+                            if (p.variants.isNotEmpty) 'variantId': p.variants.first.id,
+                          };
+                          context.push(Uri(path: '/try-on', queryParameters: q).toString());
+                        },
                         onAddToCart: () => context.push('/product/${p.slug}'),
                       ),
                     );

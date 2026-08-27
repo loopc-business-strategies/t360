@@ -14,7 +14,7 @@ type Cart = {
     qty: number;
     unitPrice: number;
     lineTotal: number;
-    variant: { sku: string; product: { name: string; slug: string } };
+    variant: { sku: string; product: { name: string; slug: string; tryOnEnabled?: boolean } };
   }>;
 };
 
@@ -75,12 +75,14 @@ export default function CartPage() {
                   </Link>
                   <p className="text-sm text-muted">{item.variant.sku}</p>
                   <p className="mt-1 font-medium">₹{item.lineTotal}</p>
-                  <Link
-                    href={`/products/${item.variant.product.slug}?tryOn=1`}
-                    className="mt-2 inline-block text-xs text-wine hover:underline"
-                  >
-                    {t.tryMe}
-                  </Link>
+                  {item.variant.product.tryOnEnabled ? (
+                    <Link
+                      href={`/products/${item.variant.product.slug}?tryOn=1`}
+                      className="mt-2 inline-block text-xs text-wine hover:underline"
+                    >
+                      {t.tryMe}
+                    </Link>
+                  ) : null}
                 </div>
                 <div className="flex items-end gap-2">
                   <Input

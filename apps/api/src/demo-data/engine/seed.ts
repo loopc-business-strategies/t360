@@ -269,7 +269,7 @@ export async function seedDemoCatalog(prisma: PrismaClient): Promise<SeedResult>
     const description = buildDemoDescription(plan.leafSlug, segment, name);
     const slug = slugify(`t360-demo-${segment}-${plan.leafSlug}-${plan.index + 1}`);
     const { price, salePrice } = priceForBand(meta?.priceBand ?? "tee", plan.index);
-    const tryOn = Boolean(meta?.tryOnSupported) && plan.index % 2 === 0;
+    const tryOn = true;
     const brandSlug = meta?.brandSlug ?? "t360-originals";
     const brandId = brandIds[brandSlug] ?? brandIds["t360-originals"];
     const flags = {
@@ -293,8 +293,12 @@ export async function seedDemoCatalog(prisma: PrismaClient): Promise<SeedResult>
     const mediaCheck = validateProductMedia({
       categorySlug: plan.leafSlug,
       segment,
-      images: stills.map((url) => ({ url, mediaType: "image" })),
-      tryOnEnabled: false,
+      images: stills.map((url, i) => ({
+        url,
+        mediaType: "image" as const,
+        isTryOnSource: i === 0,
+      })),
+      tryOnEnabled: tryOn,
     });
     if (!mediaCheck.ok) {
       throw new Error(
@@ -345,7 +349,7 @@ export async function seedDemoCatalog(prisma: PrismaClient): Promise<SeedResult>
           publicId: `demo/${DEMO_BATCH_ID}/${slug}/${i}`,
           alt: `${name} view ${i + 1}`,
           mediaType: "image",
-          isTryOnSource: tryOn && i === 0,
+          isTryOnSource: i === 0,
           sortOrder: i,
         },
       });
@@ -682,6 +686,13 @@ export async function auditDemoCatalog(prisma: PrismaClient): Promise<AuditRow[]
           });
           if (!media.ok) status = media.status === "TRYON_MISMATCH" ? "TRYON_MISMATCH" : "MEDIA_MISMATCH";
         }
+      }
+    }
+
+    if (status === "PASS" && p.tryOnEnabled) {
+      const hasTryOnSource = stills.some((i) => i.isTryOnSource);
+      if (!hasTryOnSource || stills.length === 0) {
+        status = "TRYON_MISMATCH";
       }
     }
 

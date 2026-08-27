@@ -47,6 +47,13 @@ class TryOnRepository {
 
   final ApiClient _api;
 
+  Future<Map<String, dynamic>> config() {
+    return _api.get(
+      '/ai/fashion/try-on/config',
+      map: (d) => Map<String, dynamic>.from(d as Map),
+    );
+  }
+
   Future<Map<String, dynamic>> uploadPersonPhoto(String filePath) {
     return _api.uploadMultipart('/ai/fashion/try-on/upload', filePath: filePath);
   }

@@ -27,9 +27,16 @@ class HomeProductCard extends StatelessWidget {
         tryOnEnabled: product.tryOnEnabled,
         onAddToCart: () => context.push('/product/${product.slug}'),
         onTryMe: product.tryOnEnabled
-            ? () => context.push(
-                  '/try-on?productId=${product.id}&name=${Uri.encodeComponent(product.name)}&slug=${product.slug}',
-                )
+            ? () {
+                final q = <String, String>{
+                  'productId': product.id,
+                  'name': product.name,
+                  'slug': product.slug,
+                  'tryOnEnabled': '1',
+                  if (product.variants.isNotEmpty) 'variantId': product.variants.first.id,
+                };
+                context.push(Uri(path: '/try-on', queryParameters: q).toString());
+              }
             : null,
       ),
     );

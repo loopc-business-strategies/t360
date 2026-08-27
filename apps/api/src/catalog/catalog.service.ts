@@ -280,6 +280,7 @@ export class CatalogService {
   async createProduct(input: ProductCreateInput, actorId?: string) {
     await this.assertActiveCategory(input.categoryId);
     const slug = input.slug ?? slugify(input.name);
+    const tryOnEnabled = input.tryOnEnabled ?? true;
     const product = await this.prisma.$transaction(async (tx) => {
       const created = await tx.product.create({
         data: {
@@ -289,6 +290,7 @@ export class CatalogService {
           status: input.status ?? "draft",
           categoryId: input.categoryId,
           brandId: input.brandId ?? null,
+          tryOnEnabled,
           variants: {
             create: input.variants.map((v) => ({
               sku: v.sku,
@@ -314,6 +316,7 @@ export class CatalogService {
               publicId: asset.publicId,
               sortOrder: order++,
               alt: input.name,
+              isTryOnSource: tryOnEnabled && order === 1,
             },
           });
         }

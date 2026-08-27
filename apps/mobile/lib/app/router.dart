@@ -83,7 +83,8 @@ final goRouterProvider = Provider<GoRouter>((ref) {
           loc.startsWith('/orders') ||
           loc.startsWith('/ai') ||
           loc.startsWith('/loyalty') ||
-          loc.startsWith('/try-ons');
+          loc.startsWith('/try-ons') ||
+          loc.startsWith('/try-on');
       if (needsAuth && !auth.isLoggedIn && !loggingIn) {
         final redirect = Uri.encodeComponent(state.uri.toString());
         return '/auth?redirect=$redirect';
@@ -227,19 +228,23 @@ final goRouterProvider = Provider<GoRouter>((ref) {
       GoRoute(path: '/loyalty', builder: (context, state) => const LoyaltyScreen()),
       GoRoute(
         path: '/product/:slug',
-        builder: (context, state) =>
-            ProductDetailScreen(slug: state.pathParameters['slug']!),
+        builder: (context, state) => ProductDetailScreen(
+          slug: state.pathParameters['slug']!,
+          autoOpenTryOn: state.uri.queryParameters['tryOn'] == '1',
+        ),
       ),
       GoRoute(
         path: '/try-on',
         builder: (context, state) {
           final q = state.uri.queryParameters;
+          final enabledFlag = q['tryOnEnabled'];
+          final tryOnEnabled = enabledFlag == '1' || enabledFlag == 'true';
           return TryOnFlowScreen(
             productId: q['productId'] ?? '',
             productName: q['name'] ?? '',
             productSlug: q['slug'] ?? '',
             variantId: q['variantId'],
-            tryOnEnabled: q['tryOnEnabled'] != '0',
+            tryOnEnabled: tryOnEnabled,
           );
         },
       ),

@@ -46,9 +46,10 @@ class _DeepLinkListenerState extends ConsumerState<DeepLinkListener> {
     final segs = uri.pathSegments;
     if (segs.isEmpty) return '/';
 
-    // /product/:slug or /products/:slug
+    // /product/:slug or /products/:slug (?tryOn=1 opens try-on after PDP load)
     if ((segs[0] == 'product' || segs[0] == 'products') && segs.length >= 2) {
-      return '/product/${segs[1]}';
+      final tryOn = uri.queryParameters['tryOn'] == '1';
+      return tryOn ? '/product/${segs[1]}?tryOn=1' : '/product/${segs[1]}';
     }
     // /orders/:id
     if (segs[0] == 'orders' && segs.length >= 2) {

@@ -20,7 +20,7 @@ class TryOnFlowScreen extends ConsumerStatefulWidget {
     required this.productName,
     required this.productSlug,
     this.variantId,
-    this.tryOnEnabled = true,
+    this.tryOnEnabled = false,
   });
 
   final String productId;
@@ -44,6 +44,10 @@ class _TryOnFlowScreenState extends ConsumerState<TryOnFlowScreen> {
   String? _error;
   var _busy = false;
   var _savePhotoConsent = false;
+  var _configLoaded = false;
+  var _featureEnabled = true;
+  var _allowCamera = true;
+  var _allowUpload = true;
   final _picker = ImagePicker();
 
   @override
@@ -53,6 +57,23 @@ class _TryOnFlowScreenState extends ConsumerState<TryOnFlowScreen> {
     if (cached != null && cached.isNotEmpty) {
       _uploadedUrl = cached;
       _step = _Step.preview;
+    }
+    WidgetsBinding.instance.addPostFrameCallback((_) => _loadConfig());
+  }
+
+  Future<void> _loadConfig() async {
+    try {
+      final cfg = await ref.read(tryOnRepositoryProvider).config();
+      if (!mounted) return;
+      setState(() {
+        _featureEnabled = cfg['enabled'] != false;
+        _allowCamera = cfg['allowCamera'] != false;
+        _allowUpload = cfg['allowUpload'] != false;
+        _configLoaded = true;
+      });
+    } catch (_) {
+      if (!mounted) return;
+      setState(() => _configLoaded = true);
     }
   }
 
@@ -180,23 +201,25 @@ class _TryOnFlowScreenState extends ConsumerState<TryOnFlowScreen> {
         children: [
           Text(widget.productName, style: Theme.of(context).textTheme.titleMedium),
           const SizedBox(height: 12),
-          if (!widget.tryOnEnabled)
+          if (!widget.tryOnEnabled || (_configLoaded && !_featureEnabled))
             Text(t.tryMeUnavailable, style: const TextStyle(color: TharagaiColors.muted)),
-          if (widget.tryOnEnabled && _step == _Step.guide) ...[
+          if (widget.tryOnEnabled && _featureEnabled && _step == _Step.guide) ...[
             Text(t.tryMeGuide),
             const SizedBox(height: 16),
-            TharagaiButton(
-              label: t.tryMeTakePhoto,
-              onPressed: _busy ? null : () => _pick(ImageSource.camera),
-            ),
-            const SizedBox(height: 8),
-            TharagaiButton(
-              label: t.tryMeUpload,
-              variant: TharagaiButtonVariant.outline,
-              onPressed: _busy ? null : () => _pick(ImageSource.gallery),
-            ),
+            if (_allowCamera)
+              TharagaiButton(
+                label: t.tryMeTakePhoto,
+                onPressed: _busy ? null : () => _pick(ImageSource.camera),
+              ),
+            if (_allowCamera && _allowUpload) const SizedBox(height: 8),
+            if (_allowUpload)
+              TharagaiButton(
+                label: t.tryMeUpload,
+                variant: TharagaiButtonVariant.outline,
+                onPressed: _busy ? null : () => _pick(ImageSource.gallery),
+              ),
           ],
-          if (widget.tryOnEnabled && _step == _Step.preview) ...[
+          if (widget.tryOnEnabled && _featureEnabled && _step == _Step.preview) ...[
             if (_localPath != null)
               AspectRatio(
                 aspectRatio: 3 / 4,
@@ -237,7 +260,7 @@ class _TryOnFlowScreenState extends ConsumerState<TryOnFlowScreen> {
                       }),
             ),
           ],
-          if (widget.tryOnEnabled && _step == _Step.processing) ...[
+          if (widget.tryOnEnabled && _featureEnabled && _step == _Step.processing) ...[
             Text(t.tryMeProcessing),
             const SizedBox(height: 12),
             Text('${t.tryMeStepPrepare}\n${t.tryMeStepMatch}\n${t.tryMeStepGenerate}\n${t.tryMeStepFinish}'),
@@ -273,7 +296,7 @@ class _TryOnFlowScreenState extends ConsumerState<TryOnFlowScreen> {
               ),
             ],
           ],
-          if (widget.tryOnEnabled && _step == _Step.result && _session?.resultImageUrl != null) ...[
+          if (widget.tryOnEnabled && _featureEnabled && _step == _Step.result && _session?.resultImageUrl != null) ...[
             Text(t.tryMeResult, style: Theme.of(context).textTheme.titleLarge),
             const SizedBox(height: 8),
             AspectRatio(
@@ -302,7 +325,7 @@ class _TryOnFlowScreenState extends ConsumerState<TryOnFlowScreen> {
               onPressed: () => context.go('/categories'),
             ),
           ],
-          if (widget.tryOnEnabled && _step == _Step.failed) ...[
+          if (widget.tryOnEnabled && _featureEnabled && _step == _Step.failed) ...[
             Text(_error ?? t.tryMeFailed, style: const TextStyle(color: Colors.red)),
             const SizedBox(height: 16),
             TharagaiButton(

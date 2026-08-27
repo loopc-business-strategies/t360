@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Single source of truth for demo category metadata.
  * Media, seed quotas, sizes, pricing, related products, and try-on consult this module.
  */
@@ -46,7 +46,7 @@ function m(
 
 /** Per-leaf quotas sum to ~750. */
 export const CATEGORY_META: Record<string, CategoryMeta> = {
-  // —— Men (~222) ——
+  // â€”â€” Men (~222) â€”â€”
   "men-t-shirts": m({
     slug: "men-t-shirts",
     segment: "men",
@@ -188,7 +188,7 @@ export const CATEGORY_META: Record<string, CategoryMeta> = {
     gender: "men",
     productType: "outerwear",
     subType: "jacket",
-    tryOnSupported: false,
+    tryOnSupported: true,
     compatibleRelated: ["men-bombers", "men-denim-jackets"],
     sizeProfile: "adult",
     priceBand: "outer",
@@ -203,7 +203,7 @@ export const CATEGORY_META: Record<string, CategoryMeta> = {
     gender: "men",
     productType: "outerwear",
     subType: "bomber",
-    tryOnSupported: false,
+    tryOnSupported: true,
     compatibleRelated: ["men-jackets", "men-denim-jackets"],
     sizeProfile: "adult",
     priceBand: "outer",
@@ -218,7 +218,7 @@ export const CATEGORY_META: Record<string, CategoryMeta> = {
     gender: "men",
     productType: "outerwear",
     subType: "denim-jacket",
-    tryOnSupported: false,
+    tryOnSupported: true,
     compatibleRelated: ["men-jackets", "men-jeans"],
     sizeProfile: "adult",
     priceBand: "outer",
@@ -233,7 +233,7 @@ export const CATEGORY_META: Record<string, CategoryMeta> = {
     gender: "men",
     productType: "bottoms",
     subType: "jeans",
-    tryOnSupported: false,
+    tryOnSupported: true,
     compatibleRelated: ["men-chinos", "men-cargos", "men-joggers"],
     sizeProfile: "waist",
     priceBand: "bottom",
@@ -248,7 +248,7 @@ export const CATEGORY_META: Record<string, CategoryMeta> = {
     gender: "men",
     productType: "bottoms",
     subType: "chinos",
-    tryOnSupported: false,
+    tryOnSupported: true,
     compatibleRelated: ["men-jeans", "men-cargos"],
     sizeProfile: "waist",
     priceBand: "bottom",
@@ -263,7 +263,7 @@ export const CATEGORY_META: Record<string, CategoryMeta> = {
     gender: "men",
     productType: "bottoms",
     subType: "cargo",
-    tryOnSupported: false,
+    tryOnSupported: true,
     compatibleRelated: ["men-jeans", "men-joggers"],
     sizeProfile: "waist",
     priceBand: "bottom",
@@ -278,7 +278,7 @@ export const CATEGORY_META: Record<string, CategoryMeta> = {
     gender: "men",
     productType: "bottoms",
     subType: "joggers",
-    tryOnSupported: false,
+    tryOnSupported: true,
     compatibleRelated: ["men-shorts", "men-activewear"],
     sizeProfile: "adult",
     priceBand: "bottom",
@@ -293,7 +293,7 @@ export const CATEGORY_META: Record<string, CategoryMeta> = {
     gender: "men",
     productType: "bottoms",
     subType: "shorts",
-    tryOnSupported: false,
+    tryOnSupported: true,
     compatibleRelated: ["men-joggers", "men-activewear"],
     sizeProfile: "adult",
     priceBand: "bottom",
@@ -308,7 +308,7 @@ export const CATEGORY_META: Record<string, CategoryMeta> = {
     gender: "men",
     productType: "active",
     subType: "activewear",
-    tryOnSupported: false,
+    tryOnSupported: true,
     compatibleRelated: ["men-joggers", "men-shorts", "men-hoodies"],
     sizeProfile: "adult",
     priceBand: "tee",
@@ -323,7 +323,7 @@ export const CATEGORY_META: Record<string, CategoryMeta> = {
     gender: "men",
     productType: "accessories",
     subType: "accessory",
-    tryOnSupported: false,
+    tryOnSupported: true,
     compatibleRelated: ["men-accessories"],
     sizeProfile: "one",
     priceBand: "accessory",
@@ -368,7 +368,7 @@ export const CATEGORY_META: Record<string, CategoryMeta> = {
     gender: "men",
     productType: "ethnic",
     subType: "nehru-jacket",
-    tryOnSupported: false,
+    tryOnSupported: true,
     compatibleRelated: ["men-kurtas", "men-kurta-sets"],
     sizeProfile: "adult",
     priceBand: "ethnic",
@@ -378,7 +378,7 @@ export const CATEGORY_META: Record<string, CategoryMeta> = {
     quota: 6,
   }),
 
-  // —— Women (~250) ——
+  // â€”â€” Women (~250) â€”â€”
   "women-t-shirts": m({
     slug: "women-t-shirts",
     segment: "women",
@@ -610,7 +610,7 @@ export const CATEGORY_META: Record<string, CategoryMeta> = {
     gender: "women",
     productType: "outerwear",
     subType: "jacket",
-    tryOnSupported: false,
+    tryOnSupported: true,
     compatibleRelated: ["women-denim-jackets"],
     sizeProfile: "adult",
     priceBand: "outer",
@@ -625,7 +625,7 @@ export const CATEGORY_META: Record<string, CategoryMeta> = {
     gender: "women",
     productType: "outerwear",
     subType: "denim-jacket",
-    tryOnSupported: false,
+    tryOnSupported: true,
     compatibleRelated: ["women-jackets", "women-jeans"],
     sizeProfile: "adult",
     priceBand: "outer",
@@ -640,7 +640,7 @@ export const CATEGORY_META: Record<string, CategoryMeta> = {
     gender: "women",
     productType: "bottoms",
     subType: "jeans",
-    tryOnSupported: false,
+    tryOnSupported: true,
     compatibleRelated: ["women-wide-leg", "women-cargos"],
     sizeProfile: "waist",
     priceBand: "bottom",
@@ -655,7 +655,7 @@ export const CATEGORY_META: Record<string, CategoryMeta> = {
     gender: "women",
     productType: "bottoms",
     subType: "wide-leg",
-    tryOnSupported: false,
+    tryOnSupported: true,
     compatibleRelated: ["women-jeans", "women-palazzo-sets"],
     sizeProfile: "adult",
     priceBand: "bottom",
@@ -670,7 +670,7 @@ export const CATEGORY_META: Record<string, CategoryMeta> = {
     gender: "women",
     productType: "bottoms",
     subType: "cargo",
-    tryOnSupported: false,
+    tryOnSupported: true,
     compatibleRelated: ["women-jeans", "women-joggers"],
     sizeProfile: "waist",
     priceBand: "bottom",
@@ -685,7 +685,7 @@ export const CATEGORY_META: Record<string, CategoryMeta> = {
     gender: "women",
     productType: "bottoms",
     subType: "leggings",
-    tryOnSupported: false,
+    tryOnSupported: true,
     compatibleRelated: ["women-joggers", "women-activewear"],
     sizeProfile: "adult",
     priceBand: "bottom",
@@ -700,7 +700,7 @@ export const CATEGORY_META: Record<string, CategoryMeta> = {
     gender: "women",
     productType: "bottoms",
     subType: "joggers",
-    tryOnSupported: false,
+    tryOnSupported: true,
     compatibleRelated: ["women-leggings", "women-activewear"],
     sizeProfile: "adult",
     priceBand: "bottom",
@@ -715,7 +715,7 @@ export const CATEGORY_META: Record<string, CategoryMeta> = {
     gender: "women",
     productType: "bottoms",
     subType: "shorts",
-    tryOnSupported: false,
+    tryOnSupported: true,
     compatibleRelated: ["women-skirts", "women-activewear"],
     sizeProfile: "adult",
     priceBand: "bottom",
@@ -730,7 +730,7 @@ export const CATEGORY_META: Record<string, CategoryMeta> = {
     gender: "women",
     productType: "bottoms",
     subType: "skirt",
-    tryOnSupported: false,
+    tryOnSupported: true,
     compatibleRelated: ["women-shorts", "women-casual-dresses"],
     sizeProfile: "adult",
     priceBand: "bottom",
@@ -745,7 +745,7 @@ export const CATEGORY_META: Record<string, CategoryMeta> = {
     gender: "women",
     productType: "active",
     subType: "activewear",
-    tryOnSupported: false,
+    tryOnSupported: true,
     compatibleRelated: ["women-leggings", "women-joggers"],
     sizeProfile: "adult",
     priceBand: "tee",
@@ -760,7 +760,7 @@ export const CATEGORY_META: Record<string, CategoryMeta> = {
     gender: "women",
     productType: "accessories",
     subType: "accessory",
-    tryOnSupported: false,
+    tryOnSupported: true,
     compatibleRelated: ["women-accessories"],
     sizeProfile: "one",
     priceBand: "accessory",
@@ -770,7 +770,7 @@ export const CATEGORY_META: Record<string, CategoryMeta> = {
     quota: 10,
   }),
 
-  // —— Kids (~90) ——
+  // â€”â€” Kids (~90) â€”â€”
   "kids-boys": m({
     slug: "kids-boys",
     segment: "kids",
@@ -897,7 +897,7 @@ export const CATEGORY_META: Record<string, CategoryMeta> = {
     gender: "kids",
     productType: "outerwear",
     subType: "jacket",
-    tryOnSupported: false,
+    tryOnSupported: true,
     compatibleRelated: ["kids-hoodies"],
     sizeProfile: "kids",
     priceBand: "kids",
@@ -912,7 +912,7 @@ export const CATEGORY_META: Record<string, CategoryMeta> = {
     gender: "kids",
     productType: "bottoms",
     subType: "jeans",
-    tryOnSupported: false,
+    tryOnSupported: true,
     compatibleRelated: ["kids-joggers", "kids-shorts"],
     sizeProfile: "kids",
     priceBand: "kids",
@@ -927,7 +927,7 @@ export const CATEGORY_META: Record<string, CategoryMeta> = {
     gender: "kids",
     productType: "bottoms",
     subType: "joggers",
-    tryOnSupported: false,
+    tryOnSupported: true,
     compatibleRelated: ["kids-shorts", "kids-activewear"],
     sizeProfile: "kids",
     priceBand: "kids",
@@ -942,7 +942,7 @@ export const CATEGORY_META: Record<string, CategoryMeta> = {
     gender: "kids",
     productType: "bottoms",
     subType: "shorts",
-    tryOnSupported: false,
+    tryOnSupported: true,
     compatibleRelated: ["kids-joggers"],
     sizeProfile: "kids",
     priceBand: "kids",
@@ -1002,7 +1002,7 @@ export const CATEGORY_META: Record<string, CategoryMeta> = {
     gender: "kids",
     productType: "active",
     subType: "activewear",
-    tryOnSupported: false,
+    tryOnSupported: true,
     compatibleRelated: ["kids-joggers", "kids-shorts"],
     sizeProfile: "kids",
     priceBand: "kids",
@@ -1017,7 +1017,7 @@ export const CATEGORY_META: Record<string, CategoryMeta> = {
     gender: "kids",
     productType: "sleep",
     subType: "sleepwear",
-    tryOnSupported: false,
+    tryOnSupported: true,
     compatibleRelated: ["kids-sleepwear"],
     sizeProfile: "kids",
     priceBand: "kids",
@@ -1032,7 +1032,7 @@ export const CATEGORY_META: Record<string, CategoryMeta> = {
     gender: "kids",
     productType: "accessories",
     subType: "accessory",
-    tryOnSupported: false,
+    tryOnSupported: true,
     compatibleRelated: ["kids-accessories"],
     sizeProfile: "one",
     priceBand: "accessory",
@@ -1042,14 +1042,14 @@ export const CATEGORY_META: Record<string, CategoryMeta> = {
     quota: 4,
   }),
 
-  // —— Sarees (~100) ——
+  // â€”â€” Sarees (~100) â€”â€”
   "sarees-silk": m({
     slug: "sarees-silk",
     segment: "sarees",
     gender: "women",
     productType: "saree",
     subType: "silk-saree",
-    tryOnSupported: false,
+    tryOnSupported: true,
     compatibleRelated: ["sarees-cotton", "sarees-party", "sarees-festive"],
     sizeProfile: "one",
     priceBand: "saree",
@@ -1064,7 +1064,7 @@ export const CATEGORY_META: Record<string, CategoryMeta> = {
     gender: "women",
     productType: "saree",
     subType: "cotton-saree",
-    tryOnSupported: false,
+    tryOnSupported: true,
     compatibleRelated: ["sarees-silk", "sarees-everyday"],
     sizeProfile: "one",
     priceBand: "saree",
@@ -1079,7 +1079,7 @@ export const CATEGORY_META: Record<string, CategoryMeta> = {
     gender: "women",
     productType: "saree",
     subType: "party-saree",
-    tryOnSupported: false,
+    tryOnSupported: true,
     compatibleRelated: ["sarees-silk", "sarees-festive"],
     sizeProfile: "one",
     priceBand: "saree",
@@ -1094,7 +1094,7 @@ export const CATEGORY_META: Record<string, CategoryMeta> = {
     gender: "women",
     productType: "saree",
     subType: "everyday-saree",
-    tryOnSupported: false,
+    tryOnSupported: true,
     compatibleRelated: ["sarees-cotton", "sarees-silk"],
     sizeProfile: "one",
     priceBand: "saree",
@@ -1109,7 +1109,7 @@ export const CATEGORY_META: Record<string, CategoryMeta> = {
     gender: "women",
     productType: "saree",
     subType: "festive-saree",
-    tryOnSupported: false,
+    tryOnSupported: true,
     compatibleRelated: ["sarees-party", "sarees-silk"],
     sizeProfile: "one",
     priceBand: "saree",
@@ -1119,7 +1119,7 @@ export const CATEGORY_META: Record<string, CategoryMeta> = {
     quota: 20,
   }),
 
-  // —— Wedding (~36) ——
+  // â€”â€” Wedding (~36) â€”â€”
   "wedding-lehengas": m({
     slug: "wedding-lehengas",
     segment: "wedding",
@@ -1181,7 +1181,7 @@ export const CATEGORY_META: Record<string, CategoryMeta> = {
     quota: 6,
   }),
 
-  // —— Festival (~16) ——
+  // â€”â€” Festival (~16) â€”â€”
   "festival-kurtas": m({
     slug: "festival-kurtas",
     segment: "festival",
@@ -1233,7 +1233,7 @@ export const CATEGORY_META: Record<string, CategoryMeta> = {
     gender: "unisex",
     productType: "accessories",
     subType: "accessory",
-    tryOnSupported: false,
+    tryOnSupported: true,
     compatibleRelated: ["women-accessories"],
     sizeProfile: "one",
     priceBand: "accessory",
@@ -1296,3 +1296,4 @@ export function priceForBand(band: PriceBand, i: number): { price: number; saleP
 }
 
 export const __test = { CATEGORY_META, totalDemoQuota };
+
