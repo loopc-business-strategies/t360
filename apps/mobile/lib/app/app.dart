@@ -77,7 +77,7 @@ class _BootSplashScreen extends StatelessWidget {
         child: Center(
           child: Image(
             image: AssetImage('assets/branding/tharagai_splash.png'),
-            fit: BoxFit.contain,
+            fit: BoxFit.cover,
             width: double.infinity,
             height: double.infinity,
             filterQuality: FilterQuality.high,

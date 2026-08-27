@@ -26,6 +26,7 @@ dependencies:
   app_links: ^6.4.0
   google_fonts: ^6.2.1
   flutter_native_splash: ^2.4.6
+  url_launcher: ^6.3.1
 
 dev_dependencies:
   flutter_test:
@@ -35,6 +36,7 @@ dev_dependencies:
   freezed: ^2.5.8
   json_serializable: ^6.9.4
   flutter_native_splash: ^2.4.6
+  flutter_launcher_icons: ^0.14.3
 
 flutter:
   uses-material-design: true
@@ -52,3 +54,11 @@ flutter_native_splash:
     image: assets/branding/tharagai_splash_android12.png
   android_gravity: center
   ios_content_mode: scaleAspectFit
+
+flutter_launcher_icons:
+  android: true
+  ios: true
+  image_path: assets/branding/tharagai_icon.png
+  adaptive_icon_background: "#F3EEE6"
+  adaptive_icon_foreground: assets/branding/tharagai_icon.png
+  remove_alpha_ios: true

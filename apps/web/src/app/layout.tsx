@@ -66,6 +66,15 @@ export const metadata: Metadata = {
   authors: [{ name: "THARAGAI Readymades" }],
   creator: "THARAGAI Readymades",
   publisher: "THARAGAI Readymades",
+  icons: {
+    icon: [
+      { url: "/favicon.ico", sizes: "any" },
+      { url: "/favicon-16.png", sizes: "16x16", type: "image/png" },
+      { url: "/favicon-32.png", sizes: "32x32", type: "image/png" },
+      { url: "/icon-192.png", sizes: "192x192", type: "image/png" },
+    ],
+    apple: [{ url: "/apple-touch-icon.png", sizes: "180x180", type: "image/png" }],
+  },
   openGraph: {
     type: "website",
     locale: "en_IN",
@@ -74,12 +83,14 @@ export const metadata: Metadata = {
     title: "THARAGAI Readymades — Pudukkottai",
     description:
       "Official family fashion storefront from Pudukkottai. Shop sarees, wedding wear, and everyday elegance.",
+    images: [{ url: "/og-image.png", width: 1200, height: 630, alt: "THARAGAI Fashion" }],
   },
   twitter: {
     card: "summary_large_image",
     title: "THARAGAI Readymades — Pudukkottai",
     description:
       "Official family fashion storefront from Pudukkottai. Shop sarees, wedding wear, and everyday elegance.",
+    images: ["/og-image.png"],
   },
   robots: {
     index: true,
@@ -95,6 +106,7 @@ const organizationJsonLd = {
   "@type": "Organization",
   name: "THARAGAI Readymades",
   url: siteUrl,
+  logo: `${siteUrl}/logo.png`,
   description:
     "Official THARAGAI Readymades ecommerce storefront from Pudukkottai — sarees, wedding wear, and everyday elegance.",
   address: {

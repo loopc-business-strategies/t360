@@ -164,8 +164,15 @@ export function StoreHeader({
             >
               <IconMenu className="h-5 w-5" />
             </button>
-            <Link href="/" className="font-display text-lg tracking-[0.14em] text-ink sm:text-xl">
-              {t.brand}
+            <Link href="/" className="flex items-center" aria-label={t.brand}>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src="/logo.png"
+                alt={t.brand}
+                className="h-9 w-auto sm:h-10"
+                width={160}
+                height={40}
+              />
             </Link>
           </div>
 

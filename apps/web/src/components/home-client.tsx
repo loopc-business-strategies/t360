@@ -198,10 +198,14 @@ export function HomeClient({
                 transition={transition}
                 className="max-w-xl"
               >
-                <p className="font-display text-4xl tracking-[0.14em] text-elevated sm:text-5xl md:text-6xl">
-                  {t.brand}
-                </p>
-                <span className="mt-3 block h-0.5 w-16 bg-brass sm:w-20" />
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src="/logo.png"
+                  alt={t.brand}
+                  className="h-20 w-auto max-w-[min(100%,18rem)] sm:h-24 md:h-28"
+                  width={280}
+                  height={112}
+                />
                 <h1
                   className={`mt-6 font-display text-3xl text-elevated sm:text-4xl ${
                     reduceMotion ? "" : "text-mask-reveal"

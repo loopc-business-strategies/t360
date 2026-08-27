@@ -47,8 +47,15 @@ export function SiteFooter() {
     <footer className="mt-auto border-t border-border bg-linen/70">
       <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-4 px-4 py-10 sm:px-6">
         <div>
-          <p className="font-display text-lg tracking-[0.14em]">{t.brand}</p>
-          <p className="mt-1 text-sm text-muted">{t.footerTagline}</p>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src="/logo.png"
+            alt={t.brand}
+            className="h-12 w-auto"
+            width={192}
+            height={48}
+          />
+          <p className="mt-2 text-sm text-muted">{t.footerTagline}</p>
         </div>
         <nav className="flex flex-wrap gap-x-4 gap-y-2 text-sm">
           <Link href="/policies/privacy" className="text-wine hover:underline">

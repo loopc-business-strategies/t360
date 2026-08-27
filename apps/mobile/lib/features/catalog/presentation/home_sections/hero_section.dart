@@ -57,18 +57,12 @@ class HomeHeroSection extends ConsumerWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisAlignment: MainAxisAlignment.end,
               children: [
-                Text(
-                  t.brand,
-                  style: Theme.of(context).textTheme.displaySmall?.copyWith(
-                        color: TharagaiColors.elevated,
-                        letterSpacing: 2,
-                      ),
-                ),
-                Container(
-                  margin: const EdgeInsets.only(top: 8),
-                  width: 56,
-                  height: 2,
-                  color: TharagaiColors.brass,
+                Image.asset(
+                  'assets/branding/tharagai_logo.png',
+                  height: 88,
+                  fit: BoxFit.contain,
+                  alignment: Alignment.centerLeft,
+                  semanticLabel: t.brand,
                 ),
                 const SizedBox(height: 16),
                 Text(

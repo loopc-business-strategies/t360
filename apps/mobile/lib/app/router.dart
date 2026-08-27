@@ -36,7 +36,9 @@ import '../features/admin/presentation/admin_settings_screen.dart';
 import '../features/admin/presentation/admin_shell.dart';
 import '../features/admin/presentation/admin_staff_screen.dart';
 import '../features/admin/presentation/admin_storefront_screen.dart';
-import '../features/auth/presentation/auth_screen.dart';
+import '../features/auth/presentation/welcome_auth_screen.dart';
+import '../features/auth/presentation/login_screen.dart';
+import '../features/auth/presentation/signup_screen.dart';
 import '../features/cart/presentation/cart_screen.dart';
 import '../features/catalog/presentation/categories_screen.dart';
 import '../features/catalog/presentation/home_screen.dart';
@@ -254,9 +256,23 @@ final goRouterProvider = Provider<GoRouter>((ref) {
       ),
       GoRoute(
         path: '/auth',
-        builder: (context, state) => AuthScreen(
+        builder: (context, state) => WelcomeAuthScreen(
           redirectTo: state.uri.queryParameters['redirect'],
         ),
+        routes: [
+          GoRoute(
+            path: 'login',
+            builder: (context, state) => LoginScreen(
+              redirectTo: state.uri.queryParameters['redirect'],
+            ),
+          ),
+          GoRoute(
+            path: 'signup',
+            builder: (context, state) => SignupScreen(
+              redirectTo: state.uri.queryParameters['redirect'],
+            ),
+          ),
+        ],
       ),
       GoRoute(
         path: '/account/complete-profile',

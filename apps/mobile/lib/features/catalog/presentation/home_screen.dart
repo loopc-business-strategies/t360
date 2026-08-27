@@ -24,7 +24,7 @@ class HomeScreen extends ConsumerWidget {
     final catsAsync = ref.watch(homeCategoriesProvider);
 
     return Scaffold(
-      appBar: TharagaiAppBar(title: t.brand),
+      appBar: TharagaiAppBar(title: t.brand, showLogo: true),
       body: RefreshIndicator(
         onRefresh: () async {
           ref.invalidate(homeStorefrontProvider);

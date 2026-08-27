@@ -3,7 +3,7 @@
 import os
 from PIL import Image
 
-ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SRC = os.path.join(ROOT, "assets", "branding", "tharagai_splash.png")
 TARGETS = [
     os.path.join(ROOT, "android", "app", "src", "main", "res", "drawable", "background.png"),
