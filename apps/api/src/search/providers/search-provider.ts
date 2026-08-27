@@ -8,8 +8,9 @@ export type SearchHit = {
 
 export type SuggestItem = {
   text: string;
-  type: "product" | "category" | "brand";
+  type: "product" | "category" | "brand" | "collection";
   slug?: string;
+  tryOnEnabled?: boolean;
 };
 
 export interface SearchProvider {

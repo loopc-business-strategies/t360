@@ -18,9 +18,11 @@ class _AdminProfileScreenState extends ConsumerState<AdminProfileScreen> {
   List<dynamic> _sessions = [];
   final _current = TextEditingController();
   final _next = TextEditingController();
+  final _mfaCode = TextEditingController();
   final _bio = BiometricAuthService();
   bool _bioOn = false;
   bool _bioAvailable = false;
+  Map<String, dynamic>? _mfaSetup;
   String? _msg;
 
   @override
@@ -52,6 +54,7 @@ class _AdminProfileScreenState extends ConsumerState<AdminProfileScreen> {
   void dispose() {
     _current.dispose();
     _next.dispose();
+    _mfaCode.dispose();
     super.dispose();
   }
 
@@ -67,6 +70,65 @@ class _AdminProfileScreenState extends ConsumerState<AdminProfileScreen> {
           Text('Admin ID: ${emp?['employeeCode'] ?? '—'}'),
           Text('Email: ${_me?['email'] ?? '—'}'),
           Text('Roles: ${((_me?['roles'] as List?) ?? []).join(', ')}'),
+          Text('MFA: ${(_me?['mfaEnabled'] == true) ? 'On' : 'Off'}'),
+          const SizedBox(height: 16),
+          Text('Two-factor authentication', style: Theme.of(context).textTheme.titleMedium),
+          const SizedBox(height: 8),
+          if (_mfaSetup == null)
+            OutlinedButton(
+              onPressed: () async {
+                try {
+                  final data = await ref.read(adminRepoProvider).mfaSetup();
+                  setState(() {
+                    _mfaSetup = data;
+                    _msg = 'Scan the secret in your authenticator, then enter the code.';
+                  });
+                } catch (e) {
+                  setState(() => _msg = '$e');
+                }
+              },
+              child: Text((_me?['mfaEnabled'] == true) ? 'Re-enroll MFA' : 'Set up MFA'),
+            )
+          else ...[
+            SelectableText(
+              'Secret: ${_mfaSetup!['secret'] ?? ''}',
+              style: const TextStyle(fontFamily: 'monospace', fontSize: 12),
+            ),
+            if (_mfaSetup!['otpauthUrl'] != null)
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 8),
+                child: Text(
+                  '${_mfaSetup!['otpauthUrl']}',
+                  style: const TextStyle(fontSize: 11),
+                ),
+              ),
+            TextField(
+              controller: _mfaCode,
+              keyboardType: TextInputType.number,
+              decoration: const InputDecoration(labelText: '6-digit code'),
+            ),
+            const SizedBox(height: 8),
+            FilledButton(
+              onPressed: () async {
+                try {
+                  await ref.read(adminRepoProvider).mfaEnable(_mfaCode.text.trim());
+                  _mfaCode.clear();
+                  setState(() {
+                    _mfaSetup = null;
+                    _msg = 'MFA enabled.';
+                  });
+                  await _load();
+                } catch (e) {
+                  setState(() => _msg = '$e');
+                }
+              },
+              child: const Text('Confirm MFA'),
+            ),
+            TextButton(
+              onPressed: () => setState(() => _mfaSetup = null),
+              child: const Text('Cancel'),
+            ),
+          ],
           const SizedBox(height: 16),
           if (_bioAvailable)
             SwitchListTile(

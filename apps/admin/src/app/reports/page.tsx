@@ -1,7 +1,7 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
-import { ErrorState, LoadingState, Table, TBody, TD, TH, THead, TR } from "@t360/ui";
+import { Card, ErrorState, LoadingState, Table, TBody, TD, TH, THead, TR } from "@t360/ui";
 import { apiFetch } from "../../lib/api";
 
 type SalesReport = {
@@ -12,21 +12,57 @@ type SalesReport = {
   topProducts: Array<{ sku: string; name: string; qty: number; revenue: number }>;
 };
 
+type AiReport = {
+  tryOn: { total: number; completed: number; failed: number; queueDepth: number };
+  aiFashion: { completed: number; failed: number; queueDepth: number };
+};
+
 export default function ReportsPage() {
   const query = useQuery({
     queryKey: ["admin-sales-report"],
     queryFn: () => apiFetch<SalesReport>("/admin/reports/sales"),
   });
+  const aiQuery = useQuery({
+    queryKey: ["admin-ai-report"],
+    queryFn: () => apiFetch<AiReport>("/admin/reports/ai"),
+  });
 
   const data = query.data?.data;
+  const ai = aiQuery.data?.data;
   const maxDaily = Math.max(1, ...(data?.daily.map((d) => d.total) ?? [1]));
 
   return (
     <div className="space-y-8">
       <div>
         <h1 className="font-display text-3xl">Reports</h1>
-        <p className="text-sm text-muted">Sales series, status mix, top products</p>
+        <p className="text-sm text-muted">Sales series, AI / TRY ME, status mix, top products</p>
       </div>
+
+      {aiQuery.isLoading ? <LoadingState label="Loading AI stats…" /> : null}
+      {ai ? (
+        <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          <Card className="p-4">
+            <p className="text-xs uppercase tracking-wider text-muted">TRY ME total</p>
+            <p className="mt-2 font-display text-3xl">{ai.tryOn.total}</p>
+          </Card>
+          <Card className="p-4">
+            <p className="text-xs uppercase tracking-wider text-muted">TRY ME queue</p>
+            <p className="mt-2 font-display text-3xl">{ai.tryOn.queueDepth}</p>
+            <p className="mt-1 text-xs text-muted">
+              {ai.tryOn.completed} done · {ai.tryOn.failed} failed
+            </p>
+          </Card>
+          <Card className="p-4">
+            <p className="text-xs uppercase tracking-wider text-muted">AI Fashion queue</p>
+            <p className="mt-2 font-display text-3xl">{ai.aiFashion.queueDepth}</p>
+          </Card>
+          <Card className="p-4">
+            <p className="text-xs uppercase tracking-wider text-muted">AI Fashion</p>
+            <p className="mt-2 font-display text-3xl">{ai.aiFashion.completed}</p>
+            <p className="mt-1 text-xs text-muted">{ai.aiFashion.failed} failed</p>
+          </Card>
+        </section>
+      ) : null}
 
       {query.isLoading ? <LoadingState label="Loading report…" /> : null}
       {query.isError ? (

@@ -2,13 +2,15 @@
 
 import * as React from "react";
 import Link from "next/link";
-import { Button, Price, ProductGallery, Badge, Select } from "@t360/ui";
-import type { Branch, ProductDetail } from "../lib/catalog-api";
+import { Button, Price, ProductGallery, Badge, Select, ProductCarousel, ProductCarouselItem } from "@t360/ui";
+import type { Branch, ProductDetail, ProductListItem } from "../lib/catalog-api";
 import { API_URL, SITE_URL, productPrice } from "../lib/catalog-api";
 import { apiFetch, getCustomerToken } from "../lib/api";
 import { useLocale } from "../lib/locale";
 import { buildWhatsAppEnquiryUrl } from "../lib/whatsapp";
 import { TryOnModal } from "./try-on/try-on-modal";
+import { ProductReviews } from "./product-reviews";
+import { ProductCardInteractive } from "./store/product-card-interactive";
 
 export function ProductDetailClient({
   product: initial,
@@ -24,6 +26,8 @@ export function ProductDetailClient({
   const [wishIds, setWishIds] = React.useState<string[]>([]);
   const [busy, setBusy] = React.useState(false);
   const [tryOnOpen, setTryOnOpen] = React.useState(false);
+  const [related, setRelated] = React.useState<ProductListItem[]>([]);
+  const [infoTab, setInfoTab] = React.useState<"materials" | "care" | "shipping">("materials");
 
   const variant = product.variants?.find((v) => v.id === selected) ?? product.variants?.[0];
   const sizes = Array.from(
@@ -40,6 +44,19 @@ export function ProductDetailClient({
       .then((res) => setWishIds(res.data.map((i) => i.variantId)))
       .catch(() => undefined);
   }, []);
+
+  React.useEffect(() => {
+    const slug = product.category?.slug;
+    const params = new URLSearchParams({ pageSize: "8", sort: "newest" });
+    if (slug) params.set("category", slug);
+    void fetch(`${API_URL}/products?${params}`)
+      .then((r) => r.json())
+      .then((json) => {
+        const items = (json.data as ProductListItem[] | undefined) ?? [];
+        setRelated(items.filter((p) => p.id !== product.id).slice(0, 8));
+      })
+      .catch(() => setRelated([]));
+  }, [product.id, product.category?.slug]);
 
   async function onBranchChange(code: string) {
     setBranch(code === "__" ? "" : code);
@@ -131,6 +148,12 @@ export function ProductDetailClient({
           <p className="text-xs uppercase tracking-wide text-muted">{product.brand.name}</p>
         ) : null}
         <h1 className="mt-2 font-display text-4xl">{product.name}</h1>
+        {(product as ProductDetail & { reviewCount?: number; averageRating?: number | null }).reviewCount ? (
+          <p className="mt-2 text-sm text-muted">
+            {(product as ProductDetail & { averageRating?: number | null }).averageRating?.toFixed(1)} ★ ·{" "}
+            {(product as ProductDetail & { reviewCount?: number }).reviewCount} reviews
+          </p>
+        ) : null}
         <div className="mt-4">
           <Price
             amount={price}
@@ -248,6 +271,68 @@ export function ProductDetailClient({
         />
       </div>
       </div>
+
+      <ProductReviews slug={product.slug} />
+
+      <section className="mt-16 border-t border-border pt-12">
+        <div className="flex flex-wrap gap-2 border-b border-border pb-3">
+          {(
+            [
+              ["materials", "Materials"],
+              ["care", "Care"],
+              ["shipping", "Shipping"],
+            ] as const
+          ).map(([key, label]) => (
+            <button
+              key={key}
+              type="button"
+              className={`rounded-md px-3 py-2 text-sm ${
+                infoTab === key ? "bg-wine text-elevated" : "text-muted hover:text-ink"
+              }`}
+              onClick={() => setInfoTab(key)}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
+        <div className="mt-6 max-w-2xl text-sm leading-relaxed text-muted">
+          {infoTab === "materials" ? (
+            <p>
+              Soft, breathable fabrics chosen for everyday Indian wear. Exact composition varies by
+              style — check the product description for fibre details. Colours may differ slightly
+              from screen due to lighting and dye lots.
+            </p>
+          ) : null}
+          {infoTab === "care" ? (
+            <p>
+              Gentle machine wash cold or hand wash. Do not bleach. Dry in shade. Iron on low heat.
+              For embroidered or embellished pieces, turn inside out and use a laundry bag.
+            </p>
+          ) : null}
+          {infoTab === "shipping" ? (
+            <p>
+              We ship across India with tracked delivery. Free shipping applies above the threshold
+              shown at checkout.{" "}
+              <Link href="/policies/shipping" className="text-wine hover:underline">
+                Full shipping policy
+              </Link>
+              .
+            </p>
+          ) : null}
+        </div>
+      </section>
+
+      {related.length ? (
+        <section className="mt-16">
+          <ProductCarousel title="You may also like">
+            {related.map((p) => (
+              <ProductCarouselItem key={p.id}>
+                <ProductCardInteractive product={p} />
+              </ProductCarouselItem>
+            ))}
+          </ProductCarousel>
+        </section>
+      ) : null}
 
       <div className="fixed inset-x-0 bottom-0 z-header border-t border-border bg-elevated/95 p-4 backdrop-blur-md lg:hidden">
         <div className="mx-auto flex max-w-6xl gap-2">

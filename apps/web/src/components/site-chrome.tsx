@@ -4,11 +4,12 @@ import * as React from "react";
 import Link from "next/link";
 import { useLocale } from "../lib/locale";
 import { API_URL } from "../lib/catalog-api";
-import type { CategoryNode } from "../lib/catalog-api";
+import type { CategoryNode, CollectionItem } from "../lib/catalog-api";
 import { StoreHeader } from "./store/store-header";
 
 export function SiteHeader() {
   const [categories, setCategories] = React.useState<CategoryNode[]>([]);
+  const [collections, setCollections] = React.useState<CollectionItem[]>([]);
   const [announcement, setAnnouncement] = React.useState<{ message: string; href?: string } | null>(
     null,
   );
@@ -17,6 +18,10 @@ export function SiteHeader() {
     void fetch(`${API_URL}/categories`)
       .then((r) => r.json())
       .then((json) => setCategories(json.data ?? []))
+      .catch(() => undefined);
+    void fetch(`${API_URL}/collections`)
+      .then((r) => r.json())
+      .then((json) => setCollections(json.data ?? []))
       .catch(() => undefined);
     void fetch(`${API_URL}/settings/storefront`)
       .then((r) => r.json())
@@ -33,7 +38,7 @@ export function SiteHeader() {
       .catch(() => undefined);
   }, []);
 
-  return <StoreHeader categories={categories} announcement={announcement} />;
+  return <StoreHeader categories={categories} collections={collections} announcement={announcement} />;
 }
 
 export function SiteFooter() {

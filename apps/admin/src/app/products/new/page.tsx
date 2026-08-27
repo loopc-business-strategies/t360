@@ -30,8 +30,15 @@ export default function NewProductPage() {
   const [status, setStatus] = React.useState("published");
   const [imageUrls, setImageUrls] = React.useState<string[]>([]);
   const [generateAiFashion, setGenerateAiFashion] = React.useState(false);
+  const [collectionIds, setCollectionIds] = React.useState<string[]>([]);
   const [error, setError] = React.useState<string | null>(null);
   const [saving, setSaving] = React.useState(false);
+
+  const collections = useQuery({
+    queryKey: ["admin-collections"],
+    queryFn: () =>
+      apiFetch<Array<{ id: string; name: string }>>("/admin/collections"),
+  });
 
   React.useEffect(() => {
     if (!categoryId && categories.data?.data?.[0]) {
@@ -57,6 +64,12 @@ export default function NewProductPage() {
           variants: [{ sku, price: Number(price), attributes: { size: "M", colour: "Blue" } }],
         }),
       });
+      if (collectionIds.length) {
+        await apiFetch(`/admin/collections/by-product/${res.data.id}`, {
+          method: "PUT",
+          body: JSON.stringify({ collectionIds }),
+        });
+      }
       router.push(`/products/${res.data.id}`);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Save failed");
@@ -107,6 +120,27 @@ export default function NewProductPage() {
           onChange={() => {}}
           onUrlsChange={setImageUrls}
         />
+        {(collections.data?.data?.length ?? 0) > 0 ? (
+          <div className="space-y-2">
+            <p className="text-sm font-medium">Collections</p>
+            <div className="max-h-40 space-y-1 overflow-y-auto rounded-md border border-border p-2">
+              {collections.data!.data.map((c) => (
+                <label key={c.id} className="flex items-center gap-2 text-sm">
+                  <input
+                    type="checkbox"
+                    checked={collectionIds.includes(c.id)}
+                    onChange={(e) =>
+                      setCollectionIds((ids) =>
+                        e.target.checked ? [...ids, c.id] : ids.filter((id) => id !== c.id),
+                      )
+                    }
+                  />
+                  {c.name}
+                </label>
+              ))}
+            </div>
+          </div>
+        ) : null}
         <label className="flex items-center gap-2 text-sm">
           <input
             type="checkbox"

@@ -5,6 +5,7 @@ import {
   Get,
   Param,
   Patch,
+  Post,
   Put,
   Req,
 } from "@nestjs/common";
@@ -54,6 +55,17 @@ export class SettingsController {
   }
 
   @ApiBearerAuth()
+  @Get("storefront/draft")
+  @RequirePermissions("settings.manage")
+  async storefrontDraft(@Req() req: Request) {
+    return {
+      success: true,
+      data: await this.settings.getStorefront({ draft: true }),
+      requestId: (req as Request & { requestId?: string }).requestId,
+    };
+  }
+
+  @ApiBearerAuth()
   @Put("storefront")
   @RequirePermissions("settings.manage")
   async updateStorefront(
@@ -64,6 +76,17 @@ export class SettingsController {
     return {
       success: true,
       data: await this.settings.updateStorefront(body, user.userId),
+      requestId: (req as Request & { requestId?: string }).requestId,
+    };
+  }
+
+  @ApiBearerAuth()
+  @Post("storefront/publish")
+  @RequirePermissions("settings.manage")
+  async publishStorefront(@CurrentUser() user: { userId: string }, @Req() req: Request) {
+    return {
+      success: true,
+      data: await this.settings.publishStorefront(user.userId),
       requestId: (req as Request & { requestId?: string }).requestId,
     };
   }

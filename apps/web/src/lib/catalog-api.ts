@@ -36,6 +36,8 @@ export type ProductListItem = {
   brand?: { name: string; slug?: string } | null;
   category?: { name: string; slug: string };
   tryOnEnabled?: boolean;
+  averageRating?: number | null;
+  reviewCount?: number;
   images?: Array<{ url: string; alt?: string }>;
   variants?: Array<{
     id: string;
@@ -81,6 +83,7 @@ export type StorefrontSection =
       query: {
         sort?: string;
         categorySlug?: string;
+        collectionSlug?: string;
         productIds?: string[];
         tryOnOnly?: boolean;
       };
@@ -97,15 +100,60 @@ export type StorefrontSection =
       ctaLabel?: string;
     }
   | { type: "tryMePromo"; visible: boolean; order: number }
-  | { type: "newsletter"; visible: boolean; order: number };
+  | { type: "newsletter"; visible: boolean; order: number }
+  | {
+      type: "collection";
+      visible: boolean;
+      order: number;
+      title: string;
+      collectionSlug?: string;
+      collectionId?: string;
+    }
+  | {
+      type: "promotion" | "sale";
+      visible: boolean;
+      order: number;
+      headline: string;
+      subtitle?: string;
+      imageUrl?: string;
+      ctaHref?: string;
+      ctaLabel?: string;
+    }
+  | { type: "videoHero"; visible: boolean; order: number; videoUrl?: string; ctaHref?: string; ctaLabel?: string };
+
+export type CollectionItem = {
+  id: string;
+  name: string;
+  slug: string;
+  description?: string | null;
+  imageUrl?: string | null;
+};
+
+export type ProductReview = {
+  id: string;
+  rating: number;
+  title: string;
+  body: string;
+  createdAt: string;
+  authorName: string;
+};
+
+export type ProductReviewsData = {
+  items: ProductReview[];
+  meta: { page: number; pageSize: number; total: number };
+  summary: { averageRating: number | null; reviewCount: number };
+};
 
 export type StorefrontSettings = {
   businessName: string;
   hero: {
     imageUrl?: string;
+    desktopImageUrl?: string;
+    mobileImageUrl?: string;
     videoUrl?: string;
-    en?: { headline?: string; support?: string; ctaLabel?: string };
-    ta?: { headline?: string; support?: string; ctaLabel?: string };
+    ctaHref?: string;
+    en?: { headline?: string; support?: string; ctaLabel?: string; subtitle?: string };
+    ta?: { headline?: string; support?: string; ctaLabel?: string; subtitle?: string };
   } | null;
   sections?: StorefrontSection[];
   commerce?: {
@@ -152,6 +200,20 @@ export async function fetchStorefront() {
   const res = await fetch(`${API_URL}/settings/storefront`, { next: { revalidate: 60 } });
   if (!res.ok) throw new Error("Failed to load storefront settings");
   return (await res.json()) as ApiSuccess<StorefrontSettings>;
+}
+
+export async function fetchCollections() {
+  const res = await fetch(`${API_URL}/collections`, { next: { revalidate: 60 } });
+  if (!res.ok) throw new Error("Failed to load collections");
+  return (await res.json()) as ApiSuccess<CollectionItem[]>;
+}
+
+export async function fetchProductReviews(slug: string, page = 1) {
+  const res = await fetch(`${API_URL}/products/${slug}/reviews?page=${page}`, {
+    next: { revalidate: 30 },
+  });
+  if (!res.ok) throw new Error("Failed to load reviews");
+  return (await res.json()) as ApiSuccess<ProductReviewsData>;
 }
 
 export function productPrice(p: ProductListItem) {

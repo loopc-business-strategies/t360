@@ -281,11 +281,78 @@ class AdminRepository {
   Future<List<dynamic>> settings() =>
       _api.get('/settings', map: (d) => d as List<dynamic>);
 
-  Future<Map<String, dynamic>> settingsCatalog() =>
+  Future<Map<String, dynamic>> getSettingsCatalog() =>
       _api.get('/admin/settings/catalog', map: (d) => d as Map<String, dynamic>);
 
-  Future<Map<String, dynamic>> patchSettingsCategory(String category, Map<String, dynamic> body) =>
+  /// Alias for older call sites.
+  Future<Map<String, dynamic>> settingsCatalog() => getSettingsCatalog();
+
+  Future<Map<String, dynamic>> patchSettings(String category, Map<String, dynamic> body) =>
       _api.patch('/admin/settings/$category', data: body, map: (d) => d as Map<String, dynamic>);
+
+  /// Alias for older call sites.
+  Future<Map<String, dynamic>> patchSettingsCategory(String category, Map<String, dynamic> body) =>
+      patchSettings(category, body);
+
+  Future<Map<String, dynamic>> getStorefrontDraft() =>
+      _api.get('/settings/storefront/draft', map: (d) => d as Map<String, dynamic>);
+
+  Future<Map<String, dynamic>> getStorefrontLive() =>
+      _api.get('/settings/storefront', map: (d) => d as Map<String, dynamic>);
+
+  Future<Map<String, dynamic>> updateStorefront(
+    Map<String, dynamic> body, {
+    bool draft = true,
+  }) =>
+      _api.put(
+        '/settings/storefront',
+        data: {...body, 'draft': draft},
+        map: (d) => d as Map<String, dynamic>,
+      );
+
+  Future<Map<String, dynamic>> publishStorefront() =>
+      _api.post('/settings/storefront/publish', data: {}, map: (d) => d as Map<String, dynamic>);
+
+  Future<List<dynamic>> listCollections() =>
+      _api.get('/admin/collections', map: (d) => d as List<dynamic>);
+
+  Future<Map<String, dynamic>> createCollection(Map<String, dynamic> body) =>
+      _api.post('/admin/collections', data: body, map: (d) => d as Map<String, dynamic>);
+
+  Future<Map<String, dynamic>> setCollectionProducts(String id, List<String> productIds) =>
+      _api.put(
+        '/admin/collections/$id/products',
+        data: {'productIds': productIds},
+        map: (d) => d as Map<String, dynamic>,
+      );
+
+  Future<Map<String, dynamic>> listReviews({String? status, int page = 1, int pageSize = 50}) async {
+    final data = await _api.get(
+      '/admin/reviews',
+      query: {
+        'page': page,
+        'pageSize': pageSize,
+        if (status != null && status.isNotEmpty) 'status': status,
+      },
+      map: (d) => d,
+    );
+    if (data is Map<String, dynamic>) return data;
+    if (data is Map) return Map<String, dynamic>.from(data);
+    return {'items': data is List ? data : const [], 'meta': {}};
+  }
+
+  Future<Map<String, dynamic>> moderateReview(String id, String status) =>
+      _api.patch(
+        '/admin/reviews/$id',
+        data: {'status': status},
+        map: (d) => d as Map<String, dynamic>,
+      );
+
+  Future<Map<String, dynamic>> mfaSetup() =>
+      _api.post('/auth/mfa/setup', data: {}, map: (d) => d as Map<String, dynamic>);
+
+  Future<Map<String, dynamic>> mfaEnable(String code) =>
+      _api.post('/auth/mfa/enable', data: {'code': code}, map: (d) => d as Map<String, dynamic>);
 
   Future<void> revokeSession(String sessionId) =>
       _api.delete('/auth/sessions/$sessionId', map: (_) => true);

@@ -41,11 +41,23 @@ export default function EditProductPage() {
       apiFetch<FashionJob[]>(`/admin/ai-fashion/jobs?productId=${params.id}&pageSize=5`),
   });
 
+  const collectionsQuery = useQuery({
+    queryKey: ["admin-collections"],
+    queryFn: () =>
+      apiFetch<Array<{ id: string; name: string }>>("/admin/collections"),
+  });
+
+  const productCollections = useQuery({
+    queryKey: ["admin-product-collections", params.id],
+    queryFn: () => apiFetch<string[]>(`/admin/collections/by-product/${params.id}`),
+  });
+
   const [name, setName] = React.useState("");
   const [description, setDescription] = React.useState("");
   const [status, setStatus] = React.useState("published");
   const [tryOnEnabled, setTryOnEnabled] = React.useState(false);
   const [tryOnImageId, setTryOnImageId] = React.useState<string | null>(null);
+  const [collectionIds, setCollectionIds] = React.useState<string[]>([]);
   const [saving, setSaving] = React.useState(false);
   const [uploadingImage, setUploadingImage] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
@@ -60,6 +72,12 @@ export default function EditProductPage() {
       setTryOnImageId(src?.id ?? null);
     }
   }, [query.data]);
+
+  React.useEffect(() => {
+    if (productCollections.data?.data) {
+      setCollectionIds(productCollections.data.data);
+    }
+  }, [productCollections.data]);
 
   async function onSave(e: React.FormEvent) {
     e.preventDefault();
@@ -76,7 +94,12 @@ export default function EditProductPage() {
           tryOnImageId,
         }),
       });
+      await apiFetch(`/admin/collections/by-product/${params.id}`, {
+        method: "PUT",
+        body: JSON.stringify({ collectionIds }),
+      });
       await query.refetch();
+      await productCollections.refetch();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Update failed");
     } finally {
@@ -177,6 +200,27 @@ export default function EditProductPage() {
             />
             Enable Virtual Try-On (TRY ME) for this product
           </label>
+          {(collectionsQuery.data?.data?.length ?? 0) > 0 ? (
+            <div className="space-y-2">
+              <p className="text-sm font-medium">Collections</p>
+              <div className="max-h-40 space-y-1 overflow-y-auto rounded-md border border-border p-2">
+                {collectionsQuery.data!.data.map((c) => (
+                  <label key={c.id} className="flex items-center gap-2 text-sm">
+                    <input
+                      type="checkbox"
+                      checked={collectionIds.includes(c.id)}
+                      onChange={(e) =>
+                        setCollectionIds((ids) =>
+                          e.target.checked ? [...ids, c.id] : ids.filter((id) => id !== c.id),
+                        )
+                      }
+                    />
+                    {c.name}
+                  </label>
+                ))}
+              </div>
+            </div>
+          ) : null}
           {p.images.length ? (
             <div className="space-y-2">
               <p className="text-sm font-medium">Try-On garment image</p>

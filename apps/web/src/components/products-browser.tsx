@@ -5,9 +5,10 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { FilterSidebar, Input, Pagination, Select } from "@t360/ui";
 import { useLocale } from "../lib/locale";
-import type { CategoryNode, ProductListItem } from "../lib/catalog-api";
+import type { CategoryNode, CollectionItem, ProductListItem } from "../lib/catalog-api";
 import { API_URL } from "../lib/catalog-api";
 import { ProductCardInteractive } from "./store/product-card-interactive";
+import { QuickViewModal } from "./store/quick-view-modal";
 
 function flattenCategories(nodes: CategoryNode[]): Array<{ slug: string; name: string }> {
   const out: Array<{ slug: string; name: string }> = [];
@@ -23,12 +24,14 @@ export function ProductsBrowser({
   initialMeta,
   categories,
   brands,
+  collections = [],
   initialParams = {},
 }: {
   initialProducts: ProductListItem[];
   initialMeta?: { total?: number; pageSize?: number; page?: number };
   categories: CategoryNode[];
   brands: Array<{ slug: string; name: string }>;
+  collections?: Array<{ slug: string; name: string }>;
   initialParams?: Record<string, string>;
 }) {
   const { t } = useLocale();
@@ -43,6 +46,8 @@ export function ProductsBrowser({
   const [maxPrice, setMaxPrice] = React.useState(initialParams.maxPrice ?? "");
   const [inStockOnly, setInStockOnly] = React.useState(initialParams.availability === "in_stock");
   const [tryOnOnly, setTryOnOnly] = React.useState(initialParams.tryOnEnabled === "true");
+  const [collection, setCollection] = React.useState(initialParams.collection ?? "");
+  const [quickView, setQuickView] = React.useState<ProductListItem | null>(null);
   const [page, setPage] = React.useState(Number(initialParams.page ?? initialMeta?.page ?? 1));
   const [products, setProducts] = React.useState(initialProducts);
   const [total, setTotal] = React.useState(initialMeta?.total ?? initialProducts.length);
@@ -64,6 +69,7 @@ export function ProductsBrowser({
       if (maxPrice) params.set("maxPrice", maxPrice);
       if (inStockOnly) params.set("availability", "in_stock");
       if (tryOnOnly) params.set("tryOnEnabled", "true");
+      if (collection) params.set("collection", collection);
       Object.entries(overrides).forEach(([k, v]) => {
         if (v) params.set(k, v);
         else params.delete(k);
@@ -108,12 +114,14 @@ export function ProductsBrowser({
             setMaxPrice("");
             setInStockOnly(false);
             setTryOnOnly(false);
+            setCollection("");
             setSort("newest");
             void runSearch(
               {
                 q: "",
                 category: "",
                 brand: "",
+                collection: "",
                 size: "",
                 colour: "",
                 minPrice: "",
@@ -134,10 +142,24 @@ export function ProductsBrowser({
             options={[
               { value: "newest", label: t.sortNewest },
               { value: "relevance", label: t.sortRelevance },
+              { value: "featured", label: "Featured" },
+              { value: "rating", label: "Top rated" },
+              { value: "bestselling", label: "Best selling" },
               { value: "price_asc", label: t.sortPriceAsc },
               { value: "price_desc", label: t.sortPriceDesc },
             ]}
           />
+          {collections.length ? (
+            <Select
+              label="Collection"
+              value={collection || "__"}
+              onValueChange={(v) => setCollection(v === "__" ? "" : v)}
+              options={[
+                { value: "__", label: "—" },
+                ...collections.map((c) => ({ value: c.slug, label: c.name })),
+              ]}
+            />
+          ) : null}
           <Select
             label={t.category}
             value={category || "__"}
@@ -187,7 +209,11 @@ export function ProductsBrowser({
         <div>
           <div className="grid gap-6 sm:grid-cols-2 xl:grid-cols-3">
             {products.map((p) => (
-              <ProductCardInteractive key={p.id} product={p} />
+              <ProductCardInteractive
+                key={p.id}
+                product={p}
+                onQuickView={() => setQuickView(p)}
+              />
             ))}
           </div>
           {!products.length ? (
@@ -206,6 +232,13 @@ export function ProductsBrowser({
           </div>
         </div>
       </div>
+      <QuickViewModal
+        product={quickView}
+        open={Boolean(quickView)}
+        onClose={() => setQuickView(null)}
+        addLabel={t.addToCart}
+        tryMeLabel={t.tryMe}
+      />
     </main>
   );
 }

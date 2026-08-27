@@ -128,14 +128,48 @@ export const productListQuerySchema = z.object({
   maxPrice: z.coerce.number().optional(),
   size: z.string().optional(),
   colour: z.string().optional(),
-  sort: z.enum(["relevance", "newest", "price_asc", "price_desc"]).optional(),
+  sort: z.enum(["relevance", "newest", "price_asc", "price_desc", "rating", "bestselling", "featured"]).optional(),
   page: z.coerce.number().int().min(1).optional(),
   pageSize: z.coerce.number().int().min(1).max(100).optional(),
   status: z.enum(["draft", "published", "archived"]).optional(),
   availability: z.enum(["in_stock", "any"]).optional(),
   tryOnEnabled: z.coerce.boolean().optional(),
+  collection: z.string().optional(),
   branch: z.string().optional(),
 });
+
+export const collectionCreateSchema = z.object({
+  name: z.string().min(1).max(200),
+  slug: z.string().min(1).max(120).optional(),
+  description: z.string().max(2000).optional(),
+  imageUrl: z.string().url().max(2000).optional().nullable(),
+  mobileImageUrl: z.string().url().max(2000).optional().nullable(),
+  status: z.enum(["active", "inactive"]).optional(),
+  sortOrder: z.number().int().min(0).max(10_000).optional(),
+  featured: z.boolean().optional(),
+  productIds: z.array(z.string().uuid()).max(200).optional(),
+});
+
+export const collectionUpdateSchema = collectionCreateSchema.partial();
+
+export const collectionProductsSchema = z.object({
+  productIds: z.array(z.string().uuid()).max(200),
+});
+
+export const reviewCreateSchema = z.object({
+  rating: z.number().int().min(1).max(5),
+  title: z.string().max(200).optional(),
+  body: z.string().min(1).max(5000),
+});
+
+export const reviewModerationSchema = z.object({
+  status: z.enum(["approved", "rejected", "pending"]),
+});
+
+export type CollectionCreateInput = z.infer<typeof collectionCreateSchema>;
+export type CollectionUpdateInput = z.infer<typeof collectionUpdateSchema>;
+export type ReviewCreateInput = z.infer<typeof reviewCreateSchema>;
+export type ReviewModerationInput = z.infer<typeof reviewModerationSchema>;
 
 export type ProductCreateInput = z.infer<typeof productCreateSchema>;
 export type ProductListQuery = z.infer<typeof productListQuerySchema>;
@@ -368,7 +402,10 @@ export const storefrontLocaleCopySchema = z.object({
 
 export const storefrontHeroSchema = z.object({
   imageUrl: z.string().url().max(2000),
+  desktopImageUrl: z.string().url().max(2000).optional(),
+  mobileImageUrl: z.string().url().max(2000).optional(),
   videoUrl: z.string().url().max(2000).optional(),
+  ctaHref: z.string().max(500).optional(),
   en: storefrontLocaleCopySchema,
   ta: storefrontLocaleCopySchema,
 });
@@ -391,12 +428,39 @@ export const storefrontHeroSectionSchema = storefrontSectionBase.extend({
 export const storefrontProductCarouselSchema = storefrontSectionBase.extend({
   type: z.literal("productCarousel"),
   title: z.string().min(1).max(120),
+  subtitle: z.string().max(300).optional(),
   query: z.object({
-    sort: z.enum(["relevance", "newest", "price_asc", "price_desc"]).optional(),
+    sort: z.enum(["relevance", "newest", "price_asc", "price_desc", "rating", "bestselling", "featured"]).optional(),
     categorySlug: z.string().max(120).optional(),
+    collectionSlug: z.string().max(120).optional(),
     productIds: z.array(z.string().uuid()).max(24).optional(),
     tryOnOnly: z.boolean().optional(),
   }),
+});
+
+export const storefrontCollectionSectionSchema = storefrontSectionBase.extend({
+  type: z.literal("collection"),
+  title: z.string().min(1).max(120).optional(),
+  collectionSlug: z.string().max(120),
+});
+
+export const storefrontPromotionSchema = storefrontSectionBase.extend({
+  type: z.literal("promotion"),
+  title: z.string().min(1).max(120),
+  subtitle: z.string().max(300).optional(),
+  imageUrl: z.string().url().max(2000).optional(),
+  ctaHref: z.string().max(500).optional(),
+  ctaLabel: z.string().max(80).optional(),
+});
+
+export const storefrontSaleSchema = storefrontSectionBase.extend({
+  type: z.literal("sale"),
+  title: z.string().min(1).max(120).optional(),
+  collectionSlug: z.string().max(120).optional(),
+});
+
+export const storefrontVideoHeroSectionSchema = storefrontSectionBase.extend({
+  type: z.literal("videoHero"),
 });
 
 export const storefrontCategoryGridSchema = storefrontSectionBase.extend({
@@ -428,17 +492,24 @@ export const storefrontStorySchema = storefrontSectionBase.extend({
 export const storefrontSectionSchema = z.discriminatedUnion("type", [
   storefrontAnnouncementSchema,
   storefrontHeroSectionSchema,
+  storefrontVideoHeroSectionSchema,
   storefrontProductCarouselSchema,
   storefrontCategoryGridSchema,
+  storefrontCollectionSectionSchema,
   storefrontEditorialSchema,
+  storefrontPromotionSchema,
+  storefrontSaleSchema,
   storefrontTryMePromoSchema,
   storefrontNewsletterSchema,
   storefrontStorySchema,
 ]);
 
+export const storefrontPublishSchema = z.object({}).optional();
+
 export const storefrontUpdateSchema = z.object({
   hero: storefrontHeroSchema.optional(),
-  sections: z.array(storefrontSectionSchema).max(20).optional(),
+  sections: z.array(storefrontSectionSchema).max(30).optional(),
+  draft: z.boolean().optional(),
 });
 
 export const settingsCategorySchema = z.enum([

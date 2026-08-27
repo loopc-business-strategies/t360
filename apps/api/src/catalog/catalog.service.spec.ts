@@ -5,6 +5,7 @@ describe("CatalogService.getProduct", () => {
   const prisma = {
     product: { findFirst: jest.fn() },
     branch: { findFirst: jest.fn() },
+    productReview: { groupBy: jest.fn().mockResolvedValue([]) },
   };
   const inventory = {
     stockByVariantIds: jest.fn().mockResolvedValue(new Map()),

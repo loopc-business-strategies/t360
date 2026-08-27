@@ -178,6 +178,19 @@ class ApiClient {
     }
   }
 
+  Future<T> put<T>(
+    String path, {
+    Object? data,
+    required T Function(dynamic data) map,
+  }) async {
+    try {
+      final res = await _dio.put<Map<String, dynamic>>(path, data: data);
+      return unwrapData(res.data!, map);
+    } on DioException catch (e) {
+      throw _mapDio(e);
+    }
+  }
+
   Future<T> patch<T>(
     String path, {
     Object? data,

@@ -117,6 +117,7 @@ model Customer {
   loyaltyAccount LoyaltyAccount?
   couponUsages CouponUsage[]
   abandonedReminders AbandonedCartReminder[]
+  reviews      ProductReview[]
 }
 
 model Address {
@@ -243,6 +244,62 @@ model Brand {
   @@index([status])
 }
 
+model Collection {
+  id             String    @id @default(uuid()) @db.Uuid
+  tenantId       String?   @db.Uuid
+  name           String
+  slug           String    @unique
+  description    String    @default("")
+  imageUrl       String?
+  mobileImageUrl String?
+  status         String    @default("active")
+  sortOrder      Int       @default(0)
+  featured       Boolean   @default(false)
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+  deletedAt      DateTime?
+
+  products CollectionProduct[]
+
+  @@index([status])
+  @@index([featured])
+  @@index([sortOrder])
+}
+
+model CollectionProduct {
+  collectionId String   @db.Uuid
+  productId    String   @db.Uuid
+  sortOrder    Int      @default(0)
+  createdAt    DateTime @default(now())
+
+  collection Collection @relation(fields: [collectionId], references: [id], onDelete: Cascade)
+  product    Product    @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@id([collectionId, productId])
+  @@index([productId])
+  @@index([collectionId, sortOrder])
+}
+
+model ProductReview {
+  id         String   @id @default(uuid()) @db.Uuid
+  productId  String   @db.Uuid
+  customerId String   @db.Uuid
+  rating     Int
+  title      String   @default("")
+  body       String   @default("")
+  status     String   @default("pending")
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  product  Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  customer Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+
+  @@unique([productId, customerId])
+  @@index([productId, status])
+  @@index([customerId])
+  @@index([status])
+}
+
 model Product {
   id          String    @id @default(uuid()) @db.Uuid
   tenantId    String?   @db.Uuid
@@ -265,6 +322,8 @@ model Product {
   attributes ProductAttributeValue[]
   aiGeneratedImages AiGeneratedImage[]
   tryOnSessions     TryOnSession[]
+  collections       CollectionProduct[]
+  reviews           ProductReview[]
 
   @@index([categoryId])
   @@index([brandId])

@@ -10,14 +10,19 @@ final categoriesListProvider = FutureProvider<List<CategoryDto>>((ref) {
   return ref.watch(catalogRepositoryProvider).categories();
 });
 
-final categoryProductsProvider = FutureProvider.family<List<ProductDto>, String?>((ref, category) {
-  return ref.watch(catalogRepositoryProvider).products(category: category);
+final categoryProductsProvider =
+    FutureProvider.family<List<ProductDto>, ({String? category, String? collection})>((ref, filter) {
+  return ref.watch(catalogRepositoryProvider).products(
+        category: filter.category,
+        collection: filter.collection,
+      );
 });
 
 class CategoriesScreen extends ConsumerStatefulWidget {
-  const CategoriesScreen({super.key, this.initialCategory});
+  const CategoriesScreen({super.key, this.initialCategory, this.initialCollection});
 
   final String? initialCategory;
+  final String? initialCollection;
 
   @override
   ConsumerState<CategoriesScreen> createState() => _CategoriesScreenState();
@@ -25,12 +30,14 @@ class CategoriesScreen extends ConsumerStatefulWidget {
 
 class _CategoriesScreenState extends ConsumerState<CategoriesScreen> {
   String? _category;
+  String? _collection;
   final _search = TextEditingController();
 
   @override
   void initState() {
     super.initState();
     _category = widget.initialCategory;
+    _collection = widget.initialCollection;
   }
 
   @override
@@ -43,7 +50,9 @@ class _CategoriesScreenState extends ConsumerState<CategoriesScreen> {
   Widget build(BuildContext context) {
     final t = ref.watch(stringsProvider);
     final cats = ref.watch(categoriesListProvider);
-    final products = ref.watch(categoryProductsProvider(_category));
+    final products = ref.watch(
+      categoryProductsProvider((category: _category, collection: _collection)),
+    );
 
     return Scaffold(
       appBar: TharagaiAppBar(title: t.categories),
@@ -64,12 +73,25 @@ class _CategoriesScreenState extends ConsumerState<CategoriesScreen> {
                 TharagaiButton(
                   label: t.search,
                   onPressed: () {
-                    ref.invalidate(categoryProductsProvider(_category));
+                    ref.invalidate(
+                      categoryProductsProvider((category: _category, collection: _collection)),
+                    );
                   },
                 ),
               ],
             ),
           ),
+          if (_collection != null && _collection!.isNotEmpty)
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+              child: Align(
+                alignment: Alignment.centerLeft,
+                child: InputChip(
+                  label: Text('Collection: $_collection'),
+                  onDeleted: () => setState(() => _collection = null),
+                ),
+              ),
+            ),
           cats.when(
             data: (list) => SizedBox(
               height: 44,
@@ -115,9 +137,15 @@ class _CategoriesScreenState extends ConsumerState<CategoriesScreen> {
                   itemCount: filtered.length,
                   itemBuilder: (context, i) {
                     final p = filtered[i];
+                    final rating = p.averageRating;
                     return ListTile(
                       title: Text(p.name),
-                      subtitle: Text(p.brandName ?? ''),
+                      subtitle: Text(
+                        [
+                          if (p.brandName != null && p.brandName!.isNotEmpty) p.brandName!,
+                          if (rating != null) '${rating.toStringAsFixed(1)}★',
+                        ].join(' · '),
+                      ),
                       trailing: Text(
                         '₹${p.salePrice ?? p.price ?? 0}',
                         style: const TextStyle(fontWeight: FontWeight.w600),

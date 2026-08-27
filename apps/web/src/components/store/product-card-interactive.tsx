@@ -12,7 +12,13 @@ import { useLocale } from "../../lib/locale";
 const PLACEHOLDER =
   "https://images.unsplash.com/photo-1596755094514-f87e34085b2c?auto=format&fit=crop&w=800&q=80";
 
-export function ProductCardInteractive({ product }: { product: ProductListItem }) {
+export function ProductCardInteractive({
+  product,
+  onQuickView,
+}: {
+  product: ProductListItem;
+  onQuickView?: () => void;
+}) {
   const { t } = useLocale();
   const router = useRouter();
   const price = productPrice(product);
@@ -63,6 +69,20 @@ export function ProductCardInteractive({ product }: { product: ProductListItem }
   }
 
   return (
+    <div className="relative">
+      {onQuickView ? (
+        <button
+          type="button"
+          className="absolute right-2 top-2 z-10 rounded-md bg-elevated/90 px-2 py-1 text-xs shadow-sm"
+          onClick={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            onQuickView();
+          }}
+        >
+          Quick view
+        </button>
+      ) : null}
     <Link href={`/products/${product.slug}`} className="block">
       <ProductCard
         name={product.name}
@@ -86,6 +106,7 @@ export function ProductCardInteractive({ product }: { product: ProductListItem }
         {inStock ? t.inStock : t.outOfStock}
       </p>
     </Link>
+    </div>
   );
 }
 

@@ -16,6 +16,7 @@ class TharagaiProductCard extends StatelessWidget {
     this.secondImageUrl,
     this.tryOnEnabled = false,
     this.tryMeLabel = 'TRY ME',
+    this.averageRating,
     this.onAddToCart,
     this.onTryMe,
     this.onWishlist,
@@ -31,6 +32,7 @@ class TharagaiProductCard extends StatelessWidget {
   final String addToCartLabel;
   final bool tryOnEnabled;
   final String tryMeLabel;
+  final double? averageRating;
   final bool wishlisted;
   final VoidCallback? onAddToCart;
   final VoidCallback? onTryMe;
@@ -120,6 +122,23 @@ class TharagaiProductCard extends StatelessWidget {
                     color: TharagaiColors.ink,
                   ),
                 ),
+                if (averageRating != null) ...[
+                  const SizedBox(height: 6),
+                  Row(
+                    children: [
+                      const Icon(Icons.star, size: 14, color: TharagaiColors.brass),
+                      const SizedBox(width: 4),
+                      Text(
+                        averageRating!.toStringAsFixed(1),
+                        style: const TextStyle(
+                          fontSize: 13,
+                          color: TharagaiColors.muted,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
                 const SizedBox(height: 8),
                 TharagaiPrice(amount: price, compareAt: compareAt),
                 const SizedBox(height: 12),

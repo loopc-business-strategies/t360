@@ -65,9 +65,10 @@ export class CatalogService {
     const byId = new Map(products.map((p) => [p.id, p]));
     const ordered = hit.ids.map((id) => byId.get(id)).filter(Boolean);
     const withStock = await this.attachAvailability(ordered as typeof products, query.branch);
+    const withRatings = await this.attachRatings(withStock);
 
     return {
-      items: withStock,
+      items: withRatings,
       meta: { page, pageSize, total: hit.total },
     };
   }
@@ -87,7 +88,33 @@ export class CatalogService {
       throw new NotFoundException({ code: "PRODUCT_NOT_FOUND", message: "Product not found" });
     }
     const [withStock] = await this.attachAvailability([product], opts?.branch);
-    return withStock;
+    const [withRatings] = await this.attachRatings([withStock]);
+    return withRatings;
+  }
+
+  private async attachRatings<T extends { id: string }>(products: T[]) {
+    if (!products.length) return products;
+    const ids = products.map((p) => p.id);
+    const rows = await this.prisma.productReview.groupBy({
+      by: ["productId"],
+      where: { productId: { in: ids }, status: "approved" },
+      _avg: { rating: true },
+      _count: { rating: true },
+    });
+    const map = new Map(
+      rows.map((r) => [
+        r.productId,
+        {
+          averageRating: r._avg.rating ? Number(r._avg.rating.toFixed(1)) : null,
+          reviewCount: r._count.rating,
+        },
+      ]),
+    );
+    return products.map((p) => ({
+      ...p,
+      averageRating: map.get(p.id)?.averageRating ?? null,
+      reviewCount: map.get(p.id)?.reviewCount ?? 0,
+    }));
   }
 
   private async attachAvailability<

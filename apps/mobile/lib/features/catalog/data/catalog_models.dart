@@ -22,6 +22,8 @@ class ProductDto {
     this.price,
     this.salePrice,
     this.tryOnEnabled = false,
+    this.averageRating,
+    this.reviewCount,
     this.variants = const [],
   });
 
@@ -33,6 +35,8 @@ class ProductDto {
   final double? price;
   final double? salePrice;
   final bool tryOnEnabled;
+  final double? averageRating;
+  final int? reviewCount;
   final List<VariantDto> variants;
 
   factory ProductDto.fromJson(Map<String, dynamic> j) {
@@ -52,6 +56,8 @@ class ProductDto {
     }
     imageUrl ??= j['imageUrl']?.toString();
     final brand = j['brand'];
+    final rating = _num(j['averageRating']);
+    final reviews = j['reviewCount'];
     return ProductDto(
       id: j['id'] as String,
       name: j['name'] as String,
@@ -63,6 +69,8 @@ class ProductDto {
           : _num(j['price']),
       salePrice: variants.isNotEmpty ? variants.first.salePrice : _num(j['salePrice']),
       tryOnEnabled: j['tryOnEnabled'] == true,
+      averageRating: rating,
+      reviewCount: reviews is int ? reviews : int.tryParse('${reviews ?? ''}'),
       variants: variants,
     );
   }

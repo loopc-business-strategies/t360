@@ -86,6 +86,16 @@ export class PostgresSearchProvider implements SearchProvider {
       where.push(`p."tryOnEnabled" = true`);
     }
 
+    if (query.collection) {
+      params.push(query.collection);
+      where.push(`EXISTS (
+        SELECT 1 FROM "CollectionProduct" cp
+        JOIN "Collection" col ON col.id = cp."collectionId" AND col."deletedAt" IS NULL AND col.status = 'active'
+        WHERE cp."productId" = p.id
+          AND (col.slug = $${params.length} OR col.id::text = $${params.length})
+      )`);
+    }
+
     let orderBy = `p."createdAt" DESC`;
     let rankSelect = `0::float AS rank`;
     if (query.q && query.q.trim()) {
@@ -117,6 +127,15 @@ export class PostgresSearchProvider implements SearchProvider {
     }
     if (query.sort === "price_desc") {
       orderBy = `(SELECT MIN(COALESCE(v."salePrice", v.price)) FROM "ProductVariant" v WHERE v."productId" = p.id AND v."deletedAt" IS NULL) DESC NULLS LAST`;
+    }
+    if (query.sort === "rating") {
+      orderBy = `(SELECT COALESCE(AVG(r.rating), 0) FROM "ProductReview" r WHERE r."productId" = p.id AND r.status = 'approved') DESC NULLS LAST, p."createdAt" DESC`;
+    }
+    if (query.sort === "bestselling") {
+      orderBy = `(SELECT COALESCE(SUM(oi.qty), 0) FROM "OrderItem" oi JOIN "ProductVariant" v ON v.id = oi."variantId" WHERE v."productId" = p.id) DESC NULLS LAST, p."createdAt" DESC`;
+    }
+    if (query.sort === "featured") {
+      orderBy = `p."createdAt" DESC`;
     }
 
     params.push(pageSize);
@@ -169,10 +188,10 @@ export class PostgresSearchProvider implements SearchProvider {
     if (!term) return [];
     const lim = Math.min(Math.max(limit, 1), 20);
 
-    const [products, categories, brands] = await Promise.all([
-      this.prisma.$queryRawUnsafe<Array<{ name: string; slug: string }>>(
+    const [products, categories, brands, collections] = await Promise.all([
+      this.prisma.$queryRawUnsafe<Array<{ name: string; slug: string; tryOnEnabled: boolean }>>(
         `
-        SELECT name, slug FROM "Product"
+        SELECT name, slug, "tryOnEnabled" FROM "Product"
         WHERE "deletedAt" IS NULL AND status = 'published'
           AND (name ILIKE $1 OR name % $2)
         ORDER BY similarity(name, $2) DESC NULLS LAST, name ASC
@@ -206,12 +225,26 @@ export class PostgresSearchProvider implements SearchProvider {
         term,
         Math.min(lim, 5),
       ),
+      this.prisma.$queryRawUnsafe<Array<{ name: string; slug: string }>>(
+        `
+        SELECT name, slug FROM "Collection"
+        WHERE "deletedAt" IS NULL AND status = 'active'
+          AND (name ILIKE $1 OR name % $2)
+        ORDER BY name ASC
+        LIMIT $3
+        `,
+        `${term}%`,
+        term,
+        Math.min(lim, 5),
+      ),
     ]);
 
     const out: SuggestItem[] = [];
-    for (const p of products) out.push({ text: p.name, type: "product", slug: p.slug });
+    for (const p of products)
+      out.push({ text: p.name, type: "product", slug: p.slug, tryOnEnabled: Boolean(p.tryOnEnabled) });
     for (const c of categories) out.push({ text: c.name, type: "category", slug: c.slug });
     for (const b of brands) out.push({ text: b.name, type: "brand", slug: b.slug });
+    for (const col of collections) out.push({ text: col.name, type: "collection", slug: col.slug });
     return out.slice(0, lim);
   }
 }

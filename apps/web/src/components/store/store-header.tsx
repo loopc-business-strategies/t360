@@ -6,7 +6,7 @@ import { usePathname } from "next/navigation";
 import { AnnouncementBar, Button } from "@t360/ui";
 import { useLocale } from "../../lib/locale";
 import { apiFetch, getCustomerToken } from "../../lib/api";
-import type { CategoryNode } from "../../lib/catalog-api";
+import type { CategoryNode, CollectionItem } from "../../lib/catalog-api";
 import { MegaMenu } from "./mega-menu";
 import { MiniCartDrawer } from "./mini-cart-drawer";
 import { SearchOverlay } from "./search-overlay";
@@ -31,9 +31,11 @@ function findCategory(categories: CategoryNode[], slug: string): CategoryNode | 
 
 export function StoreHeader({
   categories = [],
+  collections = [],
   announcement,
 }: {
   categories?: CategoryNode[];
+  collections?: CollectionItem[];
   announcement?: { message: string; href?: string } | null;
 }) {
   const { t, toggleLocale } = useLocale();
@@ -159,6 +161,7 @@ export function StoreHeader({
 
           <MegaMenu
             categories={topCategories}
+            collections={collections}
             open={menuOpen}
             onClose={() => setMenuOpen(false)}
             saleLabel={t.navSale ?? "Sale"}

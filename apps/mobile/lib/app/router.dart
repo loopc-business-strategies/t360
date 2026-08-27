@@ -14,7 +14,9 @@ import '../features/admin/presentation/admin_ai_settings_screen.dart';
 import '../features/admin/presentation/admin_ai_images_screen.dart';
 import '../features/admin/presentation/admin_ai_usage_screen.dart';
 import '../features/admin/presentation/admin_audit_screen.dart';
+import '../features/admin/presentation/admin_collections_screen.dart';
 import '../features/admin/presentation/admin_customers_screen.dart';
+import '../features/admin/presentation/admin_forgot_password_screen.dart';
 import '../features/admin/presentation/admin_home_screen.dart';
 import '../features/admin/presentation/admin_inventory_screen.dart';
 import '../features/admin/presentation/admin_login_screen.dart';
@@ -27,10 +29,12 @@ import '../features/admin/presentation/admin_product_edit_screen.dart';
 import '../features/admin/presentation/admin_products_screen.dart';
 import '../features/admin/presentation/admin_profile_screen.dart';
 import '../features/admin/presentation/admin_reports_screen.dart';
+import '../features/admin/presentation/admin_reviews_screen.dart';
 import '../features/admin/presentation/admin_roles_screen.dart';
 import '../features/admin/presentation/admin_settings_screen.dart';
 import '../features/admin/presentation/admin_shell.dart';
 import '../features/admin/presentation/admin_staff_screen.dart';
+import '../features/admin/presentation/admin_storefront_screen.dart';
 import '../features/auth/presentation/auth_screen.dart';
 import '../features/cart/presentation/cart_screen.dart';
 import '../features/catalog/presentation/categories_screen.dart';
@@ -58,10 +62,14 @@ final goRouterProvider = Provider<GoRouter>((ref) {
     redirect: (context, state) {
       if (auth.booting) return null;
       final loc = state.matchedLocation;
-      final loggingIn = loc.startsWith('/auth') || loc.startsWith('/admin/login');
+      final loggingIn = loc.startsWith('/auth') ||
+          loc.startsWith('/admin/login') ||
+          loc.startsWith('/admin/forgot-password');
       if (kReleaseMode && loc.startsWith('/gallery')) return '/';
 
-      if (loc.startsWith('/admin') && !loc.startsWith('/admin/login')) {
+      if (loc.startsWith('/admin') &&
+          !loc.startsWith('/admin/login') &&
+          !loc.startsWith('/admin/forgot-password')) {
         if (!auth.isLoggedIn || !auth.isStaff) return '/admin/login';
         return null;
       }
@@ -98,6 +106,7 @@ final goRouterProvider = Provider<GoRouter>((ref) {
                 path: '/categories',
                 builder: (context, state) => CategoriesScreen(
                   initialCategory: state.uri.queryParameters['category'],
+                  initialCollection: state.uri.queryParameters['collection'],
                 ),
               ),
             ],
@@ -172,6 +181,16 @@ final goRouterProvider = Provider<GoRouter>((ref) {
         ],
       ),
       GoRoute(path: '/admin/login', builder: (context, state) => const AdminLoginScreen()),
+      GoRoute(
+        path: '/admin/forgot-password',
+        builder: (context, state) => const AdminForgotPasswordScreen(),
+      ),
+      GoRoute(path: '/admin/storefront', builder: (context, state) => const AdminStorefrontScreen()),
+      GoRoute(
+        path: '/admin/collections',
+        builder: (context, state) => const AdminCollectionsScreen(),
+      ),
+      GoRoute(path: '/admin/reviews', builder: (context, state) => const AdminReviewsScreen()),
       GoRoute(path: '/admin/ai-settings', builder: (context, state) => const AdminAiSettingsScreen()),
       GoRoute(path: '/admin/ai-models', builder: (context, state) => const AdminAiModelsScreen()),
       GoRoute(path: '/admin/ai-usage', builder: (context, state) => const AdminAiUsageScreen()),

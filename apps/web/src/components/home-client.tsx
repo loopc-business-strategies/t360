@@ -40,7 +40,18 @@ function SectionCarousel({
     const params = new URLSearchParams({ pageSize: "8" });
     if (section.query.sort) params.set("sort", section.query.sort);
     if (section.query.categorySlug) params.set("category", section.query.categorySlug);
+    if (section.query.collectionSlug) params.set("collection", section.query.collectionSlug);
     if (section.query.tryOnOnly) params.set("tryOnEnabled", "true");
+    if (section.query.productIds?.length) {
+      void Promise.all(
+        section.query.productIds.map((id) =>
+          fetch(`${API_URL}/products/${id}`).then((r) => r.json()).then((j) => j.data),
+        ),
+      )
+        .then((rows) => setProducts(rows.filter(Boolean)))
+        .catch(() => setProducts([]));
+      return;
+    }
     void fetch(`${API_URL}/products?${params}`)
       .then((r) => r.json())
       .then((json) => setProducts(json.data ?? []))
@@ -74,6 +85,55 @@ function SectionCarousel({
   );
 }
 
+function CollectionSection({
+  section,
+  reduceMotion,
+  t,
+}: {
+  section: Extract<StorefrontSection, { type: "collection" }>;
+  reduceMotion: boolean | null;
+  t: { ctaShop: string };
+}) {
+  const [products, setProducts] = React.useState<ProductListItem[]>([]);
+  const slug = section.collectionSlug;
+
+  React.useEffect(() => {
+    if (!slug) return;
+    void fetch(`${API_URL}/products?collection=${encodeURIComponent(slug)}&pageSize=8`)
+      .then((r) => r.json())
+      .then((json) => setProducts(json.data ?? []))
+      .catch(() => setProducts([]));
+  }, [slug]);
+
+  if (!products.length) return null;
+
+  return (
+    <motion.section
+      className="mx-auto max-w-6xl px-6 py-14"
+      initial={reduceMotion ? false : { opacity: 0, y: 24 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true }}
+    >
+      <ProductCarousel
+        title={section.title}
+        action={
+          slug ? (
+            <Link href={`/products?collection=${slug}`} className="text-sm text-wine hover:underline">
+              {t.ctaShop}
+            </Link>
+          ) : undefined
+        }
+      >
+        {products.map((p) => (
+          <ProductCarouselItem key={p.id}>
+            <ProductCardInteractive product={p} />
+          </ProductCarouselItem>
+        ))}
+      </ProductCarousel>
+    </motion.section>
+  );
+}
+
 export function HomeClient({
   categories,
   storefront,
@@ -93,7 +153,10 @@ export function HomeClient({
   const headline = copy?.headline ?? t.tagline;
   const support = copy?.support ?? t.heroSupport;
   const ctaLabel = copy?.ctaLabel?.trim() || t.ctaShop;
-  const imageUrl = hero?.imageUrl ?? DEFAULT_HERO;
+  const ctaHref = hero?.ctaHref ?? "/products";
+  const desktopImage = hero?.desktopImageUrl ?? hero?.imageUrl ?? DEFAULT_HERO;
+  const mobileImage = hero?.mobileImageUrl ?? hero?.imageUrl ?? desktopImage;
+  const imageUrl = desktopImage;
   const videoUrl = hero?.videoUrl;
   const allCats = flattenCategories(categories);
   const sections = (storefront?.sections ?? []).filter((s) => s.visible !== false);
@@ -113,12 +176,13 @@ export function HomeClient({
                 playsInline
               />
             ) : (
-              <div
-                className={`absolute bg-cover bg-center ${
-                  reduceMotion ? "inset-0" : "-inset-[4%] hero-kenburns-plus"
-                }`}
-                style={{ backgroundImage: `url(${imageUrl})` }}
-              />
+              <picture className={`absolute inset-0 block ${reduceMotion ? "" : "hero-kenburns-plus"}`}>
+                <source media="(max-width: 768px)" srcSet={mobileImage} />
+                <div
+                  className="absolute inset-0 bg-cover bg-center"
+                  style={{ backgroundImage: `url(${desktopImage})` }}
+                />
+              </picture>
             )}
             <div className="absolute inset-0 bg-gradient-to-r from-ink/90 via-ink/60 to-ink/25" />
             <div className="relative z-10 mx-auto flex min-h-[85svh] max-w-6xl flex-col justify-end px-6 pb-16 pt-10 sm:pb-24">
@@ -141,7 +205,7 @@ export function HomeClient({
                 </h1>
                 <p className="mt-4 max-w-md text-elevated/85">{support}</p>
                 <div className="mt-8">
-                  <Link href="/products">
+                  <Link href={ctaHref}>
                     <Button className="bg-wine text-elevated hover:bg-wine/90">{ctaLabel}</Button>
                   </Link>
                 </div>
@@ -219,7 +283,7 @@ export function HomeClient({
                 <h2 className="mt-3 max-w-lg font-display text-3xl">{t.tryMePromoHeadline ?? t.tryMeGuide}</h2>
                 <p className="mt-3 max-w-md text-elevated/80">{t.tryMePromoBody ?? t.tryMeDisclaimer}</p>
               </div>
-              <Link href="/products?tryOnEnabled=true">
+              <Link href="/try-me">
                 <Button variant="secondary" className="bg-elevated text-ink hover:bg-linen">
                   {t.tryMeShop ?? t.ctaShop}
                 </Button>
@@ -278,6 +342,50 @@ export function HomeClient({
             </div>
           </motion.section>
         );
+      case "collection":
+        return (
+          <CollectionSection key={`collection-${index}`} section={section} reduceMotion={reduceMotion} t={t} />
+        );
+      case "promotion":
+      case "sale":
+        return (
+          <motion.section
+            key={`${section.type}-${index}`}
+            className="mx-auto max-w-6xl px-6 py-14"
+            initial={reduceMotion ? false : { opacity: 0, y: 24 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+          >
+            <div className="overflow-hidden rounded-lg border border-border bg-elevated p-8 sm:p-12">
+              {section.imageUrl ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={section.imageUrl} alt="" className="mb-6 max-h-64 w-full rounded-md object-cover" />
+              ) : null}
+              <p className="text-xs uppercase tracking-[0.2em] text-brass">{section.type}</p>
+              <h2 className="mt-2 font-display text-3xl">{section.headline}</h2>
+              {section.subtitle ? <p className="mt-3 text-muted">{section.subtitle}</p> : null}
+              {section.ctaHref ? (
+                <Link href={section.ctaHref} className="mt-6 inline-block">
+                  <Button>{section.ctaLabel ?? t.ctaShop}</Button>
+                </Link>
+              ) : null}
+            </div>
+          </motion.section>
+        );
+      case "videoHero":
+        return section.videoUrl ? (
+          <section key={`video-hero-${index}`} className="relative min-h-[70svh] overflow-hidden">
+            <video className="absolute inset-0 h-full w-full object-cover" src={section.videoUrl} autoPlay muted loop playsInline />
+            <div className="absolute inset-0 bg-ink/40" />
+            {section.ctaHref ? (
+              <div className="relative z-10 flex min-h-[70svh] items-end p-8">
+                <Link href={section.ctaHref}>
+                  <Button>{section.ctaLabel ?? t.ctaShop}</Button>
+                </Link>
+              </div>
+            ) : null}
+          </section>
+        ) : null;
       default:
         return null;
     }

@@ -52,6 +52,50 @@ export class ReportsController {
     };
   }
 
+  @Get("reports/ai")
+  @RequirePermissions("reports.read")
+  async aiReport(@Req() req: Request) {
+    const [
+      tryOnTotal,
+      tryOnCompleted,
+      tryOnFailed,
+      tryOnQueued,
+      tryOnProcessing,
+      aiFailed,
+      aiPending,
+      aiCompleted,
+    ] = await Promise.all([
+      this.prisma.tryOnSession.count({ where: { deletedAt: null } }),
+      this.prisma.tryOnSession.count({ where: { deletedAt: null, status: "COMPLETED" } }),
+      this.prisma.tryOnSession.count({ where: { deletedAt: null, status: "FAILED" } }),
+      this.prisma.tryOnSession.count({ where: { deletedAt: null, status: "QUEUED" } }),
+      this.prisma.tryOnSession.count({ where: { deletedAt: null, status: "PROCESSING" } }),
+      this.prisma.aiFashionUsage.count({ where: { status: "FAILED" } }),
+      this.prisma.aiFashionUsage.count({
+        where: { status: { in: ["QUEUED", "PROCESSING"] } },
+      }),
+      this.prisma.aiFashionUsage.count({ where: { status: "COMPLETED" } }),
+    ]);
+
+    return {
+      success: true,
+      data: {
+        tryOn: {
+          total: tryOnTotal,
+          completed: tryOnCompleted,
+          failed: tryOnFailed,
+          queueDepth: tryOnQueued + tryOnProcessing,
+        },
+        aiFashion: {
+          completed: aiCompleted,
+          failed: aiFailed,
+          queueDepth: aiPending,
+        },
+      },
+      requestId: (req as Request & { requestId?: string }).requestId,
+    };
+  }
+
   @Get("reports/sales")
   @RequirePermissions("reports.read")
   async sales(

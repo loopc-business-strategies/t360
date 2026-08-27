@@ -19,14 +19,23 @@ class CatalogRepository {
     );
   }
 
-  Future<List<ProductDto>> products({String? q, String? category, bool tryOnEnabled = false}) {
+  Future<List<ProductDto>> products({
+    String? q,
+    String? category,
+    String? collection,
+    String? sort,
+    bool tryOnEnabled = false,
+    int pageSize = 40,
+  }) {
     return _api.get(
       '/products',
       query: {
         if (q != null && q.isNotEmpty) 'q': q,
         if (category != null && category.isNotEmpty) 'category': category,
+        if (collection != null && collection.isNotEmpty) 'collection': collection,
+        if (sort != null && sort.isNotEmpty) 'sort': sort,
         if (tryOnEnabled) 'tryOnEnabled': 'true',
-        'pageSize': 40,
+        'pageSize': pageSize,
       },
       map: (data) {
         final List items;

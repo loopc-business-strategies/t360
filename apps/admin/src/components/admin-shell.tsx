@@ -26,6 +26,8 @@ const NAV_GROUPS: NavGroup[] = [
     items: [
       { href: "/products", label: "Products", anyOf: ["products.read"] },
       { href: "/categories", label: "Categories", anyOf: ["categories.manage", "products.read"] },
+      { href: "/collections", label: "Collections", anyOf: ["collections.manage", "products.read"] },
+      { href: "/reviews", label: "Reviews", anyOf: ["reviews.moderate", "products.read"] },
       { href: "/brands", label: "Brands", anyOf: ["brands.manage", "products.read"] },
       { href: "/inventory", label: "Inventory", anyOf: ["inventory.read"] },
       { href: "/orders", label: "Orders", anyOf: ["orders.read"] },

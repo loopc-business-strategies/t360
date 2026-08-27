@@ -78,7 +78,7 @@ class _AdminSettingsScreenState extends ConsumerState<AdminSettingsScreen>
       _error = null;
     });
     try {
-      final catalog = await ref.read(adminRepoProvider).settingsCatalog();
+      final catalog = await ref.read(adminRepoProvider).getSettingsCatalog();
       if (!mounted) return;
       setState(() {
         _catalog = catalog;
@@ -115,7 +115,7 @@ class _AdminSettingsScreenState extends ConsumerState<AdminSettingsScreen>
   Future<void> _save(String category, Map<String, dynamic> body) async {
     setState(() => _saving = true);
     try {
-      await ref.read(adminRepoProvider).patchSettingsCategory(category, body);
+      await ref.read(adminRepoProvider).patchSettings(category, body);
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Settings saved')),

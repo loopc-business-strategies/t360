@@ -1,6 +1,6 @@
 import { Suspense } from "react";
 import { ProductsBrowser } from "../../components/products-browser";
-import { fetchBrands, fetchCategories, fetchProducts } from "../../lib/catalog-api";
+import { fetchBrands, fetchCategories, fetchCollections, fetchProducts } from "../../lib/catalog-api";
 import { LoadingState } from "@t360/ui";
 
 export default async function ProductsPage({
@@ -21,21 +21,26 @@ export default async function ProductsPage({
   if (sp.minPrice) params.minPrice = sp.minPrice;
   if (sp.maxPrice) params.maxPrice = sp.maxPrice;
   if (sp.availability) params.availability = sp.availability;
+  if (sp.collection) params.collection = sp.collection;
+  if (sp.tryOnEnabled) params.tryOnEnabled = sp.tryOnEnabled;
 
   let products: Awaited<ReturnType<typeof fetchProducts>>["data"] = [];
   let meta: { total?: number } | undefined;
   let categories: Awaited<ReturnType<typeof fetchCategories>>["data"] = [];
   let brands: Array<{ slug: string; name: string }> = [];
+  let collections: Array<{ slug: string; name: string }> = [];
   try {
-    const [p, c, b] = await Promise.all([
+    const [p, c, b, col] = await Promise.all([
       fetchProducts(params),
       fetchCategories(),
       fetchBrands(),
+      fetchCollections(),
     ]);
     products = p.data;
     meta = p.meta;
     categories = c.data;
     brands = b.data;
+    collections = col.data.map((x) => ({ slug: x.slug, name: x.name }));
   } catch {
     products = [];
   }
@@ -47,6 +52,7 @@ export default async function ProductsPage({
         initialMeta={meta}
         categories={categories}
         brands={brands}
+        collections={collections}
         initialParams={params}
       />
     </Suspense>

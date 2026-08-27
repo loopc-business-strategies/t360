@@ -28,6 +28,8 @@ const PERMISSIONS = [
   "offers.manage",
   "loyalty.manage",
   "reviews.moderate",
+  "collections.manage",
+  "storefront.edit",
   "reports.read",
   "staff.manage",
   "roles.manage",

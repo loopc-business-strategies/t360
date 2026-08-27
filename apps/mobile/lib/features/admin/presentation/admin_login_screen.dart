@@ -7,7 +7,6 @@ import '../../../core/biometric_auth.dart';
 import '../../../core/providers.dart';
 import '../../auth/data/auth_repository.dart';
 import '../../auth/presentation/auth_screen.dart';
-import 'admin_home_screen.dart';
 
 class AdminLoginScreen extends ConsumerStatefulWidget {
   const AdminLoginScreen({super.key});
@@ -146,88 +145,6 @@ class _AdminLoginScreenState extends ConsumerState<AdminLoginScreen> {
     }
   }
 
-  Future<void> _forgotPassword() async {
-    final email = TextEditingController(text: _id.text.contains('@') ? _id.text.trim() : '');
-    final tokenCtrl = TextEditingController();
-    final newPwd = TextEditingController();
-    await showDialog<void>(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: const Text('Reset password'),
-        content: SingleChildScrollView(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              TextField(
-                controller: email,
-                decoration: const InputDecoration(labelText: 'Staff email'),
-              ),
-              const SizedBox(height: 8),
-              FilledButton(
-                onPressed: () async {
-                  try {
-                    final data = await ref.read(adminRepoProvider).requestPasswordReset(email.text.trim());
-                    final token = data['resetToken']?.toString();
-                    if (token != null) tokenCtrl.text = token;
-                    if (ctx.mounted) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text(
-                            token != null
-                                ? 'Dev reset token filled — set a new password'
-                                : 'If the account exists, reset was issued',
-                          ),
-                        ),
-                      );
-                    }
-                  } catch (e) {
-                    if (ctx.mounted) {
-                      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('$e')));
-                    }
-                  }
-                },
-                child: const Text('Request reset'),
-              ),
-              TextField(
-                controller: tokenCtrl,
-                decoration: const InputDecoration(labelText: 'Reset token'),
-              ),
-              TextField(
-                controller: newPwd,
-                obscureText: true,
-                decoration: const InputDecoration(labelText: 'New password'),
-              ),
-            ],
-          ),
-        ),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Close')),
-          FilledButton(
-            onPressed: () async {
-              try {
-                await ref.read(adminRepoProvider).resetPassword(
-                      token: tokenCtrl.text.trim(),
-                      newPassword: newPwd.text,
-                    );
-                if (ctx.mounted) {
-                  Navigator.pop(ctx);
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Password updated — sign in')),
-                  );
-                }
-              } catch (e) {
-                if (ctx.mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('$e')));
-                }
-              }
-            },
-            child: const Text('Set password'),
-          ),
-        ],
-      ),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -290,7 +207,10 @@ class _AdminLoginScreenState extends ConsumerState<AdminLoginScreen> {
             onPressed: _loading ? null : _submit,
             child: Text(_loading ? 'Signing in…' : 'Sign in'),
           ),
-          TextButton(onPressed: _forgotPassword, child: const Text('Forgot password')),
+          TextButton(
+            onPressed: () => context.push('/admin/forgot-password'),
+            child: const Text('Forgot password'),
+          ),
           TextButton(
             onPressed: () => context.go('/auth'),
             child: const Text('Customer OTP login'),

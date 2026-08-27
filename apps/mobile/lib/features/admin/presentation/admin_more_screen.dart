@@ -110,6 +110,24 @@ class _AdminMoreScreenState extends ConsumerState<AdminMoreScreen> {
               title: const Text('Audit Logs'),
               onTap: () => context.push('/admin/audit'),
             ),
+          if (adminHasAny(_perms, ['settings.manage', 'cms.manage']))
+            ListTile(
+              leading: const Icon(Icons.web_outlined),
+              title: const Text('Storefront'),
+              onTap: () => context.push('/admin/storefront'),
+            ),
+          if (adminHasAny(_perms, ['collections.manage', 'products.read']))
+            ListTile(
+              leading: const Icon(Icons.collections_bookmark_outlined),
+              title: const Text('Collections'),
+              onTap: () => context.push('/admin/collections'),
+            ),
+          if (adminHasAny(_perms, ['reviews.moderate']))
+            ListTile(
+              leading: const Icon(Icons.rate_review_outlined),
+              title: const Text('Reviews'),
+              onTap: () => context.push('/admin/reviews'),
+            ),
           if (adminHasAny(_perms, ['ai_settings.view', 'settings.manage']))
             ListTile(
               leading: const Icon(Icons.auto_awesome_outlined),

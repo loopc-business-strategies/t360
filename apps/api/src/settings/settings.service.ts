@@ -12,7 +12,9 @@ import { RedisService } from "../redis/redis.service";
 import { AuditService } from "../audit/audit.service";
 
 const HERO_KEY = "storefront.hero";
+const HERO_DRAFT_KEY = "storefront.hero.draft";
 const SECTIONS_KEY = "storefront.sections";
+const SECTIONS_DRAFT_KEY = "storefront.sections.draft";
 const BUSINESS_NAME_KEY = "business.name";
 
 export const DEFAULT_STOREFRONT_SECTIONS = [
@@ -98,10 +100,15 @@ export class SettingsService {
     });
   }
 
-  async getStorefront() {
-    const [hero, sectionsRow, name] = await Promise.all([
-      this.prisma.systemSetting.findUnique({ where: { key: HERO_KEY } }),
-      this.prisma.systemSetting.findUnique({ where: { key: SECTIONS_KEY } }),
+  async getStorefront(opts?: { draft?: boolean }) {
+    const useDraft = opts?.draft === true;
+    const heroKey = useDraft ? HERO_DRAFT_KEY : HERO_KEY;
+    const sectionsKey = useDraft ? SECTIONS_DRAFT_KEY : SECTIONS_KEY;
+    const [hero, sectionsRow, draftHero, draftSections, name] = await Promise.all([
+      this.prisma.systemSetting.findUnique({ where: { key: heroKey } }),
+      this.prisma.systemSetting.findUnique({ where: { key: sectionsKey } }),
+      useDraft ? null : this.prisma.systemSetting.findUnique({ where: { key: HERO_DRAFT_KEY } }),
+      useDraft ? null : this.prisma.systemSetting.findUnique({ where: { key: SECTIONS_DRAFT_KEY } }),
       this.prisma.systemSetting.findUnique({ where: { key: BUSINESS_NAME_KEY } }),
     ]);
     const commerceKeys = [
@@ -116,18 +123,48 @@ export class SettingsService {
       commerceRows.map((r) => [r.key.replace("commerce.", ""), r.value]),
     );
     const sectionsRaw = sectionsRow?.value as unknown[] | null | undefined;
-    const sections =
+    let sections =
       Array.isArray(sectionsRaw) && sectionsRaw.length
         ? [...sectionsRaw].sort(
             (a, b) =>
               Number((a as { order?: number }).order ?? 0) -
               Number((b as { order?: number }).order ?? 0),
           )
-        : DEFAULT_STOREFRONT_SECTIONS;
+        : useDraft
+          ? DEFAULT_STOREFRONT_SECTIONS
+          : DEFAULT_STOREFRONT_SECTIONS;
+    if (useDraft && !hero?.value && !sectionsRow?.value) {
+      const [liveHero, liveSections] = await Promise.all([
+        this.prisma.systemSetting.findUnique({ where: { key: HERO_KEY } }),
+        this.prisma.systemSetting.findUnique({ where: { key: SECTIONS_KEY } }),
+      ]);
+      const liveSectionsRaw = liveSections?.value as unknown[] | null | undefined;
+      sections =
+        Array.isArray(liveSectionsRaw) && liveSectionsRaw.length
+          ? [...liveSectionsRaw].sort(
+              (a, b) =>
+                Number((a as { order?: number }).order ?? 0) -
+                Number((b as { order?: number }).order ?? 0),
+            )
+          : DEFAULT_STOREFRONT_SECTIONS;
+      return {
+        businessName: (name?.value as string) ?? "Tharagai Readymades",
+        hero: (liveHero?.value as Record<string, unknown> | null) ?? null,
+        sections,
+        hasDraft: false,
+        commerce: {
+          codEnabled: Boolean(commerce.codEnabled ?? true),
+          shippingFee: Number(commerce.shippingFee ?? 49),
+          freeShippingAbove: Number(commerce.freeShippingAbove ?? 999),
+          paymentProvider: process.env.PAYMENT_PROVIDER ?? "mock",
+        },
+      };
+    }
     return {
       businessName: (name?.value as string) ?? "Tharagai Readymades",
       hero: (hero?.value as Record<string, unknown> | null) ?? null,
       sections,
+      hasDraft: Boolean(draftHero?.value || draftSections?.value),
       commerce: {
         codEnabled: Boolean(commerce.codEnabled ?? true),
         shippingFee: Number(commerce.shippingFee ?? 49),
@@ -138,34 +175,36 @@ export class SettingsService {
   }
 
   async updateStorefront(input: StorefrontUpdateInput, actorId?: string) {
+    const heroKey = input.draft ? HERO_DRAFT_KEY : HERO_KEY;
+    const sectionsKey = input.draft ? SECTIONS_DRAFT_KEY : SECTIONS_KEY;
     if (input.hero) {
       const value = input.hero as unknown as Prisma.InputJsonValue;
       const row = await this.prisma.systemSetting.upsert({
-        where: { key: HERO_KEY },
-        create: { key: HERO_KEY, value },
+        where: { key: heroKey },
+        create: { key: heroKey, value },
         update: { value },
       });
       await this.audit.log({
         actorId,
-        action: "settings.storefront.update",
+        action: input.draft ? "settings.storefront.draft" : "settings.storefront.update",
         entityType: "SystemSetting",
         entityId: row.id,
-        metadata: { key: HERO_KEY },
+        metadata: { key: heroKey },
       });
     }
     if (input.sections) {
       const value = input.sections as unknown as Prisma.InputJsonValue;
       const row = await this.prisma.systemSetting.upsert({
-        where: { key: SECTIONS_KEY },
-        create: { key: SECTIONS_KEY, value },
+        where: { key: sectionsKey },
+        create: { key: sectionsKey, value },
         update: { value },
       });
       await this.audit.log({
         actorId,
-        action: "settings.storefront.update",
+        action: input.draft ? "settings.storefront.draft" : "settings.storefront.update",
         entityType: "SystemSetting",
         entityId: row.id,
-        metadata: { key: SECTIONS_KEY },
+        metadata: { key: sectionsKey },
       });
     }
     if (!input.hero && !input.sections) {
@@ -174,6 +213,40 @@ export class SettingsService {
         message: "Provide hero and/or sections to update",
       });
     }
+    return this.getStorefront({ draft: input.draft });
+  }
+
+  async publishStorefront(actorId?: string) {
+    const [draftHero, draftSections] = await Promise.all([
+      this.prisma.systemSetting.findUnique({ where: { key: HERO_DRAFT_KEY } }),
+      this.prisma.systemSetting.findUnique({ where: { key: SECTIONS_DRAFT_KEY } }),
+    ]);
+    if (!draftHero?.value && !draftSections?.value) {
+      throw new BadRequestException({
+        code: "NO_DRAFT",
+        message: "No draft storefront to publish",
+      });
+    }
+    if (draftHero?.value) {
+      await this.prisma.systemSetting.upsert({
+        where: { key: HERO_KEY },
+        create: { key: HERO_KEY, value: draftHero.value as Prisma.InputJsonValue },
+        update: { value: draftHero.value as Prisma.InputJsonValue },
+      });
+    }
+    if (draftSections?.value) {
+      await this.prisma.systemSetting.upsert({
+        where: { key: SECTIONS_KEY },
+        create: { key: SECTIONS_KEY, value: draftSections.value as Prisma.InputJsonValue },
+        update: { value: draftSections.value as Prisma.InputJsonValue },
+      });
+    }
+    await this.audit.log({
+      actorId,
+      action: "settings.storefront.publish",
+      entityType: "SystemSetting",
+      entityId: "storefront",
+    });
     return this.getStorefront();
   }
 
