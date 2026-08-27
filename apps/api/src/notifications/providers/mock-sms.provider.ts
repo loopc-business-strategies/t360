@@ -7,7 +7,11 @@ export class MockSmsProvider implements SmsProvider {
   private readonly logger = new Logger("MockSmsProvider");
 
   async sendOtp(mobile: string, code: string): Promise<void> {
-    this.logger.warn(`[DEV MOCK SMS] OTP for ${mobile}: ${code}`);
+    if (process.env.NODE_ENV === "production") {
+      this.logger.warn(`[DEV MOCK SMS] OTP sent for ${mobile} (code suppressed in production)`);
+    } else {
+      this.logger.warn(`[DEV MOCK SMS] OTP for ${mobile}: ${code}`);
+    }
   }
 
   async send(to: string, body: string): Promise<{ messageId?: string }> {

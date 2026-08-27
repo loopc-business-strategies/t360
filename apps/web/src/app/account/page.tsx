@@ -4,7 +4,7 @@ import * as React from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Badge, Button, Input, LoadingState } from "@t360/ui";
-import { apiFetch, getCustomerToken, getRefreshToken, setCustomerTokens } from "../../lib/api";
+import { apiFetch, ApiError, clearCustomerSession, getCustomerToken, getRefreshToken, setCustomerTokens } from "../../lib/api";
 import { useLocale } from "../../lib/locale";
 import { normalizeIndianMobile } from "../../lib/phone";
 
@@ -13,7 +13,27 @@ type Profile = {
   name: string | null;
   gender: string | null;
   mobile?: string | null;
+  email?: string | null;
 };
+
+function mapAuthError(e: unknown): string {
+  if (e instanceof ApiError) {
+    switch (e.code) {
+      case "INVALID_OTP":
+        return "Invalid or expired OTP.";
+      case "RATE_LIMITED":
+        return "Too many attempts. Please try again later.";
+      case "NETWORK":
+        return e.message;
+      case "INVALID_REFRESH":
+        return "Your session has expired. Please sign in again.";
+      default:
+        return e.message;
+    }
+  }
+  if (e instanceof Error) return e.message;
+  return "Something went wrong";
+}
 
 type Address = {
   id: string;
@@ -46,8 +66,12 @@ function AccountPageInner() {
   const [otp, setOtp] = React.useState("");
   const [otpSent, setOtpSent] = React.useState(false);
   const [devOtpHint, setDevOtpHint] = React.useState<string | null>(null);
+  const [resendIn, setResendIn] = React.useState(0);
+  const [needsProfile, setNeedsProfile] = React.useState(false);
+  const [email, setEmail] = React.useState("");
   const [profile, setProfile] = React.useState<Profile | null>(null);
   const [name, setName] = React.useState("");
+  const [sessionBanner, setSessionBanner] = React.useState<string | null>(null);
   const [addresses, setAddresses] = React.useState<Address[]>([]);
   const [error, setError] = React.useState<string | null>(null);
   const [busy, setBusy] = React.useState(false);
@@ -76,6 +100,8 @@ function AccountPageInner() {
     const res = await apiFetch<Profile>("/customers/me");
     setProfile(res.data);
     setName(res.data.name ?? "");
+    setEmail(res.data.email ?? "");
+    if (!res.data.name?.trim()) setNeedsProfile(true);
     const [addrs, loyalty, prefRes, notifRes] = await Promise.all([
       apiFetch<Address[]>("/customers/me/addresses"),
       apiFetch<{ pointsBalance: number }>("/loyalty/me"),
@@ -94,11 +120,23 @@ function AccountPageInner() {
   }, []);
 
   React.useEffect(() => {
+    if (searchParams.get("session") === "expired") {
+      setSessionBanner("Your session has expired. Please sign in again.");
+    }
+  }, [searchParams]);
+
+  React.useEffect(() => {
+    if (resendIn <= 0) return;
+    const t = window.setTimeout(() => setResendIn((s) => s - 1), 1000);
+    return () => window.clearTimeout(t);
+  }, [resendIn]);
+
+  React.useEffect(() => {
     const tkn = getCustomerToken();
     setToken(tkn);
     setReady(true);
     if (tkn) {
-      void loadAccount().catch((e) => setError(e instanceof Error ? e.message : "Failed"));
+      void loadAccount().catch((e) => setError(mapAuthError(e)));
     }
   }, [loadAccount]);
 
@@ -122,8 +160,9 @@ function AccountPageInner() {
         setDevOtpHint(`Staging code: ${res.data.devOtp}`);
       }
       setOtpSent(true);
+      setResendIn(30);
     } catch (e) {
-      setError(e instanceof Error ? e.message : "OTP failed");
+      setError(mapAuthError(e));
     } finally {
       setBusy(false);
     }
@@ -135,13 +174,50 @@ function AccountPageInner() {
     try {
       const normalized = normalizeIndianMobile(mobile);
       setMobile(normalized);
-      const res = await apiFetch<{ accessToken: string; refreshToken: string }>("/auth/otp/verify", {
+      const res = await apiFetch<{
+        accessToken: string;
+        refreshToken: string;
+        isNewCustomer?: boolean;
+      }>("/auth/otp/verify", {
         method: "POST",
         auth: false,
         body: JSON.stringify({ mobile: normalized, code: otp }),
       });
       setCustomerTokens(res.data.accessToken, res.data.refreshToken);
       setToken(res.data.accessToken);
+      setSessionBanner(null);
+      if (res.data.isNewCustomer) setNeedsProfile(true);
+      const redirect = searchParams.get("redirect");
+      if (redirect && redirect.startsWith("/") && !res.data.isNewCustomer) {
+        router.replace(redirect);
+        return;
+      }
+      await loadAccount();
+      if (redirect && redirect.startsWith("/") && !needsProfile) {
+        // after loadAccount, if profile already has name, redirect happens below via effect skip
+      }
+    } catch (e) {
+      setError(mapAuthError(e));
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function saveProfile(opts?: { skip?: boolean }) {
+    setBusy(true);
+    setError(null);
+    try {
+      if (!opts?.skip) {
+        const res = await apiFetch<Profile>("/customers/me", {
+          method: "PATCH",
+          body: JSON.stringify({
+            name: name.trim() || null,
+            email: email.trim() || null,
+          }),
+        });
+        setProfile(res.data);
+      }
+      setNeedsProfile(false);
       const redirect = searchParams.get("redirect");
       if (redirect && redirect.startsWith("/")) {
         router.replace(redirect);
@@ -149,23 +225,7 @@ function AccountPageInner() {
       }
       await loadAccount();
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Verify failed");
-    } finally {
-      setBusy(false);
-    }
-  }
-
-  async function saveProfile() {
-    setBusy(true);
-    setError(null);
-    try {
-      const res = await apiFetch<Profile>("/customers/me", {
-        method: "PATCH",
-        body: JSON.stringify({ name }),
-      });
-      setProfile(res.data);
-    } catch (e) {
-      setError(e instanceof Error ? e.message : "Save failed");
+      setError(mapAuthError(e));
     } finally {
       setBusy(false);
     }
@@ -197,7 +257,11 @@ function AccountPageInner() {
         <p className="text-xs font-medium uppercase tracking-[0.14em] text-muted">{t.accountBrand}</p>
         <h1 className="mt-3 font-display text-3xl">{t.accountTitle}</h1>
         <p className="mt-3 text-sm leading-relaxed text-muted">{t.accountLogin}</p>
+        <p className="mt-2 text-sm text-muted">
+          New customer? Your account will be created after OTP verification.
+        </p>
         <p className="mt-2 text-xs text-muted">Use +91 and your 10-digit mobile number</p>
+        {sessionBanner ? <p className="mt-4 text-sm text-wine">{sessionBanner}</p> : null}
         <div className="mt-8 space-y-4 border border-border bg-elevated p-5">
           <Input label={t.mobile} value={mobile} onChange={(e) => setMobile(e.target.value)} autoComplete="tel" />
           {otpSent ? (
@@ -220,9 +284,32 @@ function AccountPageInner() {
               {t.requestOtp}
             </Button>
           ) : (
-            <Button type="button" disabled={busy} onClick={() => void verifyOtp()}>
-              {t.verifyOtp}
-            </Button>
+            <div className="flex flex-wrap gap-2">
+              <Button type="button" disabled={busy} onClick={() => void verifyOtp()}>
+                {t.verifyOtp}
+              </Button>
+              <Button
+                type="button"
+                variant="outline"
+                disabled={busy || resendIn > 0}
+                onClick={() => void requestOtp()}
+              >
+                {resendIn > 0 ? `Resend in ${resendIn}s` : "Resend OTP"}
+              </Button>
+              <Button
+                type="button"
+                variant="outline"
+                disabled={busy}
+                onClick={() => {
+                  setOtpSent(false);
+                  setOtp("");
+                  setDevOtpHint(null);
+                  setResendIn(0);
+                }}
+              >
+                Change number
+              </Button>
+            </div>
           )}
         </div>
         <p className="mt-6 text-xs text-muted">
@@ -234,6 +321,31 @@ function AccountPageInner() {
             {t.navTerms}
           </a>
         </p>
+      </main>
+    );
+  }
+
+  if (needsProfile) {
+    return (
+      <main className="mx-auto max-w-md space-y-4 px-6 py-12">
+        <h1 className="font-display text-3xl">Complete your profile</h1>
+        <p className="text-sm text-muted">Optional — you can skip and finish later.</p>
+        {error ? <p className="text-sm text-wine">{error}</p> : null}
+        <Input label={t.name} value={name} onChange={(e) => setName(e.target.value)} />
+        <Input
+          label="Email (optional)"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          autoComplete="email"
+        />
+        <div className="flex gap-2">
+          <Button type="button" disabled={busy} onClick={() => void saveProfile()}>
+            {t.save}
+          </Button>
+          <Button type="button" variant="outline" disabled={busy} onClick={() => void saveProfile({ skip: true })}>
+            Skip for now
+          </Button>
+        </div>
       </main>
     );
   }
@@ -254,18 +366,35 @@ function AccountPageInner() {
               try {
                 await apiFetch("/auth/logout", {
                   method: "POST",
+                  auth: false,
                   body: JSON.stringify({ refreshToken: refresh }),
                 });
               } catch {
                 /* ignore */
               }
             }
-            setCustomerTokens(null, null);
+            clearCustomerSession();
             setToken(null);
             setProfile(null);
           }}
         >
           {t.logout}
+        </Button>
+        <Button
+          variant="outline"
+          type="button"
+          onClick={async () => {
+            try {
+              await apiFetch("/auth/logout-all", { method: "POST", body: JSON.stringify({}) });
+            } catch {
+              /* ignore */
+            }
+            clearCustomerSession();
+            setToken(null);
+            setProfile(null);
+          }}
+        >
+          Logout all devices
         </Button>
       </div>
 
@@ -287,6 +416,12 @@ function AccountPageInner() {
           </p>
         ) : null}
         <Input label={t.name} value={name} onChange={(e) => setName(e.target.value)} />
+        <Input
+          label="Email (optional)"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          autoComplete="email"
+        />
         <Button type="button" disabled={busy} onClick={() => void saveProfile()}>
           {t.save}
         </Button>

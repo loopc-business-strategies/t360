@@ -1,15 +1,30 @@
 import { z } from "zod";
 
+/** Normalize Indian mobile to E.164 `+91XXXXXXXXXX`. */
+export function normalizeIndianMobile(raw: string): string {
+  let s = String(raw ?? "")
+    .trim()
+    .replace(/[\s\-()]/g, "");
+  if (s.startsWith("00")) s = `+${s.slice(2)}`;
+  if (/^\d{10}$/.test(s) && /^[6-9]/.test(s)) return `+91${s}`;
+  if (/^91[6-9]\d{9}$/.test(s)) return `+${s}`;
+  if (s.startsWith("+91") && s.length === 13) return s;
+  return s;
+}
+
+const indianMobileE164 = z
+  .string()
+  .transform(normalizeIndianMobile)
+  .refine((v) => /^\+91[6-9]\d{9}$/.test(v), {
+    message: "Mobile must be E.164 Indian format +91XXXXXXXXXX",
+  });
+
 export const otpRequestSchema = z.object({
-  mobile: z
-    .string()
-    .regex(/^\+91[6-9]\d{9}$/, "Mobile must be E.164 Indian format +91XXXXXXXXXX"),
+  mobile: indianMobileE164,
 });
 
 export const otpVerifySchema = z.object({
-  mobile: z
-    .string()
-    .regex(/^\+91[6-9]\d{9}$/, "Mobile must be E.164 Indian format +91XXXXXXXXXX"),
+  mobile: indianMobileE164,
   code: z.string().regex(/^\d{6}$/, "OTP must be 6 digits"),
 });
 
@@ -125,7 +140,8 @@ export type ProductCreateInput = z.infer<typeof productCreateSchema>;
 export type ProductListQuery = z.infer<typeof productListQuerySchema>;
 
 export const customerProfileUpdateSchema = z.object({
-  name: z.string().min(1).max(120).optional(),
+  name: z.string().min(1).max(120).optional().nullable(),
+  email: z.string().email().max(200).optional().nullable(),
   gender: z.string().max(40).optional().nullable(),
   dateOfBirth: z.string().datetime().optional().nullable(),
 });

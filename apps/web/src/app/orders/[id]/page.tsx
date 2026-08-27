@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import Link from "next/link";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { Badge, Button, LoadingState } from "@t360/ui";
 import { apiFetch, getCustomerToken } from "../../../lib/api";
 import { useLocale } from "../../../lib/locale";
@@ -20,6 +20,7 @@ type OrderDetail = {
 
 export default function OrderDetailPage() {
   const { t } = useLocale();
+  const router = useRouter();
   const params = useParams<{ id: string }>();
   const [order, setOrder] = React.useState<OrderDetail | null>(null);
   const [error, setError] = React.useState<string | null>(null);
@@ -30,10 +31,14 @@ export default function OrderDetailPage() {
   }, [params.id]);
 
   React.useEffect(() => {
-    if (!getCustomerToken()) return;
+    if (!getCustomerToken()) {
+      router.replace(`/account?redirect=/orders/${params.id}`);
+      return;
+    }
     void load().catch((e) => setError(e instanceof Error ? e.message : "Failed"));
-  }, [load]);
+  }, [load, params.id, router]);
 
+  if (!getCustomerToken()) return <LoadingState label={t.loading} />;
   if (!order) return <LoadingState label={t.loading} />;
 
   return (

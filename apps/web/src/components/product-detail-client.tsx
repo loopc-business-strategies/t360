@@ -55,7 +55,7 @@ export function ProductDetailClient({
   async function toggleWishlist() {
     if (!variant) return;
     if (!getCustomerToken()) {
-      window.location.href = "/account";
+      window.location.href = `/account?redirect=/products/${initial.slug}`;
       return;
     }
     setBusy(true);

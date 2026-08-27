@@ -8,6 +8,34 @@ import '../../../l10n/app_strings.dart';
 import '../../repositories.dart';
 import '../data/phone_normalize.dart';
 
+String mapAuthError(Object e) {
+  if (e is ApiException) {
+    switch (e.code) {
+      case 'INVALID_OTP':
+        return 'Invalid or expired OTP.';
+      case 'RATE_LIMITED':
+        return 'Too many attempts. Please try again later.';
+      case 'MFA_REQUIRED':
+        return 'Enter your verification code.';
+      case 'INVALID_CREDENTIALS':
+        return 'Email/ID or password is incorrect.';
+      case 'ACCOUNT_LOCKED':
+        return 'Account temporarily locked. Try again later.';
+      case 'ACCOUNT_INACTIVE':
+        return 'Your account is inactive.';
+      case 'INVALID_REFRESH':
+      case 'REFRESH_REUSE':
+        return 'Your session has expired. Please sign in again.';
+      case 'STAFF_REQUIRED':
+      case 'NO_STAFF_ROLE':
+        return 'You do not have permission to access Admin.';
+      default:
+        return e.message;
+    }
+  }
+  return e.toString();
+}
+
 class AuthScreen extends ConsumerStatefulWidget {
   const AuthScreen({super.key, this.redirectTo});
 
@@ -24,12 +52,21 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
   var _busy = false;
   String? _error;
   String? _devOtpHint;
+  int _resendIn = 0;
 
   @override
   void dispose() {
     _mobile.dispose();
     _otp.dispose();
     super.dispose();
+  }
+
+  Future<void> _tickResend() async {
+    while (_resendIn > 0 && mounted) {
+      await Future<void>.delayed(const Duration(seconds: 1));
+      if (!mounted) return;
+      setState(() => _resendIn -= 1);
+    }
   }
 
   Future<void> _request() async {
@@ -46,11 +83,13 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
         _otp.text = res.devOtp!;
         _devOtpHint = 'Staging code: ${res.devOtp}';
       }
-      setState(() => _otpSent = true);
-    } on ApiException catch (e) {
-      setState(() => _error = e.message);
+      setState(() {
+        _otpSent = true;
+        _resendIn = 30;
+      });
+      _tickResend();
     } catch (e) {
-      setState(() => _error = e.toString());
+      setState(() => _error = mapAuthError(e));
     } finally {
       setState(() => _busy = false);
     }
@@ -74,16 +113,18 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
           );
       await ref.read(authStateProvider.notifier).markLoggedIn();
       if (!mounted) return;
+      if (tokens.isNewCustomer) {
+        context.go('/account/complete-profile?redirect=${Uri.encodeComponent(widget.redirectTo ?? '/')}');
+        return;
+      }
       final dest = widget.redirectTo;
       if (dest != null && dest.isNotEmpty) {
         context.go(dest);
       } else {
         context.go('/');
       }
-    } on ApiException catch (e) {
-      setState(() => _error = e.message);
     } catch (e) {
-      setState(() => _error = e.toString());
+      setState(() => _error = mapAuthError(e));
     } finally {
       if (mounted) setState(() => _busy = false);
     }
@@ -98,6 +139,11 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
         padding: const EdgeInsets.all(24),
         children: [
           Text(t.loginRequired, style: Theme.of(context).textTheme.titleLarge),
+          const SizedBox(height: 8),
+          Text(
+            'New customer? Your account will be created after OTP verification.',
+            style: Theme.of(context).textTheme.bodyMedium,
+          ),
           const SizedBox(height: 8),
           Text(
             'Use +91 and your 10-digit mobile number',
@@ -145,6 +191,24 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
                     }
                   },
           ),
+          if (_otpSent) ...[
+            const SizedBox(height: 8),
+            TextButton(
+              onPressed: _busy || _resendIn > 0 ? null : _request,
+              child: Text(_resendIn > 0 ? 'Resend in ${_resendIn}s' : 'Resend OTP'),
+            ),
+            TextButton(
+              onPressed: _busy
+                  ? null
+                  : () => setState(() {
+                        _otpSent = false;
+                        _otp.clear();
+                        _devOtpHint = null;
+                        _resendIn = 0;
+                      }),
+              child: const Text('Change number'),
+            ),
+          ],
         ],
       ),
     );

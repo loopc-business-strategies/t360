@@ -13,6 +13,7 @@ import { PrismaService } from "../prisma/prisma.service";
 import { RedisService } from "../redis/redis.service";
 import { Inject } from "@nestjs/common";
 import { SMS_PROVIDER, SmsProvider } from "../notifications/providers/sms-provider";
+import { EMAIL_PROVIDER, EmailProvider } from "../notifications/providers/email-provider";
 import { AuditService } from "../audit/audit.service";
 import { LoyaltyService } from "../loyalty/loyalty.service";
 
@@ -26,6 +27,7 @@ export class AuthService {
     private readonly audit: AuditService,
     private readonly loyalty: LoyaltyService,
     @Inject(SMS_PROVIDER) private readonly sms: SmsProvider,
+    @Inject(EMAIL_PROVIDER) private readonly email: EmailProvider,
   ) {}
 
   private otpKey(mobile: string) {
@@ -77,11 +79,13 @@ export class AuthService {
     }
     await this.redis.client.del(this.otpKey(mobile));
 
+    let isNewCustomer = false;
     let user = await this.prisma.user.findUnique({
       where: { mobile },
       include: { customer: true },
     });
     if (!user) {
+      isNewCustomer = true;
       user = await this.prisma.user.create({
         data: {
           mobile,
@@ -90,6 +94,7 @@ export class AuthService {
         include: { customer: true },
       });
     } else if (!user.customer) {
+      isNewCustomer = true;
       await this.prisma.customer.create({ data: { userId: user.id } });
       user = await this.prisma.user.findUniqueOrThrow({
         where: { id: user.id },
@@ -106,7 +111,7 @@ export class AuthService {
       action: "auth.otp.login",
       ip: meta?.ip,
     });
-    return tokens;
+    return { ...tokens, isNewCustomer };
   }
 
   async adminLogin(
@@ -282,7 +287,23 @@ export class AuthService {
       ip,
     });
 
-    // Mock email provider: expose token outside production for operator/tests
+    const adminBase =
+      this.config.get<string>("ADMIN_WEB_URL") ??
+      this.config.get<string>("CORS_ORIGINS")?.split(",")[1]?.trim() ??
+      "https://t360-admin.vercel.app";
+    const resetUrl = `${adminBase.replace(/\/$/, "")}/login?resetToken=${encodeURIComponent(token)}`;
+    try {
+      await this.email.send({
+        to: normalized,
+        subject: "Tharagai admin password reset",
+        text: `Reset your password using this link (valid 30 minutes):\n${resetUrl}\n\nIf you did not request this, ignore this email.`,
+        html: `<p>Reset your password using this link (valid 30 minutes):</p><p><a href="${resetUrl}">${resetUrl}</a></p><p>If you did not request this, ignore this email.</p>`,
+      });
+    } catch {
+      // Still return generic success; token remains in Redis for mock/dev fallback
+    }
+
+    // Mock/dev: expose token outside production for operator/tests
     if (process.env.NODE_ENV !== "production") {
       return { ...generic, resetToken: token, expiresInSeconds: 1800 };
     }
@@ -325,9 +346,36 @@ export class AuthService {
   async refresh(refreshToken: string, meta?: { ip?: string; userAgent?: string }) {
     const hash = this.hashToken(refreshToken);
     const session = await this.prisma.session.findFirst({
-      where: { refreshTokenHash: hash, revokedAt: null },
+      where: { refreshTokenHash: hash },
     });
-    if (!session || session.expiresAt < new Date()) {
+    if (!session) {
+      throw new UnauthorizedException({ code: "INVALID_REFRESH", message: "Invalid refresh token" });
+    }
+
+    // Reuse of an already-rotated token → kill the session family
+    if (session.revokedAt) {
+      await this.prisma.session.updateMany({
+        where: { familyId: session.familyId, revokedAt: null },
+        data: { revokedAt: new Date() },
+      });
+      await this.audit.log({
+        actorId: session.userId,
+        action: "auth.refresh.reuse",
+        entityType: "Session",
+        entityId: session.id,
+        ip: meta?.ip,
+      });
+      throw new UnauthorizedException({
+        code: "REFRESH_REUSE",
+        message: "Refresh token reuse detected",
+      });
+    }
+
+    if (session.expiresAt < new Date()) {
+      await this.prisma.session.update({
+        where: { id: session.id },
+        data: { revokedAt: new Date() },
+      });
       throw new UnauthorizedException({ code: "INVALID_REFRESH", message: "Invalid refresh token" });
     }
 
@@ -340,23 +388,18 @@ export class AuthService {
       throw new ForbiddenException({ code: "ACCOUNT_INACTIVE", message: "Account is inactive" });
     }
 
-    // Rotation: revoke current, issue new in same family
     await this.prisma.session.update({
       where: { id: session.id },
       data: { revokedAt: new Date() },
     });
 
-    // Reuse detection: if already revoked twin used, kill family
-    const reused = await this.prisma.session.findFirst({
-      where: { refreshTokenHash: hash, revokedAt: { not: null }, id: { not: session.id } },
+    await this.audit.log({
+      actorId: session.userId,
+      action: "auth.refresh",
+      entityType: "Session",
+      entityId: session.id,
+      ip: meta?.ip,
     });
-    if (reused) {
-      await this.prisma.session.updateMany({
-        where: { familyId: session.familyId, revokedAt: null },
-        data: { revokedAt: new Date() },
-      });
-      throw new UnauthorizedException({ code: "REFRESH_REUSE", message: "Refresh token reuse detected" });
-    }
 
     return this.issueTokens(session.userId, meta, session.familyId);
   }

@@ -21,7 +21,10 @@ class AuthRepository {
     );
   }
 
-  Future<({String access, String refresh})> verifyOtp(String mobile, String code) async {
+  Future<({String access, String refresh, bool isNewCustomer})> verifyOtp(
+    String mobile,
+    String code,
+  ) async {
     final normalized = normalizeIndianMobile(mobile);
     return _api.post(
       '/auth/otp/verify',
@@ -31,6 +34,7 @@ class AuthRepository {
         return (
           access: m['accessToken'] as String,
           refresh: m['refreshToken'] as String,
+          isNewCustomer: m['isNewCustomer'] == true,
         );
       },
     );
@@ -60,10 +64,32 @@ class AuthRepository {
     );
   }
 
+  Future<({String access, String refresh})> refreshSession(String refreshToken) async {
+    return _api.post(
+      '/auth/refresh',
+      data: {'refreshToken': refreshToken},
+      map: (data) {
+        final m = data as Map<String, dynamic>;
+        return (
+          access: m['accessToken'] as String,
+          refresh: m['refreshToken'] as String,
+        );
+      },
+    );
+  }
+
   Future<void> logout(String? refreshToken) async {
     if (refreshToken == null) return;
     try {
       await _api.post('/auth/logout', data: {'refreshToken': refreshToken}, map: (_) => true);
+    } catch (_) {
+      /* ignore */
+    }
+  }
+
+  Future<void> logoutAll() async {
+    try {
+      await _api.post('/auth/logout-all', data: {}, map: (_) => true);
     } catch (_) {
       /* ignore */
     }

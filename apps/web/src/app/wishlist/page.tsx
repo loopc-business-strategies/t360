@@ -52,7 +52,7 @@ export default function WishlistPage() {
         <div className="mt-6">
           <EmptyState title={t.wishlistLogin} description="" />
         </div>
-        <Link href="/account" className="mt-4 inline-block text-wine hover:underline">
+        <Link href="/account?redirect=/wishlist" className="mt-4 inline-block text-wine hover:underline">
           {t.navAccount}
         </Link>
       </main>

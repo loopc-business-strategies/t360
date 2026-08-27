@@ -32,7 +32,7 @@ export default function OrdersPage() {
     return (
       <main className="mx-auto max-w-3xl px-6 py-12">
         <h1 className="font-display text-3xl">{t.navOrders}</h1>
-        <Link href="/account" className="mt-4 inline-block text-wine hover:underline">
+        <Link href="/account?redirect=/orders" className="mt-4 inline-block text-wine hover:underline">
           {t.navAccount}
         </Link>
       </main>

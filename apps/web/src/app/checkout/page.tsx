@@ -41,7 +41,7 @@ export default function CheckoutPage() {
 
   React.useEffect(() => {
     if (!getCustomerToken()) {
-      router.replace("/account");
+      router.replace("/account?redirect=/checkout");
       return;
     }
     void (async () => {

@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 
 import '../features/ai/presentation/ai_chat_screen.dart';
 import '../features/account/presentation/account_screen.dart';
+import '../features/account/presentation/complete_profile_screen.dart';
 import '../features/account/presentation/loyalty_screen.dart';
 import '../features/admin/presentation/admin_try_on_screen.dart';
 import '../features/admin/presentation/admin_ai_models_screen.dart';
@@ -228,6 +229,12 @@ final goRouterProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/auth',
         builder: (context, state) => AuthScreen(
+          redirectTo: state.uri.queryParameters['redirect'],
+        ),
+      ),
+      GoRoute(
+        path: '/account/complete-profile',
+        builder: (context, state) => CompleteProfileScreen(
           redirectTo: state.uri.queryParameters['redirect'],
         ),
       ),

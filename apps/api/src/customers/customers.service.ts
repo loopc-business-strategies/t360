@@ -33,10 +33,28 @@ export class CustomersService {
 
   async updateMe(userId: string, input: CustomerProfileUpdateInput) {
     const customer = await this.requireCustomer(userId);
+    if (input.email !== undefined) {
+      const email = input.email?.trim().toLowerCase() || null;
+      if (email) {
+        const clash = await this.prisma.user.findFirst({
+          where: { email, id: { not: userId } },
+        });
+        if (clash) {
+          throw new ForbiddenException({
+            code: "EMAIL_IN_USE",
+            message: "Email is already registered",
+          });
+        }
+      }
+      await this.prisma.user.update({
+        where: { id: userId },
+        data: { email },
+      });
+    }
     const updated = await this.prisma.customer.update({
       where: { id: customer.id },
       data: {
-        name: input.name,
+        name: input.name === undefined ? undefined : input.name,
         gender: input.gender === undefined ? undefined : input.gender,
         dateOfBirth:
           input.dateOfBirth === undefined
@@ -52,7 +70,11 @@ export class CustomersService {
       entityType: "Customer",
       entityId: customer.id,
     });
-    return updated;
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+      select: { mobile: true, email: true },
+    });
+    return { ...updated, mobile: user?.mobile ?? null, email: user?.email ?? null };
   }
 
   async listAddresses(userId: string) {

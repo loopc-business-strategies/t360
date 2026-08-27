@@ -300,6 +300,16 @@ class _AccountScreenState extends ConsumerState<AccountScreen> {
               if (context.mounted) context.go('/');
             },
           ),
+          const SizedBox(height: 8),
+          TharagaiButton(
+            label: 'Logout all devices',
+            variant: TharagaiButtonVariant.outline,
+            onPressed: () async {
+              await ref.read(authRepositoryProvider).logoutAll();
+              await ref.read(authStateProvider.notifier).markLoggedOut();
+              if (context.mounted) context.go('/');
+            },
+          ),
         ],
       ),
     );

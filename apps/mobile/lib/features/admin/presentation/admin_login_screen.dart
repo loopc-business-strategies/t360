@@ -2,9 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../core/api_exception.dart';
 import '../../../core/biometric_auth.dart';
 import '../../../core/providers.dart';
 import '../../auth/data/auth_repository.dart';
+import '../../auth/presentation/auth_screen.dart';
 import 'admin_home_screen.dart';
 
 class AdminLoginScreen extends ConsumerStatefulWidget {
@@ -73,6 +75,17 @@ class _AdminLoginScreenState extends ConsumerState<AdminLoginScreen> {
         await _bio.setEnabled(false);
         return;
       }
+      // Re-validate refresh with server (biometric never bypasses auth)
+      try {
+        final auth = AuthRepository(ref.read(apiClientProvider));
+        final res = await auth.refreshSession(refresh);
+        await tokens.saveTokens(access: res.access, refresh: res.refresh);
+      } catch (_) {
+        await tokens.clear();
+        await _bio.setEnabled(false);
+        setState(() => _error = 'Your session has expired. Please sign in again.');
+        return;
+      }
       await ref.read(authStateProvider.notifier).markLoggedIn(staff: true);
       if (mounted) context.go('/admin');
     } catch (e) {
@@ -119,10 +132,14 @@ class _AdminLoginScreenState extends ConsumerState<AdminLoginScreen> {
       }
       if (mounted) context.go('/admin');
     } catch (e) {
-      final msg = e.toString();
       setState(() {
-        _error = msg;
-        if (msg.toUpperCase().contains('MFA')) _needsMfa = true;
+        if (e is ApiException) {
+          _error = mapAuthError(e);
+          if (e.code == 'MFA_REQUIRED') _needsMfa = true;
+        } else {
+          _error = e.toString();
+          if (e.toString().toUpperCase().contains('MFA')) _needsMfa = true;
+        }
       });
     } finally {
       if (mounted) setState(() => _loading = false);

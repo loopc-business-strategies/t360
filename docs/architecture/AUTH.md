@@ -18,9 +18,11 @@
 
 | Client | Access | Refresh |
 |--------|--------|---------|
-| Next.js web | Memory or short cookie; prefer httpOnly secure cookies for refresh where CSRF strategy applies | httpOnly, Secure, SameSite |
-| Admin | Same as web | Same |
+| Customer Web (current) | `localStorage` (migrated from `sessionStorage`) + Bearer | Same store; 401 → `/auth/refresh` with mutex + single retry |
+| Admin Web (current) | `localStorage` + Bearer | Same; proactive near-expiry refresh |
 | Flutter | Secure storage | Secure storage |
+
+**Deferred:** httpOnly Secure SameSite cookie auth + Next.js BFF (CORS/CSRF). Prefer cookies for production hardening in a dedicated pass.
 
 ## Customer OTP flow
 

@@ -34,6 +34,7 @@ describe("AuthService.requestOtp", () => {
       {} as never,
       {} as never,
       sms,
+      { send: jest.fn() } as never,
     );
     return { service, sms, redis };
   }

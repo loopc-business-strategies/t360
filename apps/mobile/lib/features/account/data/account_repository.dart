@@ -59,12 +59,19 @@ class AccountRepository {
     );
   }
 
-  Future<ProfileDto> updateMe({String? name}) {
+  Future<ProfileDto> updateMe({String? name, String? email}) {
     return _api.patch(
       '/customers/me',
-      data: {'name': ?name},
+      data: {
+        if (name != null) 'name': name,
+        if (email != null) 'email': email,
+      },
       map: (d) => ProfileDto.fromJson(Map<String, dynamic>.from(d as Map)),
     );
+  }
+
+  Future<void> updateProfile(Map<String, dynamic> body) async {
+    await _api.patch('/customers/me', data: body, map: (_) => true);
   }
 
   Future<List<AddressDto>> addresses() {
