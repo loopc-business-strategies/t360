@@ -5,6 +5,7 @@ import Link from "next/link";
 import { Button, Price } from "@t360/ui";
 import type { ProductListItem } from "../../lib/catalog-api";
 import { productPrice } from "../../lib/catalog-api";
+import { OptimizedImage } from "./optimized-image";
 
 export function QuickViewModal({
   product,
@@ -55,16 +56,14 @@ export function QuickViewModal({
         className="fixed inset-x-4 top-[10%] z-overlay mx-auto max-w-3xl rounded-lg border border-border bg-elevated shadow-soft sm:inset-x-auto"
       >
         <div className="grid gap-0 sm:grid-cols-2">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src={image}
-            alt={product.name}
-            loading="lazy"
-            className="aspect-square w-full object-cover sm:rounded-l-lg"
-            onError={(e) => {
-              (e.target as HTMLImageElement).style.opacity = "0.3";
-            }}
-          />
+          <div className="relative aspect-square w-full overflow-hidden sm:rounded-l-lg">
+            <OptimizedImage
+              src={image}
+              alt={product.name}
+              className="object-cover"
+              sizes="(max-width: 640px) 100vw, 50vw"
+            />
+          </div>
           <div className="p-6">
             <button
               ref={closeRef}

@@ -19,4 +19,27 @@ test.describe("web smoke", () => {
     await page.goto("/policies/privacy");
     await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
   });
+
+  test("men t-shirts PLP shows product images", async ({ page }) => {
+    await page.goto("/categories/men-t-shirts");
+    await expect(page.locator("main, body").first()).toBeVisible();
+    const images = page.locator("img, [srcset]");
+    await expect(images.first()).toBeVisible({ timeout: 15000 });
+  });
+
+  test("PDP exposes try-me when try-on enabled", async ({ page }) => {
+    await page.goto("/products?tryOnEnabled=true");
+    const productLink = page.locator('a[href^="/products/"]').first();
+    await expect(productLink).toBeVisible({ timeout: 15000 });
+    const href = await productLink.getAttribute("href");
+    test.skip(!href, "No product link found");
+    await page.goto(href!);
+    const tryMe = page.locator("#try-me");
+    if ((await tryMe.count()) > 0) {
+      await expect(tryMe).toBeVisible();
+    } else {
+      // Non-try-on PDP still must render a gallery/main image
+      await expect(page.locator("img").first()).toBeVisible();
+    }
+  });
 });

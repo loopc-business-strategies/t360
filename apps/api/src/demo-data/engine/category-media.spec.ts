@@ -6,6 +6,7 @@ import {
   getDemoImagesForCategory,
   getDemoVideoForCategory,
 } from "./category-media";
+import { CATEGORY_META } from "./category-meta";
 
 describe("getDemoImagesForCategory", () => {
   it("returns 4 deterministic stills for a leaf", () => {
@@ -58,6 +59,17 @@ describe("getDemoImagesForCategory", () => {
       Array.from({ length: 8 }, (_, i) => getDemoImagesForCategory("men-t-shirts", "men", i)[0]),
     );
     expect(primaries.size).toBeGreaterThan(1);
+  });
+
+  it("pool size covers each leaf quota with distinct primaries", () => {
+    for (const [slug, meta] of Object.entries(CATEGORY_META)) {
+      const pool = __test.uniquePool(__test.resolvePool(slug, meta.segment));
+      expect(pool.length).toBeGreaterThanOrEqual(meta.quota);
+      const primaries = new Set(
+        Array.from({ length: meta.quota }, (_, i) => getDemoImagesForCategory(slug, meta.segment, i)[0]),
+      );
+      expect(primaries.size).toBe(meta.quota);
+    }
   });
 });
 

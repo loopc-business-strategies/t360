@@ -13,6 +13,7 @@ import { useLocale } from "../lib/locale";
 import type { CategoryNode, ProductListItem, StorefrontSection, StorefrontSettings } from "../lib/catalog-api";
 import { API_URL } from "../lib/catalog-api";
 import { ProductCardInteractive } from "./store/product-card-interactive";
+import { OptimizedImage, renderTileImage } from "./store/optimized-image";
 
 const DEFAULT_HERO =
   "https://images.unsplash.com/photo-1583391733956-3750e0ff4e8b?auto=format&fit=crop&w=1800&q=80";
@@ -259,6 +260,7 @@ export function HomeClient({
                   key={c.id}
                   name={c.name}
                   href={`/categories/${c.slug}`}
+                  renderImage={renderTileImage}
                 />
               ))}
             </div>
@@ -306,8 +308,16 @@ export function HomeClient({
             viewport={{ once: true }}
           >
             <div className="grid overflow-hidden rounded-lg border border-border lg:grid-cols-2">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={section.imageUrl} alt="" className="aspect-[4/3] w-full object-cover lg:aspect-auto lg:min-h-[20rem]" />
+              <div className="relative aspect-[4/3] w-full lg:aspect-auto lg:min-h-[20rem]">
+                {section.imageUrl ? (
+                  <OptimizedImage
+                    src={section.imageUrl}
+                    alt=""
+                    className="object-cover"
+                    sizes="(max-width: 1024px) 100vw, 50vw"
+                  />
+                ) : null}
+              </div>
               <div className="flex flex-col justify-center bg-elevated p-8 sm:p-12">
                 <h2 className="font-display text-3xl text-ink">{section.headline}</h2>
                 {section.body ? <p className="mt-4 text-muted">{section.body}</p> : null}
@@ -367,8 +377,14 @@ export function HomeClient({
           >
             <div className="overflow-hidden rounded-lg border border-border bg-elevated p-8 sm:p-12">
               {section.imageUrl ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img src={section.imageUrl} alt="" className="mb-6 max-h-64 w-full rounded-md object-cover" />
+                <div className="relative mb-6 h-64 w-full overflow-hidden rounded-md">
+                  <OptimizedImage
+                    src={section.imageUrl}
+                    alt=""
+                    className="object-cover"
+                    sizes="(max-width: 1024px) 100vw, 72rem"
+                  />
+                </div>
               ) : null}
               <p className="text-xs uppercase tracking-[0.2em] text-brass">{section.type}</p>
               <h2 className="mt-2 font-display text-3xl">{section.headline}</h2>

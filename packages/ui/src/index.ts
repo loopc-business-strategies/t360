@@ -17,7 +17,7 @@ export { Dropdown } from "./components/dropdown";
 export type { DropdownItem } from "./components/dropdown";
 export { Pagination } from "./components/pagination";
 export { ProductCard, ProductCardPremium } from "./components/product-card";
-export type { ProductCardProps } from "./components/product-card";
+export type { ProductCardProps, RenderImage, RenderImageProps } from "./components/product-card";
 export { AnnouncementBar } from "./components/announcement-bar";
 export type { AnnouncementBarProps } from "./components/announcement-bar";
 export { TryMeButton } from "./components/try-me-button";

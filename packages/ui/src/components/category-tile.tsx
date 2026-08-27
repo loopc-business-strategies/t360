@@ -1,14 +1,16 @@
 import * as React from "react";
 import { cn } from "../lib/cn";
+import type { RenderImage } from "./product-card";
 
 export interface CategoryTileProps {
   name: string;
   href: string;
   imageUrl?: string;
   className?: string;
+  renderImage?: RenderImage;
 }
 
-export function CategoryTile({ name, href, imageUrl, className }: CategoryTileProps) {
+export function CategoryTile({ name, href, imageUrl, className, renderImage }: CategoryTileProps) {
   return (
     <a
       href={href}
@@ -18,12 +20,21 @@ export function CategoryTile({ name, href, imageUrl, className }: CategoryTilePr
       )}
     >
       {imageUrl ? (
-        // eslint-disable-next-line @next/next/no-img-element
-        <img
-          src={imageUrl}
-          alt=""
-          className="absolute inset-0 h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
-        />
+        renderImage ? (
+          renderImage({
+            src: imageUrl,
+            alt: "",
+            className:
+              "absolute inset-0 h-full w-full object-cover transition-transform duration-500 group-hover:scale-105",
+          })
+        ) : (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={imageUrl}
+            alt=""
+            className="absolute inset-0 h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+          />
+        )
       ) : (
         <div className="absolute inset-0 bg-gradient-to-br from-linen to-border/40" />
       )}

@@ -11,6 +11,7 @@ import { buildWhatsAppEnquiryUrl } from "../lib/whatsapp";
 import { TryOnModal } from "./try-on/try-on-modal";
 import { ProductReviews } from "./product-reviews";
 import { ProductCardInteractive } from "./store/product-card-interactive";
+import { renderGalleryMainImage, renderGalleryThumbImage } from "./store/optimized-image";
 
 export function ProductDetailClient({
   product: initial,
@@ -138,6 +139,8 @@ export function ProductDetailClient({
         </Link>
         <div className="mt-4 lg:sticky lg:top-24">
           <ProductGallery
+            renderImage={renderGalleryMainImage}
+            renderThumbImage={renderGalleryThumbImage}
             images={
               (product.images ?? []).length
                 ? (product.images ?? []).map((img) => ({

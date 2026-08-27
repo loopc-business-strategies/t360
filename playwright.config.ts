@@ -22,6 +22,14 @@ export default defineConfig({
       },
     },
     {
+      name: "web-mobile",
+      testMatch: /web\.smoke\.spec\.ts/,
+      use: {
+        ...devices["Mobile Chrome"],
+        baseURL: webBase || "http://127.0.0.1:3999",
+      },
+    },
+    {
       name: "admin-chromium",
       testMatch: /admin\.smoke\.spec\.ts/,
       use: {

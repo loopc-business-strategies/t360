@@ -2,6 +2,7 @@
 
 import * as React from "react";
 import { cn } from "../lib/cn";
+import type { RenderImage } from "./product-card";
 
 export interface ProductGalleryImage {
   src: string;
@@ -27,18 +28,43 @@ function dedupeImages(images: ProductGalleryImage[]): ProductGalleryImage[] {
   return out;
 }
 
+function DefaultImg({
+  src,
+  alt,
+  className,
+  loading,
+  onError,
+}: {
+  src: string;
+  alt: string;
+  className?: string;
+  loading?: "lazy" | "eager";
+  onError?: React.ReactEventHandler<HTMLImageElement>;
+}) {
+  return (
+    // eslint-disable-next-line @next/next/no-img-element
+    <img src={src} alt={alt} loading={loading} className={className} onError={onError} />
+  );
+}
+
 export function ProductGallery({
   images,
   className,
+  renderImage,
+  renderThumbImage,
 }: {
   images: ProductGalleryImage[];
   className?: string;
+  renderImage?: RenderImage;
+  renderThumbImage?: RenderImage;
 }) {
   const unique = React.useMemo(() => dedupeImages(images), [images]);
   const [index, setIndex] = React.useState(0);
   const [videoFailed, setVideoFailed] = React.useState(false);
   const [mainFailed, setMainFailed] = React.useState(false);
   const current = unique[index] ?? unique[0];
+  const MainImg = renderImage ?? DefaultImg;
+  const ThumbImg = renderThumbImage ?? renderImage ?? DefaultImg;
 
   React.useEffect(() => {
     setVideoFailed(false);
@@ -71,8 +97,7 @@ export function ProductGallery({
             onError={() => setVideoFailed(true)}
           />
         ) : (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
+          <MainImg
             key={mainSrc}
             src={mainSrc}
             alt={current.alt}
@@ -94,12 +119,11 @@ export function ProductGallery({
             aria-label={`Show media ${i + 1}`}
           >
             {image.mediaType === "video" ? (
-              <span className="absolute inset-0 flex items-center justify-center bg-ink/40 text-[10px] font-medium text-elevated">
+              <span className="absolute inset-0 z-[1] flex items-center justify-center bg-ink/40 text-[10px] font-medium text-elevated">
                 VIDEO
               </span>
             ) : null}
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
+            <ThumbImg
               src={image.mediaType === "video" ? (fallbackImage?.src ?? image.src) : image.src}
               alt=""
               loading="lazy"

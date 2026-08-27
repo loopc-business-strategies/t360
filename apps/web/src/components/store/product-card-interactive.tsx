@@ -8,6 +8,7 @@ import { apiFetch, getCustomerToken } from "../../lib/api";
 import type { ProductListItem } from "../../lib/catalog-api";
 import { productPrice } from "../../lib/catalog-api";
 import { useLocale } from "../../lib/locale";
+import { renderCardImage } from "./optimized-image";
 
 const PLACEHOLDER =
   "https://images.unsplash.com/photo-1596755094514-f87e34085b2c?auto=format&fit=crop&w=800&q=80";
@@ -107,6 +108,7 @@ export function ProductCardInteractive({
         wishlisted={variantId ? wishIds.includes(variantId) : false}
         wishlistLabel={t.wishlistAdd}
         onWishlistToggle={() => void toggleWishlist()}
+        renderImage={renderCardImage}
       />
       <p className={`mt-2 text-xs ${inStock ? "text-teal" : "text-muted"}`}>
         {inStock ? t.inStock : t.outOfStock}

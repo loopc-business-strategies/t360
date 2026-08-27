@@ -42,6 +42,14 @@ pnpm test:e2e:smoke
 
 Requires `PLAYWRIGHT_BASE_URL` (customer web) and optionally `PLAYWRIGHT_ADMIN_URL`. Specs skip when unset so default CI stays green. Optional CI job runs only when those secrets/vars are configured.
 
+Projects: Desktop Chrome (`web-chromium`) and Mobile Chrome (`web-mobile`).
+
+Against staging:
+
+```bash
+PLAYWRIGHT_BASE_URL=https://t360-web.vercel.app pnpm test:e2e:smoke
+```
+
 ## CI gate
 
 PR cannot merge without lint, typecheck, unit, and required integration suites green.  

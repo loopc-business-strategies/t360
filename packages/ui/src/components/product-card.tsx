@@ -6,6 +6,16 @@ import { Button } from "./button";
 import { Price } from "./price";
 import { TryMeButton } from "./try-me-button";
 
+export type RenderImageProps = {
+  src: string;
+  alt: string;
+  className?: string;
+  loading?: "lazy" | "eager";
+  onError?: React.ReactEventHandler<HTMLImageElement>;
+};
+
+export type RenderImage = (props: RenderImageProps) => React.ReactNode;
+
 export interface ProductCardProps {
   name: string;
   brand?: string;
@@ -28,6 +38,28 @@ export interface ProductCardProps {
   colorCount?: number;
   showActions?: boolean;
   className?: string;
+  /** Optional override (e.g. next/image). Defaults to native img. */
+  renderImage?: RenderImage;
+}
+
+const PLACEHOLDER =
+  "data:image/svg+xml," +
+  encodeURIComponent(
+    `<svg xmlns="http://www.w3.org/2000/svg" width="400" height="500"><rect fill="#F3EEE6" width="100%" height="100%"/></svg>`,
+  );
+
+function DefaultImg({ src, alt, className, loading, onError }: RenderImageProps) {
+  return (
+    // eslint-disable-next-line @next/next/no-img-element
+    <img
+      src={src}
+      alt={alt}
+      loading={loading}
+      decoding="async"
+      className={className}
+      onError={onError}
+    />
+  );
 }
 
 export function ProductCard({
@@ -52,7 +84,9 @@ export function ProductCard({
   colorCount,
   showActions = true,
   className,
+  renderImage,
 }: ProductCardProps) {
+  const Img = renderImage ?? DefaultImg;
   const onSale = compareAt != null && compareAt > price;
   const salePct =
     onSale && compareAt
@@ -67,12 +101,10 @@ export function ProductCard({
       )}
     >
       <div className="relative aspect-[4/5] overflow-hidden bg-linen">
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
+        <Img
           src={imageUrl}
           alt={imageAlt}
           loading="lazy"
-          decoding="async"
           className={cn(
             "h-full w-full object-cover transition duration-500 ease-out",
             secondImageUrl && secondImageUrl !== imageUrl
@@ -80,21 +112,14 @@ export function ProductCard({
               : "group-hover:scale-[1.06]",
           )}
           onError={(e) => {
-            (e.target as HTMLImageElement).src =
-              "data:image/svg+xml," +
-              encodeURIComponent(
-                `<svg xmlns="http://www.w3.org/2000/svg" width="400" height="500"><rect fill="#F3EEE6" width="100%" height="100%"/></svg>`,
-              );
+            (e.target as HTMLImageElement).src = PLACEHOLDER;
           }}
         />
         {secondImageUrl && secondImageUrl !== imageUrl ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
+          <Img
             src={secondImageUrl}
             alt=""
-            aria-hidden
             loading="lazy"
-            decoding="async"
             className="absolute inset-0 h-full w-full object-cover opacity-0 transition duration-500 ease-out group-hover:scale-[1.06] group-hover:opacity-100"
           />
         ) : null}
