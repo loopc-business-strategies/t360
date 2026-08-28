@@ -21,7 +21,10 @@
     "csv:dry-run": "node scripts/launch/csv-dry-run.mjs",
     "preflight:env": "node scripts/launch/preflight-env.mjs",
     "build:mobile:apk": "powershell -ExecutionPolicy Bypass -File scripts/launch/build-mobile-apk.ps1",
-    "regen:mobile:splash": "cd apps/mobile && dart run flutter_native_splash:create && python tool/fix_splash_backgrounds.py"
+    "regen:mobile:splash": "cd apps/mobile && dart run flutter_native_splash:create && python tool/fix_splash_backgrounds.py",
+    "regen:mobile:icons": "cd apps/mobile && dart run flutter_launcher_icons",
+    "regen:mobile:branding": "python apps/mobile/tool/process_uploaded_branding.py && pnpm regen:mobile:splash && pnpm regen:mobile:icons",
+    "regen:mobile:branding:generated": "python apps/mobile/tool/generate_branding_assets.py && pnpm regen:mobile:splash && pnpm regen:mobile:icons"
   },
   "devDependencies": {
     "@playwright/test": "^1.51.0",

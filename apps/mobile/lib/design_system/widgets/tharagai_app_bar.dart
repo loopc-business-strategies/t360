@@ -27,7 +27,7 @@ class TharagaiAppBar extends StatelessWidget implements PreferredSizeWidget {
               'assets/branding/tharagai_logo.png',
               height: 52,
               fit: BoxFit.contain,
-              semanticLabel: title ?? 'THARAGAI',
+              semanticLabel: title ?? 'Tharagai Readymades',
             )
           : Text(
               title!,

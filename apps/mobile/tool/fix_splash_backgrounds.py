@@ -3,7 +3,6 @@
 #
 # Always use (from repo root):
 #   pnpm regen:mobile:splash
-import os
 import re
 from pathlib import Path
 
@@ -11,8 +10,7 @@ from PIL import Image
 
 ROOT = Path(__file__).resolve().parent.parent
 SRC = ROOT / "assets" / "branding" / "tharagai_splash.png"
-CREAM = "#F3EEE6"
-# sRGB 243/255, 238/255, 230/255
+ANDROID12_SRC = ROOT / "assets" / "branding" / "tharagai_splash_android12.png"
 CREAM_RGB = (243 / 255, 238 / 255, 230 / 255)
 
 BACKGROUND_TARGETS = [
@@ -26,13 +24,17 @@ BACKGROUND_TARGETS = [
     / "background.png",
 ]
 
-LAUNCH_IMAGE_DIR = (
-    ROOT / "ios" / "Runner" / "Assets.xcassets" / "LaunchImage.imageset"
-)
-LAUNCH_IMAGE_FILES = [
-    LAUNCH_IMAGE_DIR / "LaunchImage.png",
-    LAUNCH_IMAGE_DIR / "LaunchImage@2x.png",
-    LAUNCH_IMAGE_DIR / "LaunchImage@3x.png",
+ANDROID12_DENSITIES = [
+    "drawable-mdpi",
+    "drawable-hdpi",
+    "drawable-xhdpi",
+    "drawable-xxhdpi",
+    "drawable-xxxhdpi",
+    "drawable-night-mdpi",
+    "drawable-night-hdpi",
+    "drawable-night-xhdpi",
+    "drawable-night-xxhdpi",
+    "drawable-night-xxxhdpi",
 ]
 
 LAUNCH_BACKGROUND_XMLS = [
@@ -49,39 +51,23 @@ LAUNCH_BACKGROUND_XMLS = [
 
 STORYBOARD = ROOT / "ios" / "Runner" / "Base.lproj" / "LaunchScreen.storyboard"
 
-ANDROID_V31_STYLES = [
-    ROOT / "android" / "app" / "src" / "main" / "res" / "values-v31" / "styles.xml",
-    ROOT / "android" / "app" / "src" / "main" / "res" / "values-night-v31" / "styles.xml",
-]
-
-V31_STYLES_XML = """<?xml version="1.0" encoding="utf-8"?>
-<resources>
-    <!-- Theme applied to the Android Window while the process is starting when the OS's Dark Mode setting is off -->
-    <style name="LaunchTheme" parent="@android:style/Theme.Light.NoTitleBar">
-        <item name="android:windowBackground">@drawable/launch_background</item>
-        <item name="android:forceDarkAllowed">false</item>
-        <item name="android:windowFullscreen">true</item>
-        <item name="android:windowDrawsSystemBarBackgrounds">true</item>
-        <item name="android:windowLayoutInDisplayCutoutMode">shortEdges</item>
-    </style>
-    <!-- Theme applied to the Android Window as soon as the process has started.
-         This theme determines the color of the Android Window while your
-         Flutter UI initializes, as well as behind your Flutter UI while its
-         running.
-
-         This Theme is only used starting with V2 of Flutter's Android embedding. -->
-    <style name="NormalTheme" parent="@android:style/Theme.Light.NoTitleBar">
-        <item name="android:windowBackground">@drawable/launch_background</item>
-    </style>
-</resources>
-"""
-
 
 def write_png_targets(img: Image.Image, paths: list[Path]) -> None:
     for path in paths:
         path.parent.mkdir(parents=True, exist_ok=True)
         img.save(path, "PNG", optimize=True)
         print(f"wrote {path} ({path.stat().st_size} bytes)")
+
+
+def sync_android12_icon() -> None:
+    if not ANDROID12_SRC.exists():
+        print(f"skip android12 sync — missing {ANDROID12_SRC}")
+        return
+    icon = Image.open(ANDROID12_SRC).convert("RGBA")
+    res = ROOT / "android" / "app" / "src" / "main" / "res"
+    for folder in ANDROID12_DENSITIES:
+        target = res / folder / "android12splash.png"
+        write_png_targets(icon, [target])
 
 
 def patch_launch_background_gravity() -> None:
@@ -119,7 +105,7 @@ def patch_storyboard() -> None:
         'contentMode="scaleAspectFit" image="LaunchBackground"',
     )
 
-    # Remove broken LaunchImage overlay (69-byte placeholders).
+    # Remove broken LaunchImage overlay (unused duplicate layer).
     text = re.sub(
         r'\s*<imageView opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" '
         r'contentMode="scaleAspectFit" image="LaunchImage" '
@@ -143,24 +129,15 @@ def patch_storyboard() -> None:
     print(f"patched {STORYBOARD}")
 
 
-def patch_android12_legacy_splash() -> None:
-    """Use full-bleed launch_background on API 31+ instead of centered icon API."""
-    for path in ANDROID_V31_STYLES:
-        path.parent.mkdir(parents=True, exist_ok=True)
-        path.write_text(V31_STYLES_XML, encoding="utf-8")
-        print(f"patched legacy splash in {path}")
-
-
 def main() -> None:
     if not SRC.exists():
         raise SystemExit(f"missing source splash asset: {SRC}")
 
     img = Image.open(SRC).convert("RGB")
     write_png_targets(img, BACKGROUND_TARGETS)
-    write_png_targets(img, LAUNCH_IMAGE_FILES)
     patch_launch_background_gravity()
     patch_storyboard()
-    patch_android12_legacy_splash()
+    sync_android12_icon()
     print("splash fix complete")
 
 

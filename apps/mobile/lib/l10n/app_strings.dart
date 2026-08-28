@@ -29,7 +29,7 @@ class AppStrings {
   String _t(String en, String ta) => _l == 'ta' ? ta : en;
 
   String get brand => _t('THARAGAI', 'தாரகை');
-  String get tagline => _t('Readymades for every celebration', 'எல்லா கொண்டாட்டங்களுக்கும் ரெடிமேட்ஸ்');
+  String get tagline => _t('Style that fits you', 'உங்களுக்கு பொருந்தும் ஸ்டைல்');
   String get home => _t('Home', 'முகப்பு');
   String get shop => _t('Shop', 'கடை');
   String get categories => _t('Categories', 'வகைகள்');
