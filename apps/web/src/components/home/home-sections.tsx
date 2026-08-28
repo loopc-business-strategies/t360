@@ -9,6 +9,12 @@ import { API_URL } from "../../lib/catalog-api";
 import { ProductCardInteractive } from "../store/product-card-interactive";
 import { OptimizedImage, renderTileImage } from "../store/optimized-image";
 import { BrandLogo } from "../brand-logo";
+import {
+  DEFAULT_SHOP_CATEGORY_SLUGS,
+  getCategoryImageUrl,
+  HERO_DESKTOP_IMAGE,
+  HERO_MOBILE_IMAGE,
+} from "../../lib/category-images";
 
 const OCCASION_CARDS = [
   { label: "Wedding", href: "/collections/wedding-edit", slug: "wedding-lehengas" },
@@ -48,45 +54,87 @@ export function HeroCampaignSection({
   reduceMotion: boolean | null;
   t: Record<string, string | undefined>;
 }) {
-  const desktop = section.imageUrl ?? hero?.desktopImageUrl ?? hero?.imageUrl;
-  const mobile = section.mobileImageUrl ?? hero?.mobileImageUrl ?? desktop;
+  const desktop =
+    section.imageUrl ?? hero?.desktopImageUrl ?? hero?.imageUrl ?? HERO_DESKTOP_IMAGE;
+  const mobile =
+    section.mobileImageUrl ?? hero?.mobileImageUrl ?? HERO_MOBILE_IMAGE ?? desktop;
   const headline = section.headline ?? "DRESS EVERY MOMENT BEAUTIFULLY";
   const subtitle = section.subtitle ?? "Discover fashion for women, men & kids at THARAGAI.";
+  const kenBurns = reduceMotion ? "" : "hero-kenburns-plus";
+  const textTransition = reduceMotion ? { duration: 0 } : { duration: 0.7, ease: [0.22, 1, 0.36, 1] as const };
 
   return (
     <motion.section
-      className="relative min-h-[85svh] overflow-hidden bg-ink text-elevated"
+      className="relative min-h-[85svh] overflow-hidden bg-ink text-elevated lg:min-h-[90svh]"
       initial={reduceMotion ? false : { opacity: 0 }}
       animate={{ opacity: 1 }}
     >
       {desktop ? (
         <>
-          <OptimizedImage
-            src={desktop}
-            alt=""
-            className="absolute inset-0 hidden object-cover object-[center_20%] sm:block"
-            sizes="100vw"
-            priority
-          />
-          {mobile && mobile !== desktop ? (
+          <div className={`absolute inset-0 hidden sm:block ${kenBurns}`}>
             <OptimizedImage
-              src={mobile}
+              src={desktop}
               alt=""
-              className="absolute inset-0 object-cover object-[center_30%] sm:hidden"
+              className="h-full w-full object-cover object-[50%_15%]"
               sizes="100vw"
               priority
             />
-          ) : null}
+          </div>
+          {mobile && mobile !== desktop ? (
+            <div className={`absolute inset-0 sm:hidden ${kenBurns}`}>
+              <OptimizedImage
+                src={mobile}
+                alt=""
+                className="h-full w-full object-cover object-top"
+                sizes="100vw"
+                priority
+              />
+            </div>
+          ) : (
+            <div className={`absolute inset-0 sm:hidden ${kenBurns}`}>
+              <OptimizedImage
+                src={desktop}
+                alt=""
+                className="h-full w-full object-cover object-top"
+                sizes="100vw"
+                priority
+              />
+            </div>
+          )}
         </>
       ) : null}
       <div className="absolute inset-0 bg-gradient-to-t from-ink/80 via-ink/30 to-ink/20" />
-      <div className="relative z-10 mx-auto flex min-h-[85svh] max-w-content flex-col justify-end px-6 pb-16 pt-28">
-        <p className="text-xs uppercase tracking-[0.25em] text-brass">THARAGAI Readymades</p>
-        <h1 className="mt-4 max-w-3xl font-display text-[var(--font-display-scale)] leading-tight">
+      <div className="relative z-10 mx-auto flex min-h-[85svh] max-w-content flex-col justify-end px-6 pb-16 pt-28 lg:min-h-[90svh]">
+        <motion.p
+          className="text-xs uppercase tracking-[0.25em] text-brass"
+          initial={reduceMotion ? false : { opacity: 0, y: 16 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ ...textTransition, delay: 0.1 }}
+        >
+          THARAGAI Readymades
+        </motion.p>
+        <motion.h1
+          className="mt-4 max-w-3xl font-display text-[var(--font-display-scale)] leading-tight"
+          initial={reduceMotion ? false : { opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ ...textTransition, delay: 0.25 }}
+        >
           {headline}
-        </h1>
-        <p className="mt-4 max-w-xl text-lg text-elevated/85">{subtitle}</p>
-        <div className="mt-8 flex flex-wrap gap-3">
+        </motion.h1>
+        <motion.p
+          className="mt-4 max-w-xl text-lg text-elevated/85"
+          initial={reduceMotion ? false : { opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ ...textTransition, delay: 0.4 }}
+        >
+          {subtitle}
+        </motion.p>
+        <motion.div
+          className="mt-8 flex flex-wrap gap-3"
+          initial={reduceMotion ? false : { opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ ...textTransition, delay: 0.55 }}
+        >
           <Link href="/women">
             <Button variant="secondary" className="bg-elevated text-ink hover:bg-linen">
               SHOP WOMEN
@@ -102,7 +150,7 @@ export function HeroCampaignSection({
               SHOP KIDS
             </Button>
           </Link>
-        </div>
+        </motion.div>
       </div>
     </motion.section>
   );
@@ -119,11 +167,23 @@ export function ShopByCategorySection({
   reduceMotion: boolean | null;
   t: Record<string, string | undefined>;
 }) {
-  const slugs = section.categorySlugs ?? [];
+  const configuredSlugs =
+    section.categorySlugs?.length ? section.categorySlugs : [...DEFAULT_SHOP_CATEGORY_SLUGS];
   const flat = flattenCategories(categories);
-  const tiles = slugs.length
-    ? slugs.map((s) => flat.find((c) => c.slug === s)).filter(Boolean) as CategoryNode[]
-    : flat.filter((c) => c.slug.includes("-")).slice(0, 8);
+  const bySlug = new Map(flat.map((c) => [c.slug, c]));
+  const tiles: CategoryNode[] = [];
+  for (const slug of configuredSlugs) {
+    const cat = bySlug.get(slug);
+    if (cat) tiles.push(cat);
+  }
+  if (tiles.length < 8) {
+    for (const slug of DEFAULT_SHOP_CATEGORY_SLUGS) {
+      if (tiles.length >= 8) break;
+      const cat = bySlug.get(slug);
+      if (cat && !tiles.some((t) => t.slug === slug)) tiles.push(cat);
+    }
+  }
+  const tileTransition = reduceMotion ? { duration: 0 } : { duration: 0.55, ease: [0.22, 1, 0.36, 1] as const };
 
   return (
     <motion.section
@@ -136,13 +196,21 @@ export function ShopByCategorySection({
         {section.title ?? t.shopByCategory ?? "Shop by Category"}
       </h2>
       <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        {tiles.map((c) => (
-          <CategoryTile
+        {tiles.map((c, i) => (
+          <motion.div
             key={c.id}
-            name={c.name}
-            href={`/categories/${c.slug}`}
-            renderImage={renderTileImage}
-          />
+            initial={reduceMotion ? false : { opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ ...tileTransition, delay: reduceMotion ? 0 : i * 0.05 }}
+          >
+            <CategoryTile
+              name={c.name}
+              href={`/categories/${c.slug}`}
+              imageUrl={getCategoryImageUrl(c.slug)}
+              renderImage={renderTileImage}
+            />
+          </motion.div>
         ))}
       </div>
     </motion.section>

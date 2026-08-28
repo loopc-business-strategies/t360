@@ -41,6 +41,18 @@ test.describe("web smoke", () => {
       // Non-try-on PDP still must render a gallery/main image
       await expect(page.locator("img").first()).toBeVisible();
     }
+  });
+
+  test("shop by category tiles show images", async ({ page }) => {
+    await page.goto("/");
+    const section = page.getByRole("heading", { name: /shop by category/i });
+    await expect(section).toBeVisible({ timeout: 15000 });
+    const grid = section.locator("xpath=../..");
+    const images = grid.locator("img[src*='unsplash'], img[src*='images.']");
+    await expect(images).toHaveCount(8, { timeout: 15000 });
+    await expect(images.first()).toBeVisible();
+  });
+
   test("footer shop links present", async ({ page }) => {
     await page.goto("/");
     await expect(page.getByRole("link", { name: "Women" }).first()).toBeVisible();

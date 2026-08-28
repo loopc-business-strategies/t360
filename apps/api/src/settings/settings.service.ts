@@ -27,6 +27,10 @@ export const DEFAULT_STOREFRONT_SECTIONS = [
     subtitle: "Discover fashion for women, men & kids at THARAGAI.",
     ctaHref: "/women",
     ctaLabel: "SHOP WOMEN",
+    imageUrl:
+      "https://images.unsplash.com/photo-1583391733956-3750e0ff4e8b?auto=format&fit=crop&w=1800&h=1200&q=80&crop=entropy",
+    mobileImageUrl:
+      "https://images.unsplash.com/photo-1490481651871-ab68de25d43d?auto=format&fit=crop&w=800&h=1000&q=80",
   },
   {
     type: "shopByCategory" as const,

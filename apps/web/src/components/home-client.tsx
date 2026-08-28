@@ -14,6 +14,7 @@ import type { CategoryNode, ProductListItem, StorefrontSection, StorefrontSettin
 import { API_URL } from "../lib/catalog-api";
 import { ProductCardInteractive } from "./store/product-card-interactive";
 import { OptimizedImage, renderTileImage } from "./store/optimized-image";
+import { getCategoryImageUrl } from "../lib/category-images";
 import { BrandLogo } from "./brand-logo";
 import {
   CampaignBlock,
@@ -268,13 +269,25 @@ export function HomeClient({
           >
             <h2 className="font-display text-2xl sm:text-3xl">{t.shopByCategory}</h2>
             <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-              {tiles.map((c) => (
-                <CategoryTile
+              {tiles.map((c, i) => (
+                <motion.div
                   key={c.id}
-                  name={c.name}
-                  href={`/categories/${c.slug}`}
-                  renderImage={renderTileImage}
-                />
+                  initial={reduceMotion ? false : { opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={
+                    reduceMotion
+                      ? { duration: 0 }
+                      : { duration: 0.55, ease: [0.22, 1, 0.36, 1], delay: i * 0.05 }
+                  }
+                >
+                  <CategoryTile
+                    name={c.name}
+                    href={`/categories/${c.slug}`}
+                    imageUrl={getCategoryImageUrl(c.slug)}
+                    renderImage={renderTileImage}
+                  />
+                </motion.div>
               ))}
             </div>
           </motion.section>
