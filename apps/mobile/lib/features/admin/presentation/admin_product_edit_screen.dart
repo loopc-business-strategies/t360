@@ -141,8 +141,12 @@ class _AdminProductEditScreenState extends ConsumerState<AdminProductEditScreen>
       final upload = await ref.read(adminRepoProvider).uploadImage(shot.path);
       final url = upload['url']?.toString();
       if (url == null) throw Exception('Upload returned no URL');
+      final urls = [
+        ..._images.map((i) => i['url']?.toString()).whereType<String>(),
+        url,
+      ];
       await ref.read(adminRepoProvider).updateProduct(widget.productId, {
-        'imageUrls': [url],
+        'imageUrls': urls,
       });
       await _load();
       if (!mounted) return;
@@ -191,6 +195,26 @@ class _AdminProductEditScreenState extends ConsumerState<AdminProductEditScreen>
         if (patch.isNotEmpty) {
           await ref.read(adminRepoProvider).updateProduct(widget.productId, patch);
           await _load();
+        }
+        final generateAi = await showDialog<bool>(
+              context: context,
+              builder: (ctx) => AlertDialog(
+                title: const Text('Generate AI images'),
+                content: const Text(
+                  'Generate model + background images from this clothing photo now?',
+                ),
+                actions: [
+                  TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Not now')),
+                  FilledButton(onPressed: () => Navigator.pop(ctx, true), child: const Text('Generate')),
+                ],
+              ),
+            ) ??
+            false;
+        if (!mounted) return;
+        if (generateAi) {
+          context.push(
+            '/admin/ai?productId=${widget.productId}&autoStart=1&imageId=$imageId',
+          );
         }
       }
     } on ApiException catch (e) {

@@ -8,9 +8,16 @@ import 'admin_home_screen.dart';
 import 'admin_video_preview.dart';
 
 class AdminAiScreen extends ConsumerStatefulWidget {
-  const AdminAiScreen({super.key, this.productId});
+  const AdminAiScreen({
+    super.key,
+    this.productId,
+    this.autoStart = false,
+    this.imageId,
+  });
 
   final String? productId;
+  final bool autoStart;
+  final String? imageId;
 
   @override
   ConsumerState<AdminAiScreen> createState() => _AdminAiScreenState();
@@ -27,8 +34,10 @@ class _AdminAiScreenState extends ConsumerState<AdminAiScreen> {
   String? _jobId;
   Map<String, dynamic>? _job;
   String? _error;
+  String? _settingsWarning;
   bool _busy = false;
   bool _showAdvanced = false;
+  bool _autoStartAttempted = false;
   Timer? _poll;
 
   String _gender = 'female';
@@ -43,6 +52,7 @@ class _AdminAiScreenState extends ConsumerState<AdminAiScreen> {
   void initState() {
     super.initState();
     _productId = widget.productId;
+    _imageId = widget.imageId;
     _load();
   }
 
@@ -51,6 +61,53 @@ class _AdminAiScreenState extends ConsumerState<AdminAiScreen> {
     _poll?.cancel();
     _customPrompt.dispose();
     super.dispose();
+  }
+
+  Map<String, dynamic>? _findActiveJob(List<dynamic> history) {
+    for (final entry in history) {
+      final job = entry as Map;
+      final status = job['status']?.toString();
+      if (status == 'QUEUED' || status == 'PROCESSING') {
+        return Map<String, dynamic>.from(job);
+      }
+    }
+    return null;
+  }
+
+  void _attachJob(Map<String, dynamic> job) {
+    _jobId = job['id']?.toString();
+    _job = job;
+    _poll?.cancel();
+    _poll = Timer.periodic(const Duration(seconds: 3), (_) => _refreshJob());
+  }
+
+  Future<void> _resumeOrStartGeneration() async {
+    if (!widget.autoStart || _autoStartAttempted) return;
+    _autoStartAttempted = true;
+
+    var active = _findActiveJob(_history);
+    if (active == null) {
+      await Future<void>.delayed(const Duration(milliseconds: 800));
+      if (!mounted) return;
+      if (_productId != null) {
+        _history = await ref.read(adminRepoProvider).aiJobs(productId: _productId);
+      }
+      active = _findActiveJob(_history);
+      if (mounted) setState(() {});
+    }
+
+    if (active != null) {
+      if (mounted) {
+        setState(() => _attachJob(active!));
+      } else {
+        _attachJob(active);
+      }
+      return;
+    }
+
+    if (_productId != null && _imageId != null && !_busy) {
+      await _generate();
+    }
   }
 
   Future<void> _load() async {
@@ -71,11 +128,25 @@ class _AdminAiScreenState extends ConsumerState<AdminAiScreen> {
       } else {
         history = await repo.aiJobs();
       }
+
+      String? settingsWarning;
+      if (settings != null) {
+        final enabled = settings['enabled'] == true;
+        final configured = settings['apiKeyConfigured'] == true;
+        if (!configured) {
+          settingsWarning =
+              'AI provider is not configured. Set FASHN_API_KEY on the server to generate model images.';
+        } else if (!enabled) {
+          settingsWarning = 'AI Fashion is disabled. Enable it in AI Settings to generate images.';
+        }
+      }
+
       setState(() {
         _models = models;
         _products = products;
         _product = product;
         _history = history;
+        _settingsWarning = settingsWarning;
         if (settings != null) {
           final defModel = settings['defaultModelId']?.toString();
           if (_modelId == null && defModel != null && defModel.isNotEmpty) {
@@ -86,10 +157,14 @@ class _AdminAiScreenState extends ConsumerState<AdminAiScreen> {
           _generationMode = settings['defaultGenerationMode']?.toString() ?? _generationMode;
         }
         final images = (product?['images'] as List?) ?? [];
-        if (images.isNotEmpty && _imageId == null) {
+        if (_imageId == null && images.isNotEmpty) {
           _imageId = (images.first as Map)['id']?.toString();
+        } else if (widget.imageId != null) {
+          _imageId = widget.imageId;
         }
       });
+
+      await _resumeOrStartGeneration();
     } catch (e) {
       setState(() => _error = '$e');
     }
@@ -100,6 +175,7 @@ class _AdminAiScreenState extends ConsumerState<AdminAiScreen> {
     _jobId = null;
     _job = null;
     _imageId = null;
+    _autoStartAttempted = false;
     await _load();
   }
 
@@ -218,6 +294,25 @@ class _AdminAiScreenState extends ConsumerState<AdminAiScreen> {
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
+          if (_settingsWarning != null) ...[
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: Theme.of(context).colorScheme.errorContainer,
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Text(
+                _settingsWarning!,
+                style: TextStyle(color: Theme.of(context).colorScheme.onErrorContainer),
+              ),
+            ),
+            const SizedBox(height: 12),
+          ],
+          if (widget.autoStart && (status == 'QUEUED' || status == 'PROCESSING'))
+            const Padding(
+              padding: EdgeInsets.only(bottom: 12),
+              child: Text('Auto-generating model images from your clothing photo…'),
+            ),
           DropdownButtonFormField<String?>(
             key: ValueKey('product-$_productId'),
             initialValue: _productId,

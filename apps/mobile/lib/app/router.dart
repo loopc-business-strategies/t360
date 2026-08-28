@@ -163,6 +163,8 @@ final goRouterProvider = Provider<GoRouter>((ref) {
                 path: '/admin/ai',
                 builder: (context, state) => AdminAiScreen(
                   productId: state.uri.queryParameters['productId'],
+                  autoStart: state.uri.queryParameters['autoStart'] == '1',
+                  imageId: state.uri.queryParameters['imageId'],
                 ),
               ),
             ],

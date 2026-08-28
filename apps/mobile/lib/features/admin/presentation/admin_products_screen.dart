@@ -22,6 +22,9 @@ class _AdminProductsScreenState extends ConsumerState<AdminProductsScreen> {
   bool _showCreateForm = false;
   String? _uploadedUrl;
   bool _submitting = false;
+  bool _generateAiFashion = true;
+  String? _aiSettingsSummary;
+  bool? _aiConfigured;
 
   final _name = TextEditingController();
   final _sku = TextEditingController();
@@ -88,7 +91,7 @@ class _AdminProductsScreenState extends ConsumerState<AdminProductsScreen> {
         await repo.updateProduct(_attachProductId!, {'imageUrls': urls});
         if (mounted) {
           setState(() => _pendingPath = null);
-          context.push('/admin/ai?productId=$_attachProductId');
+          context.push('/admin/ai?productId=$_attachProductId&autoStart=1');
         }
         return;
       }
@@ -97,6 +100,11 @@ class _AdminProductsScreenState extends ConsumerState<AdminProductsScreen> {
       List<dynamic> brands = [];
       try {
         brands = await repo.brands();
+      } catch (_) {}
+
+      Map<String, dynamic>? aiSettings;
+      try {
+        aiSettings = await repo.aiSettings();
       } catch (_) {}
 
       if (!mounted) return;
@@ -110,6 +118,15 @@ class _AdminProductsScreenState extends ConsumerState<AdminProductsScreen> {
         _sku.text = 'MOB-${DateTime.now().millisecondsSinceEpoch}';
         _showCreateForm = true;
         _pendingPath = null;
+        _aiConfigured = aiSettings?['apiKeyConfigured'] == true && aiSettings?['enabled'] == true;
+        if (aiSettings != null) {
+          final mode = aiSettings['defaultGenerationMode']?.toString() ?? 'fast';
+          final resolution = aiSettings['defaultResolution']?.toString() ?? '1k';
+          final count = (aiSettings['defaultNumImages'] as num?)?.toInt() ?? 1;
+          _aiSettingsSummary = 'Defaults: studio background, standing pose · $count image(s) · $resolution · $mode';
+        } else {
+          _aiSettingsSummary = 'Defaults: studio background, standing pose · 1 image · 1k · fast';
+        }
       });
     } catch (e) {
       if (mounted) {
@@ -145,7 +162,7 @@ class _AdminProductsScreenState extends ConsumerState<AdminProductsScreen> {
         if (_brandId != null) 'brandId': _brandId,
         'status': 'draft',
         'imageUrls': [url],
-        'generateAiFashion': false,
+        'generateAiFashion': _generateAiFashion,
         'variants': [
           {
             'sku': sku,
@@ -170,7 +187,7 @@ class _AdminProductsScreenState extends ConsumerState<AdminProductsScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Product created.$stockNote')),
         );
-        context.push('/admin/ai?productId=${product['id']}');
+        context.push('/admin/ai?productId=${product['id']}&autoStart=1');
       }
     } catch (e) {
       if (mounted) {
@@ -321,10 +338,41 @@ class _AdminProductsScreenState extends ConsumerState<AdminProductsScreen> {
               ),
               keyboardType: TextInputType.number,
             ),
+            SwitchListTile(
+              contentPadding: EdgeInsets.zero,
+              title: const Text('Auto-generate model images'),
+              subtitle: _generateAiFashion
+                  ? const Text('AI will generate model + studio background images after create')
+                  : const Text('Create product only; generate AI images manually later'),
+              value: _generateAiFashion,
+              onChanged: (v) => setState(() => _generateAiFashion = v),
+            ),
+            if (_generateAiFashion) ...[
+              if (_aiConfigured == false)
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 8),
+                  child: Text(
+                    'AI Fashion is not configured. Enable it in AI Settings and set FASHN_API_KEY on the server.',
+                    style: TextStyle(color: Theme.of(context).colorScheme.error, fontSize: 13),
+                  ),
+                ),
+              if (_aiSettingsSummary != null)
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 8),
+                  child: Text(
+                    _aiSettingsSummary!,
+                    style: Theme.of(context).textTheme.bodySmall,
+                  ),
+                ),
+            ],
             const SizedBox(height: 16),
             FilledButton(
               onPressed: _submitting ? null : _submitProduct,
-              child: Text(_submitting ? 'Creating…' : 'Create & open AI'),
+              child: Text(
+                _submitting
+                    ? 'Creating…'
+                    : (_generateAiFashion ? 'Create & generate AI images' : 'Create product'),
+              ),
             ),
           ],
         ),
