@@ -105,6 +105,18 @@ describe("buildDemoProductName / description", () => {
       expect(tokens.some((t) => hay.includes(t.toLowerCase()))).toBe(true);
     }
   });
+
+  it("demo product names are globally unique across seeded quotas", () => {
+    const names: string[] = [];
+    for (const [slug, meta] of Object.entries(CATEGORY_META)) {
+      if (meta.quota <= 0) continue;
+      for (let i = 0; i < meta.quota; i++) {
+        names.push(buildDemoProductName(meta.segment, slug, slug, i));
+      }
+    }
+    expect(names.length).toBeGreaterThan(0);
+    expect(new Set(names).size).toBe(names.length);
+  });
 });
 
 describe("getDemoVideoForCategory", () => {

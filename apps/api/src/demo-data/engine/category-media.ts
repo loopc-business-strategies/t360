@@ -865,6 +865,10 @@ export function buildDemoProductName(
   if (leafSlug.includes("frock")) return `T360 ${adj} Kids Frock ${n + 1}`;
   if (leafSlug.includes("lehenga")) return `T360 ${adj} Bridal Lehenga ${n + 1}`;
   if (leafSlug.includes("sherwani")) return `T360 ${adj} Sherwani ${n + 1}`;
+  if (leafSlug === "men-kurtas") return `T360 ${adj} Men's Kurta ${n + 1}`;
+  if (leafSlug === "men-kurta-sets") return `T360 ${adj} Men's Kurta Set ${n + 1}`;
+  if (leafSlug === "wedding-kurta-sets") return `T360 ${adj} Wedding Kurta Set ${n + 1}`;
+  if (leafSlug === "festival-kurtas") return `T360 ${adj} Festive Kurta ${n + 1}`;
   if (leafSlug.includes("kurta")) return `T360 ${adj} Kurta Set ${n + 1}`;
   if (leafSlug.includes("reception")) return `T360 ${adj} Wedding Reception Wear ${n + 1}`;
 

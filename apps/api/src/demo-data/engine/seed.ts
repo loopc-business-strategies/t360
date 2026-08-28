@@ -589,6 +589,14 @@ export async function seedDemoCatalog(prisma: PrismaClient): Promise<SeedResult>
     });
   }
 
+  const names = built.map((b) => b.name);
+  const dupes = names.filter((n, i) => names.indexOf(n) !== i);
+  if (dupes.length) {
+    throw new Error(
+      `DEMO_DUPLICATE_NAMES count=${new Set(dupes).size} sample=${[...new Set(dupes)].slice(0, 5).join("; ")}`,
+    );
+  }
+
   const audit = await auditDemoCatalog(prisma);
   const critical = audit.filter((r) => r.status !== "PASS");
   if (critical.length) {

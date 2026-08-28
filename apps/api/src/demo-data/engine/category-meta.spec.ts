@@ -9,8 +9,8 @@ import {
 } from "./category-media";
 
 describe("category-meta", () => {
-  it("targets ~724 clothing-only demo products", () => {
-    expect(totalDemoQuota()).toBe(724);
+  it("targets ~702 clothing-only demo products", () => {
+    expect(totalDemoQuota()).toBe(702);
   });
 
   it("related resolver prefers same leaf then compatible", () => {

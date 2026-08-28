@@ -43,7 +43,7 @@ function m(
   return { ...partial, nameTokens, descTokens };
 }
 
-/** Per-leaf quotas sum to 724 (apparel only; accessories removed). */
+/** Per-leaf quotas sum to 702 (apparel only; overlapping kurta lines removed). */
 export const CATEGORY_META: Record<string, CategoryMeta> = {
   // â€”â€” Men (~222) â€”â€”
   "men-t-shirts": m({
@@ -323,13 +323,13 @@ export const CATEGORY_META: Record<string, CategoryMeta> = {
     productType: "ethnic",
     subType: "kurta",
     tryOnSupported: true,
-    compatibleRelated: ["men-kurta-sets", "men-nehru-jackets", "festival-kurtas"],
+    compatibleRelated: ["men-kurta-sets", "men-nehru-jackets"],
     sizeProfile: "adult",
     priceBand: "ethnic",
     nameTokens: ["kurta"],
     skuType: "MKT",
     brandSlug: "t360-ethnic",
-    quota: 8,
+    quota: 0,
   }),
   "men-kurta-sets": m({
     slug: "men-kurta-sets",
@@ -338,7 +338,7 @@ export const CATEGORY_META: Record<string, CategoryMeta> = {
     productType: "ethnic",
     subType: "kurta-set",
     tryOnSupported: true,
-    compatibleRelated: ["men-kurtas", "wedding-kurta-sets"],
+    compatibleRelated: ["men-nehru-jackets"],
     sizeProfile: "adult",
     priceBand: "ethnic",
     nameTokens: ["kurta"],
@@ -353,7 +353,7 @@ export const CATEGORY_META: Record<string, CategoryMeta> = {
     productType: "ethnic",
     subType: "nehru-jacket",
     tryOnSupported: true,
-    compatibleRelated: ["men-kurtas", "men-kurta-sets"],
+    compatibleRelated: ["men-kurta-sets"],
     sizeProfile: "adult",
     priceBand: "ethnic",
     nameTokens: ["nehru", "jacket"],
@@ -1096,7 +1096,7 @@ export const CATEGORY_META: Record<string, CategoryMeta> = {
     productType: "bridal",
     subType: "sherwani",
     tryOnSupported: true,
-    compatibleRelated: ["wedding-kurta-sets", "men-nehru-jackets"],
+    compatibleRelated: ["men-kurta-sets", "men-nehru-jackets"],
     sizeProfile: "adult",
     priceBand: "bridal",
     nameTokens: ["sherwani"],
@@ -1117,7 +1117,7 @@ export const CATEGORY_META: Record<string, CategoryMeta> = {
     nameTokens: ["kurta"],
     skuType: "WKS",
     brandSlug: "t360-ethnic",
-    quota: 8,
+    quota: 0,
   }),
   "wedding-reception": m({
     slug: "wedding-reception",
@@ -1149,7 +1149,7 @@ export const CATEGORY_META: Record<string, CategoryMeta> = {
     nameTokens: ["kurta"],
     skuType: "FKT",
     brandSlug: "t360-festive",
-    quota: 6,
+    quota: 0,
   }),
   "festival-dresses": m({
     slug: "festival-dresses",
