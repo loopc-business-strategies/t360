@@ -80,6 +80,8 @@ jobs:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
           VERCEL_ORG_ID: ${{ vars.VERCEL_ORG_ID }}
           VERCEL_PROJECT_ID: ${{ vars.VERCEL_PROJECT_ID_WEB }}
+          NEXT_PUBLIC_API_URL: ${{ vars.STAGING_API_BASE }}
+          NEXT_PUBLIC_SITE_URL: https://t360-web.vercel.app
         run: |
           # Run from repo root — project Root Directory is already apps/web.
           npx vercel@latest pull --yes --environment=preview --token="$VERCEL_TOKEN"
@@ -92,6 +94,7 @@ jobs:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
           VERCEL_ORG_ID: ${{ vars.VERCEL_ORG_ID }}
           VERCEL_PROJECT_ID: ${{ vars.VERCEL_PROJECT_ID_ADMIN }}
+          NEXT_PUBLIC_API_URL: ${{ vars.STAGING_API_BASE }}
         run: |
           npx vercel@latest pull --yes --environment=preview --token="$VERCEL_TOKEN"
           npx vercel@latest build --token="$VERCEL_TOKEN"
@@ -176,6 +179,8 @@ jobs:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
           VERCEL_ORG_ID: ${{ vars.VERCEL_ORG_ID }}
           VERCEL_PROJECT_ID: ${{ vars.VERCEL_PROJECT_ID_WEB }}
+          NEXT_PUBLIC_API_URL: ${{ vars.PROD_API_BASE }}
+          NEXT_PUBLIC_SITE_URL: https://t360-web.vercel.app
         run: |
           npx vercel@latest pull --yes --environment=production --token="$VERCEL_TOKEN"
           npx vercel@latest build --prod --token="$VERCEL_TOKEN"
@@ -187,6 +192,7 @@ jobs:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
           VERCEL_ORG_ID: ${{ vars.VERCEL_ORG_ID }}
           VERCEL_PROJECT_ID: ${{ vars.VERCEL_PROJECT_ID_ADMIN }}
+          NEXT_PUBLIC_API_URL: ${{ vars.PROD_API_BASE }}
         run: |
           npx vercel@latest pull --yes --environment=production --token="$VERCEL_TOKEN"
           npx vercel@latest build --prod --token="$VERCEL_TOKEN"

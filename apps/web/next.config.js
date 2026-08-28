@@ -1,5 +1,14 @@
 const path = require("path");
 
+if (process.env.VERCEL === "1") {
+  const apiUrl = process.env.NEXT_PUBLIC_API_URL?.trim() ?? "";
+  if (!apiUrl || apiUrl.includes("localhost")) {
+    throw new Error(
+      "NEXT_PUBLIC_API_URL must be set to a live Railway API URL for Vercel builds",
+    );
+  }
+}
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   transpilePackages: ["@t360/ui"],
