@@ -56,4 +56,8 @@ if (-not (Test-Path $ApkPath)) {
 }
 
 Write-Host "APK ready: $ApkPath"
-Write-Host "Note: without android/key.properties this APK uses debug signing (sideload/test only)."
+if (Test-Path (Join-Path $MobileDir "android\key.properties")) {
+  Write-Host "Signed with release keystore (android/key.properties)."
+} else {
+  Write-Host "Note: without android/key.properties this APK uses debug signing (sideload/test only)."
+}

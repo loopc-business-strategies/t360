@@ -60,10 +60,10 @@ $propsContent = @"
 storePassword=$StorePassword
 keyPassword=$KeyPassword
 keyAlias=$KeyAlias
-storeFile=upload-keystore.jks
+storeFile=../upload-keystore.jks
 "@
 
-Set-Content -Path $PropsPath -Value $propsContent -Encoding UTF8
+Set-Content -Path $PropsPath -Value $propsContent -Encoding ascii
 
 $credsContent = @"
 Tharagai Android upload keystore (local only - do NOT commit)
@@ -75,7 +75,7 @@ Key password: $KeyPassword
 
 Back up upload-keystore.jks and these passwords securely (1Password / Play Console).
 "@
-Set-Content -Path $CredsPath -Value $credsContent -Encoding UTF8
+Set-Content -Path $CredsPath -Value $credsContent -Encoding ascii
 
 Write-Host ""
 Write-Host "Android release signing ready."
