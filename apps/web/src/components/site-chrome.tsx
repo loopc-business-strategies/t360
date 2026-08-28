@@ -6,6 +6,7 @@ import { useLocale } from "../lib/locale";
 import { API_URL } from "../lib/catalog-api";
 import type { CategoryNode, CollectionItem } from "../lib/catalog-api";
 import { StoreHeader } from "./store/store-header";
+import { BrandLogo } from "./brand-logo";
 
 export function SiteHeader() {
   const [categories, setCategories] = React.useState<CategoryNode[]>([]);
@@ -47,14 +48,7 @@ export function SiteFooter() {
     <footer className="mt-auto border-t border-border bg-linen/70">
       <div className="mx-auto flex max-w-content flex-wrap items-center justify-between gap-4 px-4 py-10 sm:px-6 lg:px-8">
         <div>
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src="/logo.png"
-            alt={t.brand}
-            className="h-16 w-auto sm:h-20"
-            width={256}
-            height={80}
-          />
+          <BrandLogo variant="footer" alt={t.brand} />
           <p className="mt-2 text-sm text-muted">{t.footerTagline}</p>
         </div>
         <nav className="flex flex-wrap gap-x-4 gap-y-2 text-sm">

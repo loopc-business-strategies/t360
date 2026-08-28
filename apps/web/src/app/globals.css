@@ -72,7 +72,27 @@ body {
   }
   .hero-kenburns,
   .hero-kenburns-plus,
-  .text-mask-reveal {
+  .text-mask-reveal,
+  .icon360-spin {
     animation: none !important;
   }
+}
+
+@keyframes icon360-spin {
+  from {
+    transform: rotateY(0deg);
+  }
+  to {
+    transform: rotateY(360deg);
+  }
+}
+
+.icon360-spin-wrap {
+  perspective: 800px;
+}
+
+.icon360-spin {
+  animation: icon360-spin 20s linear infinite;
+  transform-style: preserve-3d;
+  backface-visibility: visible;
 }

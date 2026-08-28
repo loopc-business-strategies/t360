@@ -14,6 +14,7 @@ import type { CategoryNode, ProductListItem, StorefrontSection, StorefrontSettin
 import { API_URL } from "../lib/catalog-api";
 import { ProductCardInteractive } from "./store/product-card-interactive";
 import { OptimizedImage, renderTileImage } from "./store/optimized-image";
+import { BrandLogo } from "./brand-logo";
 
 const DEFAULT_HERO =
   "https://images.unsplash.com/photo-1583391733956-3750e0ff4e8b?auto=format&fit=crop&w=1800&q=80";
@@ -198,14 +199,7 @@ export function HomeClient({
                 transition={transition}
                 className="max-w-xl"
               >
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  src="/logo.png"
-                  alt={t.brand}
-                  className="h-32 w-auto max-w-[min(100%,22rem)] drop-shadow-[0_10px_28px_rgba(0,0,0,0.45)] sm:h-40 sm:max-w-[26rem] md:h-48 md:max-w-[28rem] lg:h-52"
-                  width={448}
-                  height={208}
-                />
+                <BrandLogo variant="hero" alt={t.brand} />
                 <h1
                   className={`mt-6 font-display text-3xl text-elevated sm:text-4xl ${
                     reduceMotion ? "" : "text-mask-reveal"

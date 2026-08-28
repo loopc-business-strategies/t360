@@ -10,6 +10,7 @@ import type { CategoryNode, CollectionItem } from "../../lib/catalog-api";
 import { MegaMenu, type MegaPanelId } from "./mega-menu";
 import { MiniCartDrawer } from "./mini-cart-drawer";
 import { SearchOverlay } from "./search-overlay";
+import { BrandLogo } from "../brand-logo";
 
 const NAV: Array<{ id: MegaPanelId; href: string; fallback: string }> = [
   { id: "new", href: "/products?isNew=true", fallback: "New & Featured" },
@@ -169,14 +170,7 @@ export function StoreHeader({
               className="flex shrink-0 items-center transition-opacity hover:opacity-90"
               aria-label={t.brand}
             >
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src="/logo.png"
-                alt={t.brand}
-                className="h-14 w-auto sm:h-16 md:h-[4.25rem]"
-                width={220}
-                height={68}
-              />
+              <BrandLogo variant="icon360" alt={t.brand} />
             </Link>
           </div>
 
