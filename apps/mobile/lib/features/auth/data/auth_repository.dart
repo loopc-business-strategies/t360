@@ -40,6 +40,24 @@ class AuthRepository {
     );
   }
 
+  Future<({String access, String refresh, String role, bool isNewCustomer})> demoSignIn(
+    String role,
+  ) async {
+    return _api.post(
+      '/auth/demo/sign-in',
+      data: {'role': role},
+      map: (data) {
+        final m = data as Map<String, dynamic>;
+        return (
+          access: m['accessToken'] as String,
+          refresh: m['refreshToken'] as String,
+          role: m['role']?.toString() ?? role,
+          isNewCustomer: m['isNewCustomer'] == true,
+        );
+      },
+    );
+  }
+
   Future<({String access, String refresh})> staffLogin({
     String? email,
     String? employeeCode,

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../core/load_error.dart';
 import '../../../design_system/design_system.dart';
 import '../../../l10n/app_strings.dart';
 import '../../repositories.dart';
@@ -45,10 +46,14 @@ class HomeScreen extends ConsumerWidget {
             padding: const EdgeInsets.all(16),
             children: [
               Text(t.errorTitle),
-              Text(e.toString()),
+              Text(mapLoadError(e)),
+              const SizedBox(height: 12),
               TharagaiButton(
                 label: t.retry,
-                onPressed: () => ref.invalidate(homeStorefrontProvider),
+                onPressed: () {
+                  ref.invalidate(homeStorefrontProvider);
+                  ref.invalidate(homeCategoriesProvider);
+                },
               ),
             ],
           ),

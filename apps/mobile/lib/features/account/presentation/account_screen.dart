@@ -7,6 +7,7 @@ import '../../../core/providers.dart';
 import '../../../core/push_registration.dart';
 import '../../../design_system/design_system.dart';
 import '../../../l10n/app_strings.dart';
+import '../../auth/presentation/auth_screen.dart';
 import '../../repositories.dart';
 
 class AccountScreen extends ConsumerStatefulWidget {
@@ -33,6 +34,8 @@ class _AccountScreenState extends ConsumerState<AccountScreen> {
   var _marketingSms = true;
   var _marketingPush = true;
   var _marketingWhatsapp = true;
+  var _demoBusy = false;
+  String? _demoError;
 
   @override
   void dispose() {
@@ -65,6 +68,33 @@ class _AccountScreenState extends ConsumerState<AccountScreen> {
       });
     } catch (e) {
       setState(() => _error = e.toString());
+    }
+  }
+
+  Future<void> _demoSignIn(String role) async {
+    setState(() {
+      _demoBusy = true;
+      _demoError = null;
+    });
+    try {
+      final result = await ref.read(authRepositoryProvider).demoSignIn(role);
+      await ref.read(tokenStorageProvider).saveTokens(
+            access: result.access,
+            refresh: result.refresh,
+          );
+      await ref.read(authStateProvider.notifier).markLoggedIn(staff: role == 'staff');
+      if (!mounted) return;
+      if (role == 'staff') {
+        context.go('/admin');
+      } else if (result.isNewCustomer) {
+        context.go('/account/complete-profile');
+      } else {
+        await _load();
+      }
+    } catch (e) {
+      setState(() => _demoError = mapAuthError(e));
+    } finally {
+      if (mounted) setState(() => _demoBusy = false);
     }
   }
 
@@ -102,6 +132,32 @@ class _AccountScreenState extends ConsumerState<AccountScreen> {
                   variant: TharagaiButtonVariant.outline,
                   onPressed: () => context.push('/admin/login'),
                 ),
+                const SizedBox(height: 24),
+                Text(
+                  'Quick demo (remove before production)',
+                  style: Theme.of(context).textTheme.bodySmall,
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 12),
+                TharagaiButton(
+                  label: _demoBusy ? 'Signing in…' : 'Demo customer login',
+                  variant: TharagaiButtonVariant.outline,
+                  onPressed: _demoBusy ? null : () => _demoSignIn('customer'),
+                ),
+                const SizedBox(height: 8),
+                TharagaiButton(
+                  label: _demoBusy ? 'Signing in…' : 'Demo admin login',
+                  variant: TharagaiButtonVariant.outline,
+                  onPressed: _demoBusy ? null : () => _demoSignIn('staff'),
+                ),
+                if (_demoError != null) ...[
+                  const SizedBox(height: 12),
+                  Text(
+                    _demoError!,
+                    style: const TextStyle(color: TharagaiColors.wine),
+                    textAlign: TextAlign.center,
+                  ),
+                ],
               ],
             ),
           ),

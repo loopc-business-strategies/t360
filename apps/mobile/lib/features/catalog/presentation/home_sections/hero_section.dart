@@ -57,12 +57,6 @@ class HomeHeroSection extends ConsumerWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisAlignment: MainAxisAlignment.end,
               children: [
-                BrandedLogo(
-                  variant: BrandedLogoVariant.hero,
-                  semanticLabel: t.brand,
-                  alignment: Alignment.centerLeft,
-                ),
-                const SizedBox(height: 16),
                 Text(
                   headline,
                   style: Theme.of(context).textTheme.headlineSmall?.copyWith(

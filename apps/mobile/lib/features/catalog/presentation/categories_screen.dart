@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import '../../../core/load_error.dart';
 import '../../../design_system/design_system.dart';
 import '../../../l10n/app_strings.dart';
 import '../../repositories.dart';
@@ -146,7 +147,26 @@ class _CategoriesScreenState extends ConsumerState<CategoriesScreen> {
                 );
               },
               loading: () => Center(child: Text(t.loading)),
-              error: (e, _) => Center(child: Text(e.toString())),
+              error: (e, _) => Center(
+                child: Padding(
+                  padding: const EdgeInsets.all(24),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(t.errorTitle),
+                      const SizedBox(height: 8),
+                      Text(mapLoadError(e), textAlign: TextAlign.center),
+                      const SizedBox(height: 16),
+                      TharagaiButton(
+                        label: t.retry,
+                        onPressed: () => ref.invalidate(
+                          categoryProductsProvider((category: _category, collection: _collection)),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
             ),
           ),
         ],

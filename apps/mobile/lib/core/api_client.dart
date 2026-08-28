@@ -222,13 +222,16 @@ class ApiClient {
     String fieldName = 'file',
   }) async {
     try {
+      final filename = filePath.replaceAll(r'\', '/').split('/').last;
       final form = FormData.fromMap({
-        fieldName: await MultipartFile.fromFile(filePath),
+        fieldName: await MultipartFile.fromFile(
+          filePath,
+          filename: filename.isNotEmpty ? filename : 'upload.jpg',
+        ),
       });
       final res = await _dio.post<Map<String, dynamic>>(
         path,
         data: form,
-        options: Options(contentType: 'multipart/form-data'),
       );
       return unwrapData(res.data!, (data) => data as Map<String, dynamic>);
     } on DioException catch (e) {
@@ -241,14 +244,35 @@ class ApiClient {
     if (data is Map && data['error'] is Map) {
       final err = data['error'] as Map;
       return ApiException(
-        err['message']?.toString() ?? e.message ?? 'Network error',
+        err['message']?.toString() ?? _connectionMessage(e),
         statusCode: e.response?.statusCode,
         code: err['code']?.toString(),
       );
     }
     return ApiException(
-      e.message ?? 'Network error',
+      _connectionMessage(e),
       statusCode: e.response?.statusCode,
     );
+  }
+
+  String _connectionMessage(DioException e) {
+    switch (e.type) {
+      case DioExceptionType.connectionTimeout:
+      case DioExceptionType.sendTimeout:
+      case DioExceptionType.receiveTimeout:
+        return 'Request timed out. Check your connection and try again.';
+      case DioExceptionType.connectionError:
+        return 'Cannot reach the server. Check your internet connection.';
+      case DioExceptionType.badCertificate:
+        return 'Secure connection failed. Contact support if this persists.';
+      case DioExceptionType.cancel:
+        return 'Request was cancelled.';
+      default:
+        break;
+    }
+    if (e.response?.statusCode != null && e.response!.statusCode! >= 500) {
+      return 'Server error (${e.response!.statusCode}). Try again shortly.';
+    }
+    return e.message?.trim().isNotEmpty == true ? e.message!.trim() : 'Network error';
   }
 }

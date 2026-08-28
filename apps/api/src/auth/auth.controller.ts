@@ -4,6 +4,7 @@ import { Request } from "express";
 import {
   adminLoginSchema,
   changePasswordSchema,
+  demoSignInSchema,
   otpRequestSchema,
   otpVerifySchema,
   passwordForgotSchema,
@@ -11,6 +12,7 @@ import {
   refreshSchema,
   type AdminLoginInput,
   type ChangePasswordInput,
+  type DemoSignInInput,
   type PasswordForgotInput,
   type PasswordResetInput,
 } from "@t360/validation";
@@ -42,6 +44,20 @@ export class AuthController {
     @Req() req: Request,
   ) {
     const data = await this.auth.verifyOtp(body.mobile, body.code, {
+      ip: req.ip,
+      userAgent: req.headers["user-agent"],
+    });
+    return { success: true, data, requestId: (req as Request & { requestId?: string }).requestId };
+  }
+
+  @Public()
+  @HttpCode(200)
+  @Post("demo/sign-in")
+  async demoSignIn(
+    @Body(new ZodValidationPipe(demoSignInSchema)) body: DemoSignInInput,
+    @Req() req: Request,
+  ) {
+    const data = await this.auth.demoSignIn(body.role, {
       ip: req.ip,
       userAgent: req.headers["user-agent"],
     });

@@ -1,4 +1,5 @@
 import { Injectable, NotFoundException } from "@nestjs/common";
+import { ConfigService } from "@nestjs/config";
 import { PrismaService } from "../prisma/prisma.service";
 import { AuthService } from "../auth/auth.service";
 
@@ -7,7 +8,13 @@ export class UsersService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly auth: AuthService,
+    private readonly config: ConfigService,
   ) {}
+
+  private mobileAdminEnabledFromEnv(): boolean {
+    const v = this.config.get<string>("MOBILE_ADMIN_ENABLED");
+    return v === "1" || v === "true";
+  }
 
   async getMe(userId: string) {
     const user = await this.prisma.user.findUnique({
@@ -36,7 +43,9 @@ export class UsersService {
       employee: user.employee,
       featureFlags: {
         mobileAdminEnabled:
-          mobileAdminFlag?.value === true || mobileAdminFlag?.value === "true",
+          this.mobileAdminEnabledFromEnv() ||
+          mobileAdminFlag?.value === true ||
+          mobileAdminFlag?.value === "true",
       },
     };
   }

@@ -16,7 +16,7 @@ $MobileDir = Join-Path $RepoRoot "apps\mobile"
 $ApiBase = if ($env:API_BASE_URL) {
   $env:API_BASE_URL.TrimEnd("/")
 } else {
-  "https://api-staging-7912.up.railway.app/api/v1"
+  "https://api-production-7d30.up.railway.app/api/v1"
 }
 
 $RazorpayKey = if ($env:RAZORPAY_KEY_ID) { $env:RAZORPAY_KEY_ID.Trim() } else { "" }

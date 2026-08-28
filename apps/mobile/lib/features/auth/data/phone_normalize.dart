@@ -11,3 +11,8 @@ String normalizeIndianMobile(String raw) {
   if (s.startsWith('+91') && s.length == 13) return s;
   return s;
 }
+
+/// True when [raw] normalizes to E.164 Indian mobile `+91[6-9]XXXXXXXXX`.
+bool isValidIndianMobile(String raw) {
+  return RegExp(r'^\+91[6-9]\d{9}$').hasMatch(normalizeIndianMobile(raw));
+}

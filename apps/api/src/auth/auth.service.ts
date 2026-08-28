@@ -114,6 +114,64 @@ export class AuthService {
     return { ...tokens, isNewCustomer };
   }
 
+  async demoSignIn(
+    role: "customer" | "staff",
+    meta?: { ip?: string; userAgent?: string },
+  ) {
+    const enabled =
+      this.config.get<string>("DEMO_LOGIN_ENABLED") === "1" ||
+      this.config.get<string>("DEMO_LOGIN_ENABLED") === "true";
+    if (!enabled) {
+      throw new ForbiddenException({
+        code: "DEMO_LOGIN_DISABLED",
+        message: "Demo login is disabled on this server",
+      });
+    }
+
+    if (role === "staff") {
+      const email = this.config.get<string>("SEED_ADMIN_EMAIL") ?? "owner@tharagai.local";
+      const password = this.config.get<string>("SEED_ADMIN_PASSWORD") ?? "TharagaiOwner!123";
+      const tokens = await this.adminLogin({ email, password }, meta);
+      return { ...tokens, role: "staff" as const, isNewCustomer: false };
+    }
+
+    const mobile = "+919999000001";
+    let isNewCustomer = false;
+    let user = await this.prisma.user.findUnique({
+      where: { mobile },
+      include: { customer: true },
+    });
+    if (!user) {
+      isNewCustomer = true;
+      user = await this.prisma.user.create({
+        data: {
+          mobile,
+          customer: { create: { name: "T360 Demo Customer" } },
+        },
+        include: { customer: true },
+      });
+    } else if (!user.customer) {
+      isNewCustomer = true;
+      await this.prisma.customer.create({ data: { userId: user.id, name: "T360 Demo Customer" } });
+      user = await this.prisma.user.findUniqueOrThrow({
+        where: { id: user.id },
+        include: { customer: true },
+      });
+    }
+    if (user.customer) {
+      await this.loyalty.ensureAccount(user.customer.id);
+    }
+
+    const tokens = await this.issueTokens(user.id, meta);
+    await this.audit.log({
+      actorId: user.id,
+      action: "auth.demo.login",
+      ip: meta?.ip,
+      metadata: { role: "customer" },
+    });
+    return { ...tokens, role: "customer" as const, isNewCustomer };
+  }
+
   async adminLogin(
     input: { email?: string; employeeCode?: string; password: string; mfaCode?: string },
     meta?: { ip?: string; userAgent?: string },

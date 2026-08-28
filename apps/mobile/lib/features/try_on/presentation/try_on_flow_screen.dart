@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:share_plus/share_plus.dart';
+import '../../../core/load_error.dart';
 import '../../../design_system/design_system.dart';
 import '../../../l10n/app_strings.dart';
 import '../../repositories.dart';
@@ -103,7 +104,7 @@ class _TryOnFlowScreenState extends ConsumerState<TryOnFlowScreen> {
     } catch (e) {
       setState(() {
         _busy = false;
-        _error = e.toString();
+        _error = mapLoadError(e);
         _step = _Step.failed;
       });
     }
@@ -131,14 +132,14 @@ class _TryOnFlowScreenState extends ConsumerState<TryOnFlowScreen> {
     } catch (e) {
       setState(() {
         _busy = false;
-        _error = e.toString();
+        _error = mapLoadError(e);
         _step = _Step.failed;
       });
     }
   }
 
   Future<void> _poll(String id) async {
-    for (var i = 0; i < 60; i++) {
+    for (var i = 0; i < 90; i++) {
       await Future<void>.delayed(Duration(milliseconds: i < 5 ? 2000 : 3500));
       if (!mounted) return;
       try {
@@ -179,7 +180,7 @@ class _TryOnFlowScreenState extends ConsumerState<TryOnFlowScreen> {
         );
       }
     } catch (e) {
-      setState(() => _error = e.toString());
+      setState(() => _error = mapLoadError(e));
     } finally {
       if (mounted) setState(() => _busy = false);
     }
@@ -290,7 +291,7 @@ class _TryOnFlowScreenState extends ConsumerState<TryOnFlowScreen> {
                             _error = 'Try-on cancelled';
                           });
                         } catch (e) {
-                          if (mounted) setState(() => _error = e.toString());
+                          if (mounted) setState(() => _error = mapLoadError(e));
                         }
                       },
               ),

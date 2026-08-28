@@ -28,6 +28,12 @@ export const otpVerifySchema = z.object({
   code: z.string().regex(/^\d{6}$/, "OTP must be 6 digits"),
 });
 
+export const demoSignInSchema = z.object({
+  role: z.enum(["customer", "staff"]),
+});
+
+export type DemoSignInInput = z.infer<typeof demoSignInSchema>;
+
 export const adminLoginSchema = z
   .object({
     email: z.string().email().optional(),

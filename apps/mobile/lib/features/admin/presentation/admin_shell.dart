@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../core/api_exception.dart';
 import '../../../core/providers.dart';
+import '../../auth/presentation/auth_screen.dart';
 import 'admin_home_screen.dart';
 
 bool adminHasAny(List<String> perms, List<String> anyOf) {
@@ -63,8 +65,19 @@ class _AdminShellState extends ConsumerState<AdminShell> {
         _perms = list;
         _loaded = true;
       });
-    } catch (_) {
-      if (mounted) setState(() => _loaded = true);
+    } catch (e) {
+      if (!mounted) return;
+      final message = mapAuthError(e);
+      final isDisabled = e is ApiException && e.code == 'MOBILE_ADMIN_DISABLED';
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(isDisabled ? 'Mobile admin is disabled on this server' : message)),
+      );
+      if (isDisabled) {
+        await ref.read(authStateProvider.notifier).markLoggedOut();
+        if (mounted) context.go('/admin/login');
+        return;
+      }
+      setState(() => _loaded = true);
     }
   }
 

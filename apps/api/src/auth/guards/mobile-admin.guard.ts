@@ -4,6 +4,7 @@ import {
   ForbiddenException,
   Injectable,
 } from "@nestjs/common";
+import { ConfigService } from "@nestjs/config";
 import { Reflector } from "@nestjs/core";
 import { IS_PUBLIC_KEY } from "../../common/decorators";
 import { PrismaService } from "../../prisma/prisma.service";
@@ -15,7 +16,13 @@ export class MobileAdminGuard implements CanActivate {
   constructor(
     private readonly prisma: PrismaService,
     private readonly reflector: Reflector,
+    private readonly config: ConfigService,
   ) {}
+
+  private envEnabled(): boolean {
+    const v = this.config.get<string>("MOBILE_ADMIN_ENABLED");
+    return v === "1" || v === "true";
+  }
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const isPublic = this.reflector.getAllAndOverride<boolean>(IS_PUBLIC_KEY, [
@@ -35,6 +42,8 @@ export class MobileAdminGuard implements CanActivate {
     // Allow auth endpoints so staff can still log in / refresh when flag is off (to see error after login via /users/me).
     const path = `${req.path ?? ""}${req.url ?? ""}`;
     if (path.includes("/auth/")) return true;
+
+    if (this.envEnabled()) return true;
 
     const row = await this.prisma.systemSetting.findUnique({
       where: { key: "feature.mobile_admin.enabled" },
