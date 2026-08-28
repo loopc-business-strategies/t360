@@ -239,6 +239,7 @@ export async function seedDemoCatalog(prisma: PrismaClient): Promise<SeedResult>
   type Built = {
     id: string;
     slug: string;
+    name: string;
     gender: Segment;
     leafSlug: string;
     tryOn: boolean;
@@ -414,6 +415,7 @@ export async function seedDemoCatalog(prisma: PrismaClient): Promise<SeedResult>
     built.push({
       id: product.id,
       slug,
+      name,
       gender: segment,
       leafSlug: plan.leafSlug,
       tryOn,
