@@ -285,7 +285,7 @@ export async function seedDemoCatalog(prisma: PrismaClient): Promise<SeedResult>
       ...(plan.index % 3 === 0 ? [COLORS[(globalIndex + 7) % COLORS.length]] : []),
     ];
     const sizes = sizesForProfile(meta?.sizeProfile ?? "adult");
-    const stills = getDemoImagesForCategory(plan.leafSlug, segment, plan.index);
+    const stills = getDemoImagesForCategory(plan.leafSlug, segment, plan.index).slice(0, 1);
     if (!catIds[plan.leafSlug]) {
       throw new Error(`CATEGORY_MISMATCH missing categoryId for leaf=${plan.leafSlug}`);
     }

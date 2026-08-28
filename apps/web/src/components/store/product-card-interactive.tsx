@@ -8,6 +8,7 @@ import { apiFetch, getCustomerToken } from "../../lib/api";
 import type { ProductListItem } from "../../lib/catalog-api";
 import { productPrice } from "../../lib/catalog-api";
 import { useLocale } from "../../lib/locale";
+import { selectProductCardImages } from "../../lib/product-images";
 import { renderCardImage } from "./optimized-image";
 
 const PLACEHOLDER =
@@ -23,6 +24,7 @@ export function ProductCardInteractive({
   const { t } = useLocale();
   const router = useRouter();
   const price = productPrice(product);
+  const { imageUrl, secondImageUrl } = selectProductCardImages(product.images);
   const inStock = product.inStock ?? (product.availableQty ?? 0) > 0;
   const variantId = product.variants?.[0]?.id;
   const colorCount = new Set(
@@ -93,8 +95,8 @@ export function ProductCardInteractive({
       <ProductCard
         name={product.name}
         brand={product.brand?.name}
-        imageUrl={product.images?.[0]?.url ?? PLACEHOLDER}
-        secondImageUrl={product.images?.[1]?.url}
+        imageUrl={imageUrl ?? PLACEHOLDER}
+        secondImageUrl={secondImageUrl}
         imageAlt={product.name}
         price={price.amount}
         compareAt={price.compareAt}

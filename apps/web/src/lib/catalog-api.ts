@@ -38,7 +38,13 @@ export type ProductListItem = {
   tryOnEnabled?: boolean;
   averageRating?: number | null;
   reviewCount?: number;
-  images?: Array<{ url: string; alt?: string; mediaType?: string }>;
+  images?: Array<{
+    url: string;
+    alt?: string;
+    mediaType?: string;
+    publicId?: string | null;
+    sortOrder?: number;
+  }>;
   variants?: Array<{
     id: string;
     sku: string;

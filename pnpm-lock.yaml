@@ -59,7 +59,7 @@ importers:
         version: 10.5.4(postcss@8.5.26)
       eslint:
         specifier: ^9.17.0
-        version: 9.39.5(jiti@1.21.7)
+        version: 9.39.5(jiti@2.7.0)
       postcss:
         specifier: ^8.4.49
         version: 8.5.26
@@ -235,13 +235,16 @@ importers:
         version: 10.5.4(postcss@8.5.26)
       eslint:
         specifier: ^9.17.0
-        version: 9.39.5(jiti@2.7.0)
+        version: 9.39.5(jiti@1.21.7)
       postcss:
         specifier: ^8.4.49
         version: 8.5.26
       tailwindcss:
         specifier: ^3.4.17
         version: 3.4.19(tsx@4.23.12)
+      tsx:
+        specifier: ^4.19.2
+        version: 4.23.12
       typescript:
         specifier: ^5.7.2
         version: 5.9.3
