@@ -28,7 +28,22 @@ export function ProductDetailClient({
   const [busy, setBusy] = React.useState(false);
   const [tryOnOpen, setTryOnOpen] = React.useState(false);
   const [related, setRelated] = React.useState<ProductListItem[]>([]);
+  const [recentlyViewed, setRecentlyViewed] = React.useState<ProductListItem[]>([]);
   const [infoTab, setInfoTab] = React.useState<"materials" | "care" | "shipping">("materials");
+
+  React.useEffect(() => {
+    if (typeof window === "undefined" || !product.slug) return;
+    const key = "t360.recentlyViewed";
+    try {
+      const raw = localStorage.getItem(key);
+      const prev = raw ? (JSON.parse(raw) as ProductListItem[]) : [];
+      const next = [initial, ...prev.filter((p) => p.id !== initial.id)].slice(0, 8);
+      localStorage.setItem(key, JSON.stringify(next.map((p) => ({ id: p.id, slug: p.slug, name: p.name, images: p.images, variants: p.variants }))));
+      setRecentlyViewed(prev.filter((p) => p.id !== initial.id).slice(0, 4));
+    } catch {
+      /* ignore */
+    }
+  }, [initial.id, initial.slug, product.slug]);
 
   React.useEffect(() => {
     if (typeof window === "undefined") return;
@@ -340,6 +355,18 @@ export function ProductDetailClient({
           ) : null}
         </div>
       </section>
+
+      {recentlyViewed.length ? (
+        <section className="mt-16">
+          <ProductCarousel title="Recently viewed">
+            {recentlyViewed.map((p) => (
+              <ProductCarouselItem key={p.id}>
+                <ProductCardInteractive product={p} />
+              </ProductCarouselItem>
+            ))}
+          </ProductCarousel>
+        </section>
+      ) : null}
 
       {related.length ? (
         <section className="mt-16">

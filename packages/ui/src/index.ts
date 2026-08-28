@@ -35,3 +35,4 @@ export { Price, formatMoney } from "./components/price";
 export { OrderStatus } from "./components/order-status";
 export type { OrderStatusCode } from "./components/order-status";
 export { EmptyState, LoadingState, ErrorState } from "./components/states";
+export { Skeleton, ProductCardSkeleton, ProductGridSkeleton } from "./components/skeleton";

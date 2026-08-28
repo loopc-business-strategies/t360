@@ -25,6 +25,37 @@
   --z-header: 50;
   --z-overlay: 60;
   --z-modal: 70;
+  --z-fab: 45;
+  --z-bottom-nav: 48;
+  --font-display-scale: clamp(1.75rem, 4vw, 3.5rem);
+  --font-section-scale: clamp(1.25rem, 2.5vw, 2rem);
+  --section-py: clamp(3rem, 6vw, 5rem);
+  --transition-fast: 150ms ease;
+  --transition-base: 250ms ease;
+  --shadow-card: 0 1px 3px rgb(20 17 15 / 0.06);
+  --shadow-card-hover: 0 8px 24px rgb(20 17 15 / 0.1);
+}
+
+@keyframes tharagai-shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+.tharagai-shimmer {
+  background: linear-gradient(
+    90deg,
+    var(--tharagai-border) 0%,
+    var(--tharagai-surface-elevated) 50%,
+    var(--tharagai-border) 100%
+  );
+  background-size: 200% 100%;
+  animation: tharagai-shimmer 1.5s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tharagai-shimmer {
+    animation: none;
+  }
 }
 
 .tharagai-surface {

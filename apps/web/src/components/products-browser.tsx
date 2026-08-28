@@ -1,9 +1,8 @@
 "use client";
 
 import * as React from "react";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { FilterSidebar, Input, Pagination, Select } from "@t360/ui";
+import { FilterSidebar, Input, Pagination, Select, Drawer, Button, ProductGridSkeleton } from "@t360/ui";
 import { useLocale } from "../lib/locale";
 import type { CategoryNode, CollectionItem, ProductListItem } from "../lib/catalog-api";
 import { API_URL } from "../lib/catalog-api";
@@ -53,6 +52,7 @@ export function ProductsBrowser({
   const [total, setTotal] = React.useState(initialMeta?.total ?? initialProducts.length);
   const [pageSize] = React.useState(initialMeta?.pageSize ?? 24);
   const [loading, setLoading] = React.useState(false);
+  const [filtersOpen, setFiltersOpen] = React.useState(false);
   const requestSeq = React.useRef(0);
   const syncedCategory = React.useRef(initialParams.category ?? "");
 
@@ -118,9 +118,22 @@ export function ProductsBrowser({
             {total} {t.results}
           </p>
         </div>
+        <Button type="button" variant="outline" className="lg:hidden" onClick={() => setFiltersOpen(true)}>
+          {t.filters}
+        </Button>
       </div>
 
+      <Drawer open={filtersOpen} onOpenChange={setFiltersOpen} title={t.filters}>
+        <div className="space-y-4 p-4">
+          <p className="text-sm text-muted">Use filters on desktop sidebar or apply here.</p>
+          <Button type="button" onClick={() => { void runSearch({}, 1); setFiltersOpen(false); }}>
+            {t.applyFilters}
+          </Button>
+        </div>
+      </Drawer>
+
       <div className="mt-8 grid gap-8 lg:grid-cols-[18rem_1fr]">
+        <div className="hidden lg:block">
         <FilterSidebar
           title={t.filters}
           applyLabel={t.applyFilters}
@@ -229,8 +242,12 @@ export function ProductsBrowser({
             {t.tryMeFilter ?? "TRY ME available"}
           </label>
         </FilterSidebar>
+        </div>
 
         <div>
+          {loading && !products.length ? (
+            <ProductGridSkeleton count={8} />
+          ) : (
           <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4">
             {products.map((p) => (
               <ProductCardInteractive
@@ -240,7 +257,8 @@ export function ProductsBrowser({
               />
             ))}
           </div>
-          {!products.length ? (
+          )}
+          {!products.length && !loading ? (
             <p className="mt-10 text-center text-muted">
               {loading ? "Loading…" : `${t.emptyTitle} — ${t.emptyDescription}`}
             </p>

@@ -25,7 +25,8 @@
     "regen:mobile:icons": "cd apps/mobile && dart run flutter_launcher_icons",
     "regen:mobile:branding": "python apps/mobile/tool/process_uploaded_branding.py && pnpm regen:mobile:splash && pnpm regen:mobile:icons",
     "regen:mobile:branding:generated": "python apps/mobile/tool/generate_branding_assets.py && pnpm regen:mobile:splash && pnpm regen:mobile:icons",
-    "regen:web:branding": "python apps/web/tool/process_web_branding.py"
+    "regen:web:branding": "python apps/web/tool/process_web_branding.py",
+    "validate:catalog": "node apps/api/scripts/validate-catalog.mjs"
   },
   "devDependencies": {
     "@playwright/test": "^1.51.0",

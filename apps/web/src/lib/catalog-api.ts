@@ -130,7 +130,42 @@ export type StorefrontSection =
       ctaHref?: string;
       ctaLabel?: string;
     }
-  | { type: "videoHero"; visible: boolean; order: number; videoUrl?: string; ctaHref?: string; ctaLabel?: string };
+  | { type: "videoHero"; visible: boolean; order: number; videoUrl?: string; ctaHref?: string; ctaLabel?: string }
+  | {
+      type: "heroCampaign";
+      visible: boolean;
+      order: number;
+      headline?: string;
+      subtitle?: string;
+      imageUrl?: string;
+      mobileImageUrl?: string;
+      ctaHref?: string;
+      ctaLabel?: string;
+    }
+  | { type: "shopByCategory"; visible: boolean; order: number; title?: string; categorySlugs?: string[] }
+  | {
+      type: "festiveEdit" | "familyCollection";
+      visible: boolean;
+      order: number;
+      headline: string;
+      subtitle?: string;
+      imageUrl?: string;
+      ctaHref?: string;
+      ctaLabel?: string;
+    }
+  | { type: "shopByOccasion"; visible: boolean; order: number; title?: string }
+  | { type: "whyTharagai"; visible: boolean; order: number }
+  | { type: "visitStore"; visible: boolean; order: number }
+  | {
+      type: "socialFollow";
+      visible: boolean;
+      order: number;
+      instagramUrl?: string;
+      facebookUrl?: string;
+      youtubeUrl?: string;
+    }
+  | { type: "reviewsHighlight"; visible: boolean; order: number; title?: string }
+  | { type: "completeTheLook"; visible: boolean; order: number; title?: string };
 
 export type CollectionItem = {
   id: string;

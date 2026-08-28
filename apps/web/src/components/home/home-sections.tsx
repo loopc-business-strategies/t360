@@ -1,0 +1,512 @@
+"use client";
+
+import * as React from "react";
+import Link from "next/link";
+import { motion } from "framer-motion";
+import { Button, CategoryTile, ProductCarousel, ProductCarouselItem } from "@t360/ui";
+import type { Branch, CategoryNode, ProductListItem, StorefrontSection } from "../../lib/catalog-api";
+import { API_URL } from "../../lib/catalog-api";
+import { ProductCardInteractive } from "../store/product-card-interactive";
+import { OptimizedImage, renderTileImage } from "../store/optimized-image";
+import { BrandLogo } from "../brand-logo";
+
+const OCCASION_CARDS = [
+  { label: "Wedding", href: "/collections/wedding-edit", slug: "wedding-lehengas" },
+  { label: "Festival", href: "/collections/festive-edit", slug: "festival-kurtas" },
+  { label: "Party", href: "/women?category=women-party-dresses", slug: "women-party-dresses" },
+  { label: "Family Function", href: "/collections/family-celebration", slug: "women-ethnic-sets" },
+  { label: "Everyday", href: "/products?sort=newest", slug: "women-kurtis" },
+  { label: "Gifting", href: "/sale", slug: "sarees-silk" },
+];
+
+const WHY_PILLARS = [
+  { title: "Quality Checked", desc: "Every piece inspected before it reaches you." },
+  { title: "Secure Payments", desc: "Razorpay & COD with full encryption." },
+  { title: "Easy Returns", desc: "Hassle-free returns at our Pudukkottai store." },
+  { title: "Fast Delivery", desc: "Dispatch from Pudukkottai & Chennai." },
+  { title: "Family Fashion", desc: "Women, men & kids under one roof." },
+  { title: "Pudukkottai Store", desc: "Visit us for personalised styling." },
+];
+
+function flattenCategories(nodes: CategoryNode[]): CategoryNode[] {
+  const out: CategoryNode[] = [];
+  for (const n of nodes) {
+    out.push(n);
+    if (n.children?.length) out.push(...flattenCategories(n.children));
+  }
+  return out;
+}
+
+export function HeroCampaignSection({
+  section,
+  hero,
+  reduceMotion,
+  t,
+}: {
+  section: Extract<StorefrontSection, { type: "heroCampaign" }>;
+  hero: { desktopImageUrl?: string; mobileImageUrl?: string; imageUrl?: string } | null;
+  reduceMotion: boolean | null;
+  t: Record<string, string | undefined>;
+}) {
+  const desktop = section.imageUrl ?? hero?.desktopImageUrl ?? hero?.imageUrl;
+  const mobile = section.mobileImageUrl ?? hero?.mobileImageUrl ?? desktop;
+  const headline = section.headline ?? "DRESS EVERY MOMENT BEAUTIFULLY";
+  const subtitle = section.subtitle ?? "Discover fashion for women, men & kids at THARAGAI.";
+
+  return (
+    <motion.section
+      className="relative min-h-[85svh] overflow-hidden bg-ink text-elevated"
+      initial={reduceMotion ? false : { opacity: 0 }}
+      animate={{ opacity: 1 }}
+    >
+      {desktop ? (
+        <>
+          <OptimizedImage
+            src={desktop}
+            alt=""
+            className="absolute inset-0 hidden object-cover object-[center_20%] sm:block"
+            sizes="100vw"
+            priority
+          />
+          {mobile && mobile !== desktop ? (
+            <OptimizedImage
+              src={mobile}
+              alt=""
+              className="absolute inset-0 object-cover object-[center_30%] sm:hidden"
+              sizes="100vw"
+              priority
+            />
+          ) : null}
+        </>
+      ) : null}
+      <div className="absolute inset-0 bg-gradient-to-t from-ink/80 via-ink/30 to-ink/20" />
+      <div className="relative z-10 mx-auto flex min-h-[85svh] max-w-content flex-col justify-end px-6 pb-16 pt-28">
+        <p className="text-xs uppercase tracking-[0.25em] text-brass">THARAGAI Readymades</p>
+        <h1 className="mt-4 max-w-3xl font-display text-[var(--font-display-scale)] leading-tight">
+          {headline}
+        </h1>
+        <p className="mt-4 max-w-xl text-lg text-elevated/85">{subtitle}</p>
+        <div className="mt-8 flex flex-wrap gap-3">
+          <Link href="/women">
+            <Button variant="secondary" className="bg-elevated text-ink hover:bg-linen">
+              SHOP WOMEN
+            </Button>
+          </Link>
+          <Link href="/men">
+            <Button variant="outline" className="border-elevated/40 text-elevated hover:bg-elevated/10">
+              SHOP MEN
+            </Button>
+          </Link>
+          <Link href="/kids">
+            <Button variant="outline" className="border-elevated/40 text-elevated hover:bg-elevated/10">
+              SHOP KIDS
+            </Button>
+          </Link>
+        </div>
+      </div>
+    </motion.section>
+  );
+}
+
+export function ShopByCategorySection({
+  section,
+  categories,
+  reduceMotion,
+  t,
+}: {
+  section: Extract<StorefrontSection, { type: "shopByCategory" }>;
+  categories: CategoryNode[];
+  reduceMotion: boolean | null;
+  t: Record<string, string | undefined>;
+}) {
+  const slugs = section.categorySlugs ?? [];
+  const flat = flattenCategories(categories);
+  const tiles = slugs.length
+    ? slugs.map((s) => flat.find((c) => c.slug === s)).filter(Boolean) as CategoryNode[]
+    : flat.filter((c) => c.slug.includes("-")).slice(0, 8);
+
+  return (
+    <motion.section
+      className="mx-auto max-w-content px-6 py-[var(--section-py)]"
+      initial={reduceMotion ? false : { opacity: 0, y: 24 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true }}
+    >
+      <h2 className="font-display text-[var(--font-section-scale)]">
+        {section.title ?? t.shopByCategory ?? "Shop by Category"}
+      </h2>
+      <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        {tiles.map((c) => (
+          <CategoryTile
+            key={c.id}
+            name={c.name}
+            href={`/categories/${c.slug}`}
+            renderImage={renderTileImage}
+          />
+        ))}
+      </div>
+    </motion.section>
+  );
+}
+
+export function CampaignBlock({
+  section,
+  reduceMotion,
+  dark = false,
+}: {
+  section: {
+    headline: string;
+    subtitle?: string;
+    imageUrl?: string;
+    ctaHref?: string;
+    ctaLabel?: string;
+  };
+  reduceMotion: boolean | null;
+  dark?: boolean;
+}) {
+  return (
+    <motion.section
+      className={`relative overflow-hidden ${dark ? "bg-ink text-elevated" : "bg-linen/50"}`}
+      initial={reduceMotion ? false : { opacity: 0 }}
+      whileInView={{ opacity: 1 }}
+      viewport={{ once: true }}
+    >
+      <div className="mx-auto grid max-w-content lg:grid-cols-2">
+        {section.imageUrl ? (
+          <div className="relative aspect-[4/5] lg:aspect-auto lg:min-h-[28rem]">
+            <OptimizedImage src={section.imageUrl} alt="" className="object-cover" sizes="50vw" />
+          </div>
+        ) : null}
+        <div className="flex flex-col justify-center px-6 py-14 lg:px-12">
+          <h2 className="font-display text-3xl sm:text-4xl">{section.headline}</h2>
+          {section.subtitle ? <p className="mt-4 text-muted">{section.subtitle}</p> : null}
+          {section.ctaHref ? (
+            <Link href={section.ctaHref} className="mt-8 inline-block">
+              <Button variant={dark ? "secondary" : "primary"}>
+                {section.ctaLabel ?? "SHOP NOW"}
+              </Button>
+            </Link>
+          ) : null}
+        </div>
+      </div>
+    </motion.section>
+  );
+}
+
+export function ShopByOccasionSection({
+  section,
+  reduceMotion,
+}: {
+  section: Extract<StorefrontSection, { type: "shopByOccasion" }>;
+  reduceMotion: boolean | null;
+}) {
+  return (
+    <motion.section
+      className="mx-auto max-w-content px-6 py-[var(--section-py)]"
+      initial={reduceMotion ? false : { opacity: 0, y: 24 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true }}
+    >
+      <h2 className="font-display text-[var(--font-section-scale)]">
+        {section.title ?? "Shop by Occasion"}
+      </h2>
+      <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        {OCCASION_CARDS.map((o) => (
+          <Link
+            key={o.label}
+            href={o.href}
+            className="group rounded-lg border border-border bg-elevated p-6 transition-shadow hover:shadow-[var(--shadow-card-hover)]"
+          >
+            <p className="text-xs uppercase tracking-wider text-brass">{o.label}</p>
+            <p className="mt-2 font-display text-xl group-hover:text-wine">Explore →</p>
+          </Link>
+        ))}
+      </div>
+    </motion.section>
+  );
+}
+
+export function WhyTharagaiSection({ reduceMotion }: { reduceMotion: boolean | null }) {
+  return (
+    <motion.section
+      className="border-y border-border bg-elevated px-6 py-[var(--section-py)]"
+      initial={reduceMotion ? false : { opacity: 0 }}
+      whileInView={{ opacity: 1 }}
+      viewport={{ once: true }}
+    >
+      <div className="mx-auto max-w-content">
+        <h2 className="text-center font-display text-[var(--font-section-scale)]">Why THARAGAI</h2>
+        <div className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+          {WHY_PILLARS.map((p) => (
+            <div key={p.title} className="text-center sm:text-left">
+              <p className="font-medium text-ink">{p.title}</p>
+              <p className="mt-1 text-sm text-muted">{p.desc}</p>
+            </div>
+          ))}
+        </div>
+      </div>
+    </motion.section>
+  );
+}
+
+export function VisitStoreSection({
+  branches,
+  businessName,
+  reduceMotion,
+}: {
+  branches: Branch[];
+  businessName?: string;
+  reduceMotion: boolean | null;
+}) {
+  const branch = branches.find((b) => b.code === "PDK01") ?? branches[0];
+  if (!branch) return null;
+
+  return (
+    <motion.section
+      className="mx-auto max-w-content px-6 py-[var(--section-py)]"
+      initial={reduceMotion ? false : { opacity: 0, y: 24 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true }}
+    >
+      <h2 className="font-display text-[var(--font-section-scale)]">Visit THARAGAI</h2>
+      <div className="mt-6 rounded-lg border border-border bg-elevated p-8">
+        <p className="font-display text-2xl">{businessName ?? "THARAGAI Readymades"}</p>
+        <p className="mt-2 text-muted">Pudukkottai, Tamil Nadu</p>
+        <p className="mt-4 text-sm">{branch.address}</p>
+        {branch.phone ? (
+          <p className="mt-2 text-sm">
+            <a href={`tel:${branch.phone}`} className="text-wine hover:underline">
+              {branch.phone}
+            </a>
+          </p>
+        ) : null}
+        <a
+          href={`https://maps.google.com/?q=${encodeURIComponent(branch.address)}`}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="mt-4 inline-block text-sm text-wine hover:underline"
+        >
+          Get directions →
+        </a>
+      </div>
+    </motion.section>
+  );
+}
+
+export function SocialFollowSection({
+  section,
+  reduceMotion,
+}: {
+  section: Extract<StorefrontSection, { type: "socialFollow" }>;
+  reduceMotion: boolean | null;
+}) {
+  const links = [
+    { label: "Instagram", url: section.instagramUrl },
+    { label: "Facebook", url: section.facebookUrl },
+    { label: "YouTube", url: section.youtubeUrl },
+  ].filter((l) => l.url);
+
+  if (!links.length) return null;
+
+  return (
+    <motion.section
+      className="bg-ink px-6 py-14 text-elevated"
+      initial={reduceMotion ? false : { opacity: 0 }}
+      whileInView={{ opacity: 1 }}
+      viewport={{ once: true }}
+    >
+      <div className="mx-auto max-w-content text-center">
+        <h2 className="font-display text-2xl">Follow THARAGAI</h2>
+        <div className="mt-6 flex flex-wrap justify-center gap-4">
+          {links.map((l) => (
+            <a
+              key={l.label}
+              href={l.url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="rounded-md border border-elevated/30 px-4 py-2 text-sm hover:bg-elevated/10"
+            >
+              {l.label}
+            </a>
+          ))}
+        </div>
+      </div>
+    </motion.section>
+  );
+}
+
+export function CompleteTheLookSection({
+  section,
+  reduceMotion,
+}: {
+  section: Extract<StorefrontSection, { type: "completeTheLook" }>;
+  reduceMotion: boolean | null;
+}) {
+  const [products, setProducts] = React.useState<ProductListItem[]>([]);
+
+  React.useEffect(() => {
+    void fetch(`${API_URL}/products?pageSize=4&sort=featured&isFeatured=true`)
+      .then((r) => r.json())
+      .then((j) => setProducts(j.data ?? []))
+      .catch(() => setProducts([]));
+  }, []);
+
+  if (!products.length) return null;
+
+  return (
+    <motion.section
+      className="mx-auto max-w-content px-6 py-[var(--section-py)]"
+      initial={reduceMotion ? false : { opacity: 0, y: 24 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true }}
+    >
+      <h2 className="font-display text-[var(--font-section-scale)]">
+        {section.title ?? "Complete the Look"}
+      </h2>
+      <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        {products.map((p) => (
+          <ProductCardInteractive key={p.id} product={p} />
+        ))}
+      </div>
+    </motion.section>
+  );
+}
+
+export function ReviewsHighlightSection({
+  section,
+  reduceMotion,
+}: {
+  section: Extract<StorefrontSection, { type: "reviewsHighlight" }>;
+  reduceMotion: boolean | null;
+}) {
+  const [reviews, setReviews] = React.useState<
+    Array<{ rating: number; title: string; body: string; authorName: string }>
+  >([]);
+
+  React.useEffect(() => {
+    void fetch(`${API_URL}/products?pageSize=1&sort=rating`)
+      .then((r) => r.json())
+      .then(async (j) => {
+        const p = j.data?.[0];
+        if (!p?.slug) return;
+        const rr = await fetch(`${API_URL}/products/${p.slug}/reviews?pageSize=3`);
+        const body = await rr.json();
+        setReviews(body.data?.items ?? []);
+      })
+      .catch(() => setReviews([]));
+  }, []);
+
+  if (!reviews.length) return null;
+
+  return (
+    <motion.section
+      className="border-t border-border bg-linen/50 px-6 py-[var(--section-py)]"
+      initial={reduceMotion ? false : { opacity: 0 }}
+      whileInView={{ opacity: 1 }}
+      viewport={{ once: true }}
+    >
+      <div className="mx-auto max-w-content">
+        <h2 className="font-display text-[var(--font-section-scale)]">
+          {section.title ?? "Customer Reviews"}
+        </h2>
+        <div className="mt-8 grid gap-6 md:grid-cols-3">
+          {reviews.map((r, i) => (
+            <blockquote key={i} className="rounded-lg border border-border bg-elevated p-6">
+              <p className="text-brass">{"★".repeat(r.rating)}</p>
+              <p className="mt-2 font-medium">{r.title}</p>
+              <p className="mt-2 text-sm text-muted line-clamp-3">{r.body}</p>
+              <footer className="mt-4 text-xs text-muted">— {r.authorName}</footer>
+            </blockquote>
+          ))}
+        </div>
+      </div>
+    </motion.section>
+  );
+}
+
+export function NewsletterSection({
+  reduceMotion,
+  t,
+}: {
+  reduceMotion: boolean | null;
+  t: Record<string, string | undefined>;
+}) {
+  const [email, setEmail] = React.useState("");
+  const [status, setStatus] = React.useState<"idle" | "loading" | "done" | "error">("idle");
+
+  async function onSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    setStatus("loading");
+    try {
+      const res = await fetch(`${API_URL}/marketing/newsletter/subscribe`, {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ email, source: "homepage" }),
+      });
+      if (!res.ok) throw new Error("failed");
+      setStatus("done");
+      setEmail("");
+    } catch {
+      setStatus("error");
+    }
+  }
+
+  return (
+    <motion.section
+      className="border-t border-border bg-linen/80 px-6 py-16"
+      initial={reduceMotion ? false : { opacity: 0 }}
+      whileInView={{ opacity: 1 }}
+      viewport={{ once: true }}
+    >
+      <div className="mx-auto max-w-xl text-center">
+        <h2 className="font-display text-2xl">{t.newsletterTitle ?? "Stay in touch"}</h2>
+        <p className="mt-2 text-sm text-muted">{t.newsletterBody ?? t.footerTagline}</p>
+        <form className="mt-6 flex flex-col gap-2 sm:flex-row" onSubmit={onSubmit}>
+          <input
+            type="email"
+            required
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            placeholder={t.emailPlaceholder ?? "Your email address"}
+            className="h-11 flex-1 rounded-md border border-border bg-elevated px-3 text-sm"
+            aria-label={t.emailPlaceholder ?? "Email"}
+          />
+          <Button type="submit" disabled={status === "loading"}>
+            {status === "done" ? "Subscribed!" : t.newsletterCta ?? "Subscribe"}
+          </Button>
+        </form>
+        {status === "error" ? (
+          <p className="mt-2 text-sm text-danger">Something went wrong. Please try again.</p>
+        ) : null}
+      </div>
+    </motion.section>
+  );
+}
+
+export function EnhancedTryMePromo({ reduceMotion, t }: { reduceMotion: boolean | null; t: Record<string, string | undefined> }) {
+  return (
+    <motion.section
+      className="relative overflow-hidden bg-ink px-6 py-16 text-elevated"
+      initial={reduceMotion ? false : { opacity: 0 }}
+      whileInView={{ opacity: 1 }}
+      viewport={{ once: true }}
+    >
+      <div className="mx-auto flex max-w-content flex-col items-start justify-between gap-8 lg:flex-row lg:items-center">
+        <div className="max-w-lg">
+          <p className="text-xs uppercase tracking-[0.2em] text-brass">Virtual Try-On</p>
+          <h2 className="mt-3 font-display text-3xl sm:text-4xl">
+            {t.tryMePromoHeadline ?? "SEE YOURSELF IN THARAGAI"}
+          </h2>
+          <p className="mt-3 text-elevated/80">
+            {t.tryMePromoBody ?? "Try selected outfits virtually before you buy."}
+          </p>
+        </div>
+        <Link href="/try-me">
+          <Button variant="secondary" className="bg-elevated text-ink hover:bg-linen">
+            TRY IT NOW
+          </Button>
+        </Link>
+      </div>
+    </motion.section>
+  );
+}

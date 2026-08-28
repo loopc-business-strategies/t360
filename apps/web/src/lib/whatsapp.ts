@@ -15,3 +15,8 @@ export function buildWhatsAppEnquiryUrl(input: {
   ].join("\n");
   return `https://wa.me/${digits}?text=${encodeURIComponent(text)}`;
 }
+
+export function buildWhatsAppSupportUrl(e164: string, message: string) {
+  const digits = e164.replace(/\D/g, "");
+  return `https://wa.me/${digits}?text=${encodeURIComponent(message)}`;
+}

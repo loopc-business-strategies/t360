@@ -8,6 +8,7 @@ import { MarketingQueueService } from "./marketing-queue.service";
 import { MarketingService } from "./marketing.service";
 import { SegmentsController } from "./segments.controller";
 import { SocialPostsController } from "./social-posts.controller";
+import { MarketingPublicController } from "./marketing-public.controller";
 
 @Module({
   imports: [AuditModule, NotificationsModule],
@@ -17,6 +18,7 @@ import { SocialPostsController } from "./social-posts.controller";
     AbandonedCartController,
     SocialPostsController,
     MarketingAnalyticsController,
+    MarketingPublicController,
   ],
   providers: [MarketingService, MarketingQueueService],
   exports: [MarketingService, MarketingQueueService],

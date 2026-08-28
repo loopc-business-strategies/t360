@@ -7,7 +7,17 @@ import { Input } from "@t360/ui";
 import { API_URL } from "../../lib/catalog-api";
 
 const RECENT_KEY = "t360.recentSearches";
-const POPULAR = ["saree", "kurtas", "kids", "TRY ME", "cotton", "festive"];
+const POPULAR = [
+  "Silk Saree",
+  "Chudidar",
+  "Kurti",
+  "Men's Shirts",
+  "T-Shirts",
+  "Kids Wear",
+  "saree",
+  "chudidar",
+  "selai",
+];
 
 function loadRecent(): string[] {
   if (typeof window === "undefined") return [];

@@ -60,6 +60,7 @@ export default function EditProductPage() {
   const [collectionIds, setCollectionIds] = React.useState<string[]>([]);
   const [saving, setSaving] = React.useState(false);
   const [uploadingImage, setUploadingImage] = React.useState(false);
+  const [generatingContent, setGeneratingContent] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
 
   React.useEffect(() => {
@@ -111,6 +112,24 @@ export default function EditProductPage() {
     if (!confirm("Archive this product?")) return;
     await apiFetch(`/admin/products/${params.id}`, { method: "DELETE" });
     router.push("/products");
+  }
+
+  async function onGenerateContent() {
+    setGeneratingContent(true);
+    setError(null);
+    try {
+      const res = await apiFetch<{ draft: { title?: string; description?: string } }>(
+        `/admin/ai/products/${params.id}/generate-content`,
+        { method: "POST", body: JSON.stringify({}) },
+      );
+      const draft = res.data.draft;
+      if (draft.title) setName(draft.title);
+      if (draft.description) setDescription(String(draft.description));
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "AI generation failed");
+    } finally {
+      setGeneratingContent(false);
+    }
   }
 
   async function onImageUploaded(url: string) {
@@ -245,9 +264,12 @@ export default function EditProductPage() {
             </div>
           ) : null}
           {error ? <p className="text-sm text-danger">{error}</p> : null}
-          <div className="flex gap-2">
+          <div className="flex flex-wrap gap-2">
             <Button type="submit" disabled={saving}>
               {saving ? "Saving…" : "Save"}
+            </Button>
+            <Button type="button" variant="outline" disabled={generatingContent} onClick={() => void onGenerateContent()}>
+              {generatingContent ? "Generating…" : "Generate with AI"}
             </Button>
             <Button type="button" variant="outline" onClick={onDelete}>
               Archive

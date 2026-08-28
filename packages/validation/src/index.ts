@@ -518,6 +518,80 @@ export const storefrontStorySchema = storefrontSectionBase.extend({
   type: z.literal("story"),
 });
 
+const storefrontCampaignFields = {
+  headline: z.string().min(1).max(200),
+  subtitle: z.string().max(500).optional(),
+  imageUrl: z.string().url().max(2000).optional(),
+  mobileImageUrl: z.string().url().max(2000).optional(),
+  ctaHref: z.string().max(500).optional(),
+  ctaLabel: z.string().max(80).optional(),
+  collectionSlug: z.string().max(120).optional(),
+  categorySlug: z.string().max(120).optional(),
+};
+
+export const storefrontHeroCampaignSchema = storefrontSectionBase.extend({
+  type: z.literal("heroCampaign"),
+  ...storefrontCampaignFields,
+});
+
+export const storefrontShopByCategorySchema = storefrontSectionBase.extend({
+  type: z.literal("shopByCategory"),
+  title: z.string().max(120).optional(),
+  categorySlugs: z.array(z.string().max(120)).max(12).optional(),
+});
+
+export const storefrontFestiveEditSchema = storefrontSectionBase.extend({
+  type: z.literal("festiveEdit"),
+  ...storefrontCampaignFields,
+});
+
+export const storefrontFamilyCollectionSchema = storefrontSectionBase.extend({
+  type: z.literal("familyCollection"),
+  ...storefrontCampaignFields,
+});
+
+export const storefrontShopByOccasionSchema = storefrontSectionBase.extend({
+  type: z.literal("shopByOccasion"),
+  title: z.string().max(120).optional(),
+});
+
+export const storefrontWhyTharagaiSchema = storefrontSectionBase.extend({
+  type: z.literal("whyTharagai"),
+});
+
+export const storefrontVisitStoreSchema = storefrontSectionBase.extend({
+  type: z.literal("visitStore"),
+});
+
+export const storefrontSocialFollowSchema = storefrontSectionBase.extend({
+  type: z.literal("socialFollow"),
+  instagramUrl: z.string().url().max(500).optional(),
+  facebookUrl: z.string().url().max(500).optional(),
+  youtubeUrl: z.string().url().max(500).optional(),
+});
+
+export const storefrontReviewsHighlightSchema = storefrontSectionBase.extend({
+  type: z.literal("reviewsHighlight"),
+  title: z.string().max(120).optional(),
+});
+
+export const storefrontCompleteTheLookSchema = storefrontSectionBase.extend({
+  type: z.literal("completeTheLook"),
+  title: z.string().max(120).optional(),
+});
+
+export const newsletterSubscribeSchema = z.object({
+  email: z.string().email().max(200),
+  locale: z.enum(["en", "ta"]).optional(),
+  source: z.string().max(80).optional(),
+});
+
+export const productContentGenerateSchema = z.object({
+  regenerateTitle: z.boolean().optional(),
+  regenerateDescription: z.boolean().optional(),
+  regenerateSeo: z.boolean().optional(),
+});
+
 export const storefrontSectionSchema = z.discriminatedUnion("type", [
   storefrontAnnouncementSchema,
   storefrontHeroSectionSchema,
@@ -531,6 +605,16 @@ export const storefrontSectionSchema = z.discriminatedUnion("type", [
   storefrontTryMePromoSchema,
   storefrontNewsletterSchema,
   storefrontStorySchema,
+  storefrontHeroCampaignSchema,
+  storefrontShopByCategorySchema,
+  storefrontFestiveEditSchema,
+  storefrontFamilyCollectionSchema,
+  storefrontShopByOccasionSchema,
+  storefrontWhyTharagaiSchema,
+  storefrontVisitStoreSchema,
+  storefrontSocialFollowSchema,
+  storefrontReviewsHighlightSchema,
+  storefrontCompleteTheLookSchema,
 ]);
 
 export const storefrontPublishSchema = z.object({}).optional();
@@ -576,6 +660,8 @@ export const settingsBrandingPatchSchema = z.object({
 export type StorefrontHeroInput = z.infer<typeof storefrontHeroSchema>;
 export type StorefrontSectionInput = z.infer<typeof storefrontSectionSchema>;
 export type StorefrontUpdateInput = z.infer<typeof storefrontUpdateSchema>;
+export type NewsletterSubscribeInput = z.infer<typeof newsletterSubscribeSchema>;
+export type ProductContentGenerateInput = z.infer<typeof productContentGenerateSchema>;
 export type SettingsCategory = z.infer<typeof settingsCategorySchema>;
 export type SettingsGeneralPatchInput = z.infer<typeof settingsGeneralPatchSchema>;
 export type SettingsCommercePatchInput = z.infer<typeof settingsCommercePatchSchema>;

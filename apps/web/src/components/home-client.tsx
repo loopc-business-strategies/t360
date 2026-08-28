@@ -15,6 +15,19 @@ import { API_URL } from "../lib/catalog-api";
 import { ProductCardInteractive } from "./store/product-card-interactive";
 import { OptimizedImage, renderTileImage } from "./store/optimized-image";
 import { BrandLogo } from "./brand-logo";
+import {
+  CampaignBlock,
+  CompleteTheLookSection,
+  EnhancedTryMePromo,
+  HeroCampaignSection,
+  NewsletterSection,
+  ReviewsHighlightSection,
+  ShopByCategorySection,
+  ShopByOccasionSection,
+  SocialFollowSection,
+  VisitStoreSection,
+  WhyTharagaiSection,
+} from "./home/home-sections";
 
 const DEFAULT_HERO =
   "https://images.unsplash.com/photo-1583391733956-3750e0ff4e8b?auto=format&fit=crop&w=1800&q=80";
@@ -144,10 +157,12 @@ function CollectionSection({
 export function HomeClient({
   categories,
   storefront,
+  branches = [],
 }: {
   products?: ProductListItem[];
   categories: CategoryNode[];
   storefront: StorefrontSettings | null;
+  branches?: import("../lib/catalog-api").Branch[];
 }) {
   const reduceMotion = useReducedMotion();
   const { locale, t } = useLocale();
@@ -274,27 +289,86 @@ export function HomeClient({
           />
         );
       case "tryMePromo":
+        return <EnhancedTryMePromo key={`try-me-${index}`} reduceMotion={reduceMotion} t={t} />;
+      case "heroCampaign":
         return (
-          <motion.section
-            key={`try-me-${index}`}
-            className="bg-ink px-6 py-16 text-elevated"
-            initial={reduceMotion ? false : { opacity: 0 }}
-            whileInView={{ opacity: 1 }}
-            viewport={{ once: true }}
-          >
-            <div className="mx-auto flex max-w-content flex-col items-start justify-between gap-6 sm:flex-row sm:items-center">
-              <div>
-                <p className="text-xs uppercase tracking-[0.2em] text-brass">{t.tryMeTitle}</p>
-                <h2 className="mt-3 max-w-lg font-display text-3xl">{t.tryMePromoHeadline ?? t.tryMeGuide}</h2>
-                <p className="mt-3 max-w-md text-elevated/80">{t.tryMePromoBody ?? t.tryMeDisclaimer}</p>
-              </div>
-              <Link href="/try-me">
-                <Button variant="secondary" className="bg-elevated text-ink hover:bg-linen">
-                  {t.tryMeShop ?? t.ctaShop}
-                </Button>
-              </Link>
-            </div>
-          </motion.section>
+          <HeroCampaignSection
+            key={`hero-campaign-${index}`}
+            section={section as Extract<StorefrontSection, { type: "heroCampaign" }>}
+            hero={hero ?? null}
+            reduceMotion={reduceMotion}
+            t={t}
+          />
+        );
+      case "shopByCategory":
+        return (
+          <ShopByCategorySection
+            key={`shop-cat-${index}`}
+            section={section as Extract<StorefrontSection, { type: "shopByCategory" }>}
+            categories={categories}
+            reduceMotion={reduceMotion}
+            t={t}
+          />
+        );
+      case "festiveEdit":
+        return (
+          <CampaignBlock
+            key={`festive-${index}`}
+            section={section as Extract<StorefrontSection, { type: "festiveEdit" }>}
+            reduceMotion={reduceMotion}
+            dark
+          />
+        );
+      case "familyCollection":
+        return (
+          <CampaignBlock
+            key={`family-${index}`}
+            section={section as Extract<StorefrontSection, { type: "familyCollection" }>}
+            reduceMotion={reduceMotion}
+          />
+        );
+      case "shopByOccasion":
+        return (
+          <ShopByOccasionSection
+            key={`occasion-${index}`}
+            section={section as Extract<StorefrontSection, { type: "shopByOccasion" }>}
+            reduceMotion={reduceMotion}
+          />
+        );
+      case "whyTharagai":
+        return <WhyTharagaiSection key={`why-${index}`} reduceMotion={reduceMotion} />;
+      case "visitStore":
+        return (
+          <VisitStoreSection
+            key={`visit-${index}`}
+            branches={branches}
+            businessName={storefront?.businessName}
+            reduceMotion={reduceMotion}
+          />
+        );
+      case "socialFollow":
+        return (
+          <SocialFollowSection
+            key={`social-${index}`}
+            section={section as Extract<StorefrontSection, { type: "socialFollow" }>}
+            reduceMotion={reduceMotion}
+          />
+        );
+      case "reviewsHighlight":
+        return (
+          <ReviewsHighlightSection
+            key={`reviews-${index}`}
+            section={section as Extract<StorefrontSection, { type: "reviewsHighlight" }>}
+            reduceMotion={reduceMotion}
+          />
+        );
+      case "completeTheLook":
+        return (
+          <CompleteTheLookSection
+            key={`ctl-${index}`}
+            section={section as Extract<StorefrontSection, { type: "completeTheLook" }>}
+            reduceMotion={reduceMotion}
+          />
         );
       case "editorial":
         return (
@@ -329,36 +403,7 @@ export function HomeClient({
           </motion.section>
         );
       case "newsletter":
-        return (
-          <motion.section
-            key={`newsletter-${index}`}
-            className="border-t border-border bg-linen/80 px-6 py-16"
-            initial={reduceMotion ? false : { opacity: 0 }}
-            whileInView={{ opacity: 1 }}
-            viewport={{ once: true }}
-          >
-            <div className="mx-auto max-w-xl text-center">
-              <h2 className="font-display text-2xl">{t.newsletterTitle ?? "Stay in touch"}</h2>
-              <p className="mt-2 text-sm text-muted">{t.newsletterBody ?? t.footerTagline}</p>
-              <form
-                className="mt-6 flex flex-col gap-2 sm:flex-row"
-                onSubmit={(e) => e.preventDefault()}
-                aria-label={t.newsletterTitle ?? "Newsletter"}
-              >
-                <input
-                  type="email"
-                  disabled
-                  placeholder="Email (coming soon)"
-                  className="h-11 flex-1 rounded-md border border-border bg-elevated px-3 text-sm disabled:opacity-60"
-                  aria-label={t.emailPlaceholder ?? "Email"}
-                />
-                <Button type="submit" disabled>
-                  Coming soon
-                </Button>
-              </form>
-            </div>
-          </motion.section>
-        );
+        return <NewsletterSection key={`newsletter-${index}`} reduceMotion={reduceMotion} t={t} />;
       case "collection":
         return (
           <CollectionSection key={`collection-${index}`} section={section} reduceMotion={reduceMotion} t={t} />

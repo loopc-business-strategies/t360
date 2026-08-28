@@ -486,4 +486,23 @@ export class MarketingService {
     }
     return matched;
   }
+
+  async subscribeNewsletter(input: { email: string; locale?: string; source?: string }) {
+    const email = input.email.trim().toLowerCase();
+    const row = await this.prisma.newsletterSubscriber.upsert({
+      where: { email },
+      create: {
+        email,
+        locale: input.locale ?? "en",
+        source: input.source ?? "website",
+        active: true,
+      },
+      update: {
+        active: true,
+        locale: input.locale ?? "en",
+        subscribedAt: new Date(),
+      },
+    });
+    return { id: row.id, email: row.email, subscribed: true };
+  }
 }

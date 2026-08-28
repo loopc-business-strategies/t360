@@ -15,6 +15,24 @@ export class MockAiProvider implements AiProvider {
 
     const calls = this.pickTools(text, input.audience, input.tools.map((t) => t.name));
     if (calls.length === 0) {
+      if (/return only valid json/i.test(lastUser?.content ?? "")) {
+        return {
+          content: JSON.stringify({
+            title: "THARAGAI Premium Cotton Kurti",
+            description:
+              "Elegant everyday kurti crafted for comfort and style. Soft breathable cotton with refined finishing — perfect for office, casual outings, and festive gatherings.",
+            highlights: ["Premium cotton fabric", "Comfortable fit", "Easy care", "Pudukkottai quality checked"],
+            seoTitle: "Premium Cotton Kurti | THARAGAI Readymades Pudukkottai",
+            seoDescription:
+              "Shop premium cotton kurtis at THARAGAI Readymades, Pudukkottai. Comfortable everyday ethnic wear for women.",
+            keywords: ["kurti", "cotton kurti", "women ethnic wear", "Pudukkottai fashion"],
+            tags: ["kurti", "women", "cotton", "ethnic"],
+            altText: "Woman wearing THARAGAI premium cotton kurti",
+            suggestedCategorySlug: "women-kurtis",
+            suggestedAttributes: { fabric: "Cotton", occasion: "Everyday", pattern: "Solid" },
+          }),
+        };
+      }
       return {
         content:
           "I can help with products, stock, orders, loyalty, and offers using live store data. Ask about a product, category, or your order.",

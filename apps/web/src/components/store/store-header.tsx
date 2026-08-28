@@ -13,12 +13,11 @@ import { SearchOverlay } from "./search-overlay";
 import { BrandLogo } from "../brand-logo";
 
 const NAV: Array<{ id: MegaPanelId; href: string; fallback: string }> = [
-  { id: "new", href: "/products?isNew=true", fallback: "New & Featured" },
-  { id: "men", href: "/men", fallback: "Men" },
   { id: "women", href: "/women", fallback: "Women" },
+  { id: "men", href: "/men", fallback: "Men" },
   { id: "kids", href: "/kids", fallback: "Kids" },
-  { id: "other", href: "/categories/sarees", fallback: "Other" },
-  { id: "collections", href: "/products", fallback: "Collections" },
+  { id: "new", href: "/products?isNew=true", fallback: "New Arrivals" },
+  { id: "collections", href: "/collections/festive-edit", fallback: "Collections" },
   { id: "sale", href: "/sale", fallback: "Sale" },
 ];
 
@@ -77,17 +76,23 @@ export function StoreHeader({
   categories = [],
   collections = [],
   announcement,
+  searchOpen: searchOpenProp,
+  onSearchOpenChange,
 }: {
   categories?: CategoryNode[];
   collections?: CollectionItem[];
   announcement?: { message: string; href?: string } | null;
+  searchOpen?: boolean;
+  onSearchOpenChange?: (open: boolean) => void;
 }) {
   const { t, toggleLocale } = useLocale();
   const pathname = usePathname();
   const router = useRouter();
   const [cartCount, setCartCount] = React.useState(0);
   const [panel, setPanel] = React.useState<MegaPanelId | null>(null);
-  const [searchOpen, setSearchOpen] = React.useState(false);
+  const [searchOpenLocal, setSearchOpenLocal] = React.useState(false);
+  const searchOpen = searchOpenProp ?? searchOpenLocal;
+  const setSearchOpen = onSearchOpenChange ?? setSearchOpenLocal;
   const [cartOpen, setCartOpen] = React.useState(false);
   const [mobileNav, setMobileNav] = React.useState(false);
   const [mobileExpanded, setMobileExpanded] = React.useState<MegaPanelId | null>(null);

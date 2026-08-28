@@ -980,6 +980,20 @@ model SearchSynonym {
   @@index([locale])
 }
 
+model NewsletterSubscriber {
+  id           String   @id @default(uuid()) @db.Uuid
+  email        String   @unique
+  locale       String   @default("en")
+  source       String   @default("website")
+  subscribedAt DateTime @default(now())
+  active       Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@index([active])
+  @@index([subscribedAt])
+}
+
 /// Fashion model library for AI Fashion Studio
 model AiFashionModel {
   id              String   @id @default(uuid()) @db.Uuid

@@ -49,4 +49,17 @@ export class AiAdminController {
       requestId: (req as Request & { requestId?: string }).requestId,
     };
   }
+
+  @Post("products/:productId/generate-content")
+  @RequirePermissions("products.update")
+  async generateProductContent(
+    @Param("productId") productId: string,
+    @Req() req: Request,
+  ) {
+    return {
+      success: true,
+      data: await this.ai.generateProductContent(productId),
+      requestId: (req as Request & { requestId?: string }).requestId,
+    };
+  }
 }

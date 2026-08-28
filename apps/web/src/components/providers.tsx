@@ -12,7 +12,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
 
   return (
     <LocaleProvider>
-      <div className="flex min-h-screen flex-col">
+      <div className="flex min-h-screen flex-col pb-16 md:pb-0">
         <SiteHeader />
         <div className="flex-1">{children}</div>
         <SiteFooter />

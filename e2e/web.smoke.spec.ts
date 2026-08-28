@@ -41,5 +41,17 @@ test.describe("web smoke", () => {
       // Non-try-on PDP still must render a gallery/main image
       await expect(page.locator("img").first()).toBeVisible();
     }
+  test("footer shop links present", async ({ page }) => {
+    await page.goto("/");
+    await expect(page.getByRole("link", { name: "Women" }).first()).toBeVisible();
+    await expect(page.getByRole("link", { name: "Sale" }).first()).toBeVisible();
+  });
+
+  test("newsletter section not disabled", async ({ page }) => {
+    await page.goto("/");
+    const emailInput = page.locator('input[type="email"]').first();
+    if ((await emailInput.count()) > 0) {
+      await expect(emailInput).not.toBeDisabled();
+    }
   });
 });

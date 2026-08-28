@@ -175,4 +175,52 @@ export class AiService {
       reply,
     };
   }
+
+  async generateProductContent(productId: string) {
+    await this.assertEnabled();
+    const product = await this.prisma.product.findFirst({
+      where: { id: productId, deletedAt: null },
+      include: { category: true, brand: true, variants: { take: 1 } },
+    });
+    if (!product) {
+      throw new NotFoundException({ code: "PRODUCT_NOT_FOUND", message: "Product not found" });
+    }
+
+    const prompt = `Generate ecommerce product content for THARAGAI Readymades (Indian fashion, Pudukkottai).
+Product: ${product.name}
+Category: ${product.category?.name ?? "unknown"}
+Brand: ${product.brand?.name ?? "THARAGAI"}
+Current description: ${product.description?.slice(0, 500) ?? ""}
+
+Return ONLY valid JSON with keys: title, description, highlights (array of strings), seoTitle, seoDescription, keywords (array), tags (array), altText, suggestedCategorySlug, suggestedAttributes (object).
+Do not publish — admin will review.`;
+
+    const result = await this.provider.chat({
+      messages: [{ role: "user", content: prompt }],
+      tools: [],
+      audience: "admin",
+    });
+
+    const raw = result.content ?? "{}";
+    try {
+      const jsonStart = raw.indexOf("{");
+      const jsonEnd = raw.lastIndexOf("}");
+      const parsed = JSON.parse(raw.slice(jsonStart, jsonEnd + 1)) as Record<string, unknown>;
+      return { draft: parsed, raw };
+    } catch {
+      return {
+        draft: {
+          title: product.name,
+          description: raw.slice(0, 2000),
+          highlights: [],
+          seoTitle: product.name,
+          seoDescription: product.description?.slice(0, 160) ?? "",
+          keywords: [],
+          tags: [],
+          altText: product.name,
+        },
+        raw,
+      };
+    }
+  }
 }
