@@ -49,7 +49,7 @@ Canonical Vercel apps: **`t360-web`** and **`t360-admin`** (Git-linked to this r
 | Target | How |
 |--------|-----|
 | Staging | Push to `main`/`master`, or Actions → **Deploy** → `workflow_dispatch` → target `staging` |
-| Production | Actions → **Deploy** → target `production` only (manual approval via Environment) |
+| Production | Actions → **Deploy** → target `production`, optional **deploy_scope** (`web-only`, `web-and-railway`, etc.) |
 
 ## App env on platforms
 

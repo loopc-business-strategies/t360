@@ -16,6 +16,17 @@ on:
           - staging
           - production
         default: staging
+      deploy_scope:
+        description: Production scope (ignored for staging push/dispatch)
+        required: false
+        type: choice
+        options:
+          - all
+          - web-only
+          - admin-only
+          - railway-only
+          - web-and-railway
+        default: all
   push:
     branches: [main, master]
 
@@ -148,6 +159,51 @@ jobs:
       - uses: actions/checkout@v4
         if: steps.gate.outputs.skip == 'false'
 
+      - name: Resolve deploy scope
+        id: scope
+        if: steps.gate.outputs.skip == 'false'
+        env:
+          DEPLOY_SCOPE: ${{ github.event.inputs.deploy_scope || 'all' }}
+        run: |
+          case "$DEPLOY_SCOPE" in
+            web-only)
+              echo "build_web=true" >> "$GITHUB_OUTPUT"
+              echo "build_admin=false" >> "$GITHUB_OUTPUT"
+              echo "deploy_web=true" >> "$GITHUB_OUTPUT"
+              echo "deploy_admin=false" >> "$GITHUB_OUTPUT"
+              echo "deploy_railway=false" >> "$GITHUB_OUTPUT"
+              ;;
+            admin-only)
+              echo "build_web=false" >> "$GITHUB_OUTPUT"
+              echo "build_admin=true" >> "$GITHUB_OUTPUT"
+              echo "deploy_web=false" >> "$GITHUB_OUTPUT"
+              echo "deploy_admin=true" >> "$GITHUB_OUTPUT"
+              echo "deploy_railway=false" >> "$GITHUB_OUTPUT"
+              ;;
+            railway-only)
+              echo "build_web=false" >> "$GITHUB_OUTPUT"
+              echo "build_admin=false" >> "$GITHUB_OUTPUT"
+              echo "deploy_web=false" >> "$GITHUB_OUTPUT"
+              echo "deploy_admin=false" >> "$GITHUB_OUTPUT"
+              echo "deploy_railway=true" >> "$GITHUB_OUTPUT"
+              ;;
+            web-and-railway)
+              echo "build_web=true" >> "$GITHUB_OUTPUT"
+              echo "build_admin=false" >> "$GITHUB_OUTPUT"
+              echo "deploy_web=true" >> "$GITHUB_OUTPUT"
+              echo "deploy_admin=false" >> "$GITHUB_OUTPUT"
+              echo "deploy_railway=true" >> "$GITHUB_OUTPUT"
+              ;;
+            *)
+              echo "build_web=true" >> "$GITHUB_OUTPUT"
+              echo "build_admin=true" >> "$GITHUB_OUTPUT"
+              echo "deploy_web=true" >> "$GITHUB_OUTPUT"
+              echo "deploy_admin=true" >> "$GITHUB_OUTPUT"
+              echo "deploy_railway=true" >> "$GITHUB_OUTPUT"
+              ;;
+          esac
+          echo "Deploy scope: $DEPLOY_SCOPE"
+
       - uses: pnpm/action-setup@v4
         if: steps.gate.outputs.skip == 'false'
         with:
@@ -160,21 +216,23 @@ jobs:
           cache: pnpm
 
       - name: Install
-        if: steps.gate.outputs.skip == 'false'
+        if: steps.gate.outputs.skip == 'false' && (steps.scope.outputs.build_web == 'true' || steps.scope.outputs.build_admin == 'true' || steps.scope.outputs.deploy_railway == 'true')
         run: pnpm install --frozen-lockfile
 
       - name: Prisma generate
-        if: steps.gate.outputs.skip == 'false'
+        if: steps.gate.outputs.skip == 'false' && (steps.scope.outputs.build_web == 'true' || steps.scope.outputs.build_admin == 'true' || steps.scope.outputs.deploy_railway == 'true')
         run: pnpm --filter @t360/database generate
 
-      - name: Build web + admin
-        if: steps.gate.outputs.skip == 'false'
-        run: |
-          pnpm --filter @t360/web build
-          pnpm --filter @t360/admin build
+      - name: Build web
+        if: steps.gate.outputs.skip == 'false' && steps.scope.outputs.build_web == 'true'
+        run: pnpm --filter @t360/web build
+
+      - name: Build admin
+        if: steps.gate.outputs.skip == 'false' && steps.scope.outputs.build_admin == 'true'
+        run: pnpm --filter @t360/admin build
 
       - name: Deploy web to Vercel (production)
-        if: steps.gate.outputs.skip == 'false'
+        if: steps.gate.outputs.skip == 'false' && steps.scope.outputs.deploy_web == 'true'
         env:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
           VERCEL_ORG_ID: ${{ vars.VERCEL_ORG_ID }}
@@ -187,7 +245,7 @@ jobs:
           npx vercel@latest deploy --prebuilt --prod --archive=tgz --token="$VERCEL_TOKEN"
 
       - name: Deploy admin to Vercel (production)
-        if: steps.gate.outputs.skip == 'false'
+        if: steps.gate.outputs.skip == 'false' && steps.scope.outputs.deploy_admin == 'true'
         env:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
           VERCEL_ORG_ID: ${{ vars.VERCEL_ORG_ID }}
@@ -199,7 +257,7 @@ jobs:
           npx vercel@latest deploy --prebuilt --prod --archive=tgz --token="$VERCEL_TOKEN"
 
       - name: Deploy API to Railway (production)
-        if: steps.gate.outputs.skip == 'false'
+        if: steps.gate.outputs.skip == 'false' && steps.scope.outputs.deploy_railway == 'true'
         env:
           RAILWAY_API_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
         run: |
@@ -209,7 +267,7 @@ jobs:
             --environment production --detach
 
       - name: Deploy worker to Railway (production)
-        if: steps.gate.outputs.skip == 'false'
+        if: steps.gate.outputs.skip == 'false' && steps.scope.outputs.deploy_railway == 'true'
         env:
           RAILWAY_API_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
         run: |
@@ -218,7 +276,7 @@ jobs:
             --environment production --detach
 
       - name: Post-deploy smoke
-        if: steps.gate.outputs.skip == 'false' && vars.PROD_API_BASE != ''
+        if: steps.gate.outputs.skip == 'false' && steps.scope.outputs.deploy_railway == 'true' && vars.PROD_API_BASE != ''
         env:
           API_BASE: ${{ vars.PROD_API_BASE }}
         run: bash scripts/launch/smoke.sh
