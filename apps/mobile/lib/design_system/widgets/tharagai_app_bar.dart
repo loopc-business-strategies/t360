@@ -26,7 +26,7 @@ class TharagaiAppBar extends StatelessWidget implements PreferredSizeWidget {
       title: showLogo
           ? BrandedLogo(
               variant: BrandedLogoVariant.appBar,
-              semanticLabel: title ?? 'Tharagai Readymades',
+              semanticLabel: title ?? 'Tharagai Fashion',
             )
           : Text(
               title!,

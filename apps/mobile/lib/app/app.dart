@@ -55,7 +55,7 @@ class _TharagaiAppState extends ConsumerState<TharagaiApp> {
 
     return DeepLinkListener(
       child: MaterialApp.router(
-        title: 'Tharagai Readymades',
+        title: 'Tharagai Fashion',
         debugShowCheckedModeBanner: false,
         theme: TharagaiTheme.light(),
         routerConfig: router,
