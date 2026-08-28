@@ -57,12 +57,10 @@ class HomeHeroSection extends ConsumerWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisAlignment: MainAxisAlignment.end,
               children: [
-                Image.asset(
-                  'assets/branding/tharagai_logo.png',
-                  height: 140,
-                  fit: BoxFit.contain,
-                  alignment: Alignment.centerLeft,
+                BrandedLogo(
+                  variant: BrandedLogoVariant.hero,
                   semanticLabel: t.brand,
+                  alignment: Alignment.centerLeft,
                 ),
                 const SizedBox(height: 16),
                 Text(

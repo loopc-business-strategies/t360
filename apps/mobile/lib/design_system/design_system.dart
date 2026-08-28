@@ -5,6 +5,7 @@ export 'widgets/tharagai_card.dart';
 export 'widgets/tharagai_product_card.dart';
 export 'widgets/tharagai_input.dart';
 export 'widgets/tharagai_app_bar.dart';
+export 'widgets/branded_logo.dart';
 export 'widgets/tharagai_price.dart';
 export 'widgets/tharagai_order_status.dart';
 export 'widgets/tharagai_bottom_navigation.dart';

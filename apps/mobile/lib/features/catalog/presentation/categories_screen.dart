@@ -5,6 +5,7 @@ import '../../../design_system/design_system.dart';
 import '../../../l10n/app_strings.dart';
 import '../../repositories.dart';
 import '../data/catalog_models.dart';
+import 'widgets/catalog_product_list_tile.dart';
 
 final categoriesListProvider = FutureProvider<List<CategoryDto>>((ref) {
   return ref.watch(catalogRepositoryProvider).categories();
@@ -137,19 +138,8 @@ class _CategoriesScreenState extends ConsumerState<CategoriesScreen> {
                   itemCount: filtered.length,
                   itemBuilder: (context, i) {
                     final p = filtered[i];
-                    final rating = p.averageRating;
-                    return ListTile(
-                      title: Text(p.name),
-                      subtitle: Text(
-                        [
-                          if (p.brandName != null && p.brandName!.isNotEmpty) p.brandName!,
-                          if (rating != null) '${rating.toStringAsFixed(1)}★',
-                        ].join(' · '),
-                      ),
-                      trailing: Text(
-                        '₹${p.salePrice ?? p.price ?? 0}',
-                        style: const TextStyle(fontWeight: FontWeight.w600),
-                      ),
+                    return CatalogProductListTile(
+                      product: p,
                       onTap: () => context.push('/product/${p.slug}'),
                     );
                   },

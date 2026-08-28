@@ -42,6 +42,19 @@ def _crop_loading_footer(img: Image.Image) -> Image.Image:
     return img.crop((0, 0, w, cut))
 
 
+def _make_transparent_logo(img: Image.Image, threshold: int = 245) -> Image.Image:
+    """Strip near-white background pixels for dark UI surfaces."""
+    rgba = img.convert("RGBA")
+    pixels = rgba.load()
+    width, height = rgba.size
+    for y in range(height):
+        for x in range(width):
+            r, g, b, a = pixels[x, y]
+            if r >= threshold and g >= threshold and b >= threshold:
+                pixels[x, y] = (r, g, b, 0)
+    return rgba
+
+
 def _android12_from_icon(icon: Image.Image) -> Image.Image:
     """Square centered mark for Android 12+ system splash."""
     size = 1152
@@ -78,6 +91,10 @@ def main() -> None:
     logo_path = OUT / "tharagai_logo.png"
     logo_src.save(logo_path, "PNG", optimize=True)
     print(f"wrote {logo_path} ({logo_path.stat().st_size} bytes)")
+
+    transparent_path = OUT / "tharagai_logo_transparent.png"
+    _make_transparent_logo(logo_src).save(transparent_path, "PNG", optimize=True)
+    print(f"wrote {transparent_path} ({transparent_path.stat().st_size} bytes)")
 
     a12_path = OUT / "tharagai_splash_android12.png"
     _android12_from_icon(icon_src).convert("RGB").save(a12_path, "PNG", optimize=True)

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../tharagai_colors.dart';
+import 'branded_logo.dart';
 
 class TharagaiAppBar extends StatelessWidget implements PreferredSizeWidget {
   const TharagaiAppBar({
@@ -23,10 +24,8 @@ class TharagaiAppBar extends StatelessWidget implements PreferredSizeWidget {
     return AppBar(
       toolbarHeight: showLogo ? _logoToolbarHeight : kToolbarHeight,
       title: showLogo
-          ? Image.asset(
-              'assets/branding/tharagai_logo.png',
-              height: 52,
-              fit: BoxFit.contain,
+          ? BrandedLogo(
+              variant: BrandedLogoVariant.appBar,
               semanticLabel: title ?? 'Tharagai Readymades',
             )
           : Text(
