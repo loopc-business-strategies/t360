@@ -8,10 +8,16 @@ from PIL import Image
 ROOT = Path(__file__).resolve().parent.parent
 PUBLIC = ROOT / "public"
 MOBILE_LOGO = ROOT.parent / "mobile" / "assets" / "branding" / "tharagai_logo.png"
-CURSOR_UPLOAD = Path(
-    r"C:\Users\USER\.cursor\projects\c-Users-USER-Desktop-t360\assets"
-    r"\c__Users_USER_AppData_Roaming_Cursor_User_workspaceStorage_8323a401266c71e73997a3e0239e9d48_images_tharagai_logo-da96befa-b071-420b-b0c8-c07512eb7808.png"
-)
+CURSOR_UPLOADS = [
+    Path(
+        r"C:\Users\USER\.cursor\projects\c-Users-USER-Desktop-t360\assets"
+        r"\c__Users_USER_AppData_Roaming_Cursor_User_workspaceStorage_8323a401266c71e73997a3e0239e9d48_images_image-ad5f130b-7f59-4095-9876-b2485ed4b947.png"
+    ),
+    Path(
+        r"C:\Users\USER\.cursor\projects\c-Users-USER-Desktop-t360\assets"
+        r"\c__Users_USER_AppData_Roaming_Cursor_User_workspaceStorage_8323a401266c71e73997a3e0239e9d48_images_tharagai_logo-da96befa-b071-420b-b0c8-c07512eb7808.png"
+    ),
+]
 
 MARK_1X = 512
 MARK_2X = 1024
@@ -20,10 +26,20 @@ FULL_2X = 2048
 
 
 def _load_source() -> Image.Image:
-    for path in (MOBILE_LOGO, CURSOR_UPLOAD):
-        if path.exists():
-            return Image.open(path).convert("RGBA")
-    raise FileNotFoundError("designer logo not found; expected mobile tharagai_logo.png")
+    candidates = [*CURSOR_UPLOADS, MOBILE_LOGO]
+    best: Image.Image | None = None
+    best_pixels = 0
+    for path in candidates:
+        if not path.exists():
+            continue
+        img = Image.open(path).convert("RGBA")
+        pixels = img.size[0] * img.size[1]
+        if pixels > best_pixels:
+            best = img
+            best_pixels = pixels
+    if best is None:
+        raise FileNotFoundError("designer logo not found; expected mobile tharagai_logo.png")
+    return best
 
 
 def _make_transparent(img: Image.Image, threshold: int = 245) -> Image.Image:

@@ -25,7 +25,7 @@ const VARIANTS: Record<
   icon360: {
     src: "/logo-mark.png",
     srcSet: "/logo-mark.png 1x, /logo-mark@2x.png 2x",
-    className: "h-[3.25rem] w-auto sm:h-[3.75rem] md:h-[4.5rem]",
+    className: "h-[3.25rem] w-auto aspect-[512/426] sm:h-[3.75rem] md:h-[4.5rem]",
     width: 180,
     height: 72,
     spin: true,
@@ -47,6 +47,34 @@ const VARIANTS: Record<
   },
 };
 
+function LogoImg({
+  config,
+  alt,
+  className,
+  faceClassName,
+  fillCoin,
+}: {
+  config: (typeof VARIANTS)[BrandLogoVariant];
+  alt: string;
+  className?: string;
+  faceClassName?: string;
+  fillCoin?: boolean;
+}) {
+  return (
+    /* eslint-disable-next-line @next/next/no-img-element */
+    <img
+      src={config.src}
+      srcSet={config.srcSet}
+      alt={alt}
+      width={config.width}
+      height={config.height}
+      decoding="async"
+      draggable={false}
+      className={cn(fillCoin ? "h-full w-full object-contain" : config.className, faceClassName, className)}
+    />
+  );
+}
+
 export function BrandLogo({ variant, alt, className }: BrandLogoProps) {
   const config = VARIANTS[variant];
   const [reduceMotion, setReduceMotion] = React.useState(false);
@@ -61,26 +89,24 @@ export function BrandLogo({ variant, alt, className }: BrandLogoProps) {
 
   const spin = config.spin === true && !reduceMotion;
 
+  if (variant === "icon360" && spin) {
+    return (
+      <span className={cn("icon360-spin-wrap inline-flex items-center", className)}>
+        <span className={cn("icon360-coin relative inline-block shrink-0", config.className)} aria-hidden="true">
+          <LogoImg config={config} alt="" fillCoin faceClassName="icon360-face icon360-face-front" />
+          <LogoImg config={config} alt="" fillCoin faceClassName="icon360-face icon360-face-back" />
+        </span>
+        <span className="sr-only">{alt}</span>
+      </span>
+    );
+  }
+
   return (
-    <span
-      className={cn(
-        "inline-flex items-center",
-        spin && "icon360-spin-wrap",
-        className,
-      )}
-    >
-      {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img
-        src={config.src}
-        srcSet={config.srcSet}
+    <span className={cn("inline-flex items-center", className)}>
+      <LogoImg
+        config={config}
         alt={alt}
-        width={config.width}
-        height={config.height}
-        decoding="async"
-        className={cn(
-          config.className,
-          spin && "icon360-spin drop-shadow-[0_4px_14px_rgba(184,149,42,0.35)]",
-        )}
+        className={variant === "icon360" ? "icon360-face-static" : undefined}
       />
     </span>
   );
