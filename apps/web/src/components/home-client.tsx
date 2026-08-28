@@ -14,7 +14,7 @@ import type { CategoryNode, ProductListItem, StorefrontSection, StorefrontSettin
 import { API_URL } from "../lib/catalog-api";
 import { ProductCardInteractive } from "./store/product-card-interactive";
 import { OptimizedImage, renderTileImage } from "./store/optimized-image";
-import { getCategoryImageUrl } from "../lib/category-images";
+import { getCategoryImageUrl, HERO_DESKTOP_IMAGE } from "../lib/category-images";
 import { BrandLogo } from "./brand-logo";
 import {
   CampaignBlock,
@@ -30,8 +30,7 @@ import {
   WhyTharagaiSection,
 } from "./home/home-sections";
 
-const DEFAULT_HERO =
-  "https://images.unsplash.com/photo-1583391733956-3750e0ff4e8b?auto=format&fit=crop&w=1800&q=80";
+const DEFAULT_HERO = HERO_DESKTOP_IMAGE;
 
 function flattenCategories(nodes: CategoryNode[]): CategoryNode[] {
   const out: CategoryNode[] = [];

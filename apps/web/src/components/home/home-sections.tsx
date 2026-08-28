@@ -75,7 +75,7 @@ export function HeroCampaignSection({
             <OptimizedImage
               src={desktop}
               alt=""
-              className="h-full w-full object-cover object-[50%_15%]"
+              className="h-full w-full object-cover object-center"
               sizes="100vw"
               priority
             />

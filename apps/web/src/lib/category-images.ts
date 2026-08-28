@@ -17,11 +17,11 @@ export const CATEGORY_IMAGE_MAP: Record<string, string> = {
 
 /** Full-length fashion hero — desktop (wide, shows full dress/saree). */
 export const HERO_DESKTOP_IMAGE =
-  "https://images.unsplash.com/photo-1583391733956-3750e0ff4e8b?auto=format&fit=crop&w=1800&h=1200&q=80&crop=entropy";
+  "https://images.unsplash.com/photo-1610030469983-98e550d6193c?auto=format&fit=crop&w=1800&h=1200&q=80";
 
-/** Portrait hero for mobile (4:5). */
+/** Portrait hero for mobile (2:3, full saree). */
 export const HERO_MOBILE_IMAGE =
-  "https://images.unsplash.com/photo-1490481651871-ab68de25d43d?auto=format&fit=crop&w=800&h=1000&q=80";
+  "https://images.unsplash.com/photo-1694406175780-38470288c925?auto=format&fit=crop&w=800&h=1200&q=80";
 
 export const DEFAULT_SHOP_CATEGORY_SLUGS = [
   "sarees-silk",

@@ -17,6 +17,58 @@ const SECTIONS_KEY = "storefront.sections";
 const SECTIONS_DRAFT_KEY = "storefront.sections.draft";
 const BUSINESS_NAME_KEY = "business.name";
 
+const LEGACY_HERO_IMAGE_IDS = ["photo-1583391733956-3750e0ff4e8b"];
+const LEGACY_MOBILE_IMAGE_IDS = ["photo-1490481651871-ab68de25d43d"];
+
+const HERO_DESKTOP_IMAGE =
+  "https://images.unsplash.com/photo-1610030469983-98e550d6193c?auto=format&fit=crop&w=1800&h=1200&q=80";
+const HERO_MOBILE_IMAGE =
+  "https://images.unsplash.com/photo-1694406175780-38470288c925?auto=format&fit=crop&w=800&h=1200&q=80";
+
+function isLegacyHeroUrl(url: string | undefined): boolean {
+  if (!url) return false;
+  return LEGACY_HERO_IMAGE_IDS.some((id) => url.includes(id));
+}
+
+function normalizeHeroCampaignSection(section: Record<string, unknown>): Record<string, unknown> {
+  if (section.type !== "heroCampaign") return section;
+  const url = String(section.imageUrl ?? "");
+  if (!isLegacyHeroUrl(url)) return section;
+  const mobileUrl = String(section.mobileImageUrl ?? "");
+  const upgradeMobile =
+    !mobileUrl ||
+    LEGACY_MOBILE_IMAGE_IDS.some((id) => mobileUrl.includes(id)) ||
+    isLegacyHeroUrl(mobileUrl);
+  return {
+    ...section,
+    imageUrl: HERO_DESKTOP_IMAGE,
+    mobileImageUrl: upgradeMobile ? HERO_MOBILE_IMAGE : section.mobileImageUrl,
+  };
+}
+
+function normalizeStorefrontHero(
+  hero: Record<string, unknown> | null,
+): Record<string, unknown> | null {
+  if (!hero) return null;
+  const imageUrl = String(hero.imageUrl ?? hero.desktopImageUrl ?? "");
+  if (!isLegacyHeroUrl(imageUrl)) return hero;
+  const mobileUrl = String(hero.mobileImageUrl ?? "");
+  const upgradeMobile =
+    !mobileUrl ||
+    LEGACY_MOBILE_IMAGE_IDS.some((id) => mobileUrl.includes(id)) ||
+    isLegacyHeroUrl(mobileUrl);
+  return {
+    ...hero,
+    imageUrl: HERO_DESKTOP_IMAGE,
+    desktopImageUrl: HERO_DESKTOP_IMAGE,
+    mobileImageUrl: upgradeMobile ? HERO_MOBILE_IMAGE : hero.mobileImageUrl,
+  };
+}
+
+function normalizeStorefrontSections(sections: unknown[]): unknown[] {
+  return sections.map((s) => normalizeHeroCampaignSection(s as Record<string, unknown>));
+}
+
 export const DEFAULT_STOREFRONT_SECTIONS = [
   { type: "announcement" as const, visible: true, order: 0, message: "Free shipping on orders above ₹1,999" },
   {
@@ -27,10 +79,8 @@ export const DEFAULT_STOREFRONT_SECTIONS = [
     subtitle: "Discover fashion for women, men & kids at THARAGAI.",
     ctaHref: "/women",
     ctaLabel: "SHOP WOMEN",
-    imageUrl:
-      "https://images.unsplash.com/photo-1583391733956-3750e0ff4e8b?auto=format&fit=crop&w=1800&h=1200&q=80&crop=entropy",
-    mobileImageUrl:
-      "https://images.unsplash.com/photo-1490481651871-ab68de25d43d?auto=format&fit=crop&w=800&h=1000&q=80",
+    imageUrl: HERO_DESKTOP_IMAGE,
+    mobileImageUrl: HERO_MOBILE_IMAGE,
   },
   {
     type: "shopByCategory" as const,
@@ -189,9 +239,7 @@ export class SettingsService {
               Number((a as { order?: number }).order ?? 0) -
               Number((b as { order?: number }).order ?? 0),
           )
-        : useDraft
-          ? DEFAULT_STOREFRONT_SECTIONS
-          : DEFAULT_STOREFRONT_SECTIONS;
+        : DEFAULT_STOREFRONT_SECTIONS;
     if (useDraft && !hero?.value && !sectionsRow?.value) {
       const [liveHero, liveSections] = await Promise.all([
         this.prisma.systemSetting.findUnique({ where: { key: HERO_KEY } }),
@@ -208,8 +256,8 @@ export class SettingsService {
           : DEFAULT_STOREFRONT_SECTIONS;
       return {
         businessName: (name?.value as string) ?? "Tharagai Readymades",
-        hero: (liveHero?.value as Record<string, unknown> | null) ?? null,
-        sections,
+        hero: normalizeStorefrontHero((liveHero?.value as Record<string, unknown> | null) ?? null),
+        sections: normalizeStorefrontSections(sections),
         hasDraft: false,
         commerce: {
           codEnabled: Boolean(commerce.codEnabled ?? true),
@@ -221,8 +269,8 @@ export class SettingsService {
     }
     return {
       businessName: (name?.value as string) ?? "Tharagai Readymades",
-      hero: (hero?.value as Record<string, unknown> | null) ?? null,
-      sections,
+      hero: normalizeStorefrontHero((hero?.value as Record<string, unknown> | null) ?? null),
+      sections: normalizeStorefrontSections(sections),
       hasDraft: Boolean(draftHero?.value || draftSections?.value),
       commerce: {
         codEnabled: Boolean(commerce.codEnabled ?? true),
