@@ -99,23 +99,6 @@ body {
   transform-style: preserve-3d;
 }
 
-.icon360-coin::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  border-radius: 4px;
-  pointer-events: none;
-  background: linear-gradient(
-    135deg,
-    rgba(255, 248, 220, 0.18) 0%,
-    rgba(255, 255, 255, 0) 38%,
-    rgba(0, 0, 0, 0.04) 100%
-  );
-  mix-blend-mode: soft-light;
-  transform: translateZ(3px);
-  backface-visibility: hidden;
-}
-
 .icon360-face {
   position: absolute;
   inset: 0;

@@ -27,7 +27,7 @@ const VARIANTS: Record<
     src: "/logo-mark.png",
     srcSet: "/logo-mark.png 1x, /logo-mark@2x.png 2x",
     sizes: "(min-width: 768px) 120px, 72px",
-    className: "h-[3.5rem] w-auto aspect-[512/340] sm:h-[4rem] md:h-[4.75rem]",
+    className: "h-[3.5rem] w-auto aspect-[495/512] sm:h-[4rem] md:h-[4.75rem]",
     width: 180,
     height: 72,
     spin: true,
