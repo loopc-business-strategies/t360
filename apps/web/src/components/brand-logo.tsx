@@ -16,6 +16,7 @@ const VARIANTS: Record<
   {
     src: string;
     srcSet: string;
+    sizes?: string;
     className: string;
     width: number;
     height: number;
@@ -25,7 +26,8 @@ const VARIANTS: Record<
   icon360: {
     src: "/logo-mark.png",
     srcSet: "/logo-mark.png 1x, /logo-mark@2x.png 2x",
-    className: "h-[3.25rem] w-auto aspect-[512/426] sm:h-[3.75rem] md:h-[4.5rem]",
+    sizes: "(min-width: 768px) 120px, 72px",
+    className: "h-[3.5rem] w-auto aspect-[512/340] sm:h-[4rem] md:h-[4.75rem]",
     width: 180,
     height: 72,
     spin: true,
@@ -65,6 +67,7 @@ function LogoImg({
     <img
       src={config.src}
       srcSet={config.srcSet}
+      sizes={config.sizes}
       alt={alt}
       width={config.width}
       height={config.height}

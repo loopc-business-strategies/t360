@@ -11,6 +11,10 @@ MOBILE_LOGO = ROOT.parent / "mobile" / "assets" / "branding" / "tharagai_logo.pn
 CURSOR_UPLOADS = [
     Path(
         r"C:\Users\USER\.cursor\projects\c-Users-USER-Desktop-t360\assets"
+        r"\c__Users_USER_AppData_Roaming_Cursor_User_workspaceStorage_8323a401266c71e73997a3e0239e9d48_images_image-086ba9f6-c1c8-4d5d-bd22-f94cb70c1b14.png"
+    ),
+    Path(
+        r"C:\Users\USER\.cursor\projects\c-Users-USER-Desktop-t360\assets"
         r"\c__Users_USER_AppData_Roaming_Cursor_User_workspaceStorage_8323a401266c71e73997a3e0239e9d48_images_image-ad5f130b-7f59-4095-9876-b2485ed4b947.png"
     ),
     Path(
@@ -57,16 +61,18 @@ def _make_transparent(img: Image.Image, threshold: int = 245) -> Image.Image:
 def _crop_mark(img: Image.Image) -> Image.Image:
     iw, ih = img.size
     top = int(ih * 0.02)
-    bottom = int(ih * 0.72)
+    bottom = int(ih * 0.58)
     left = int(iw * 0.08)
     right = int(iw * 0.92)
     return img.crop((left, top, right, bottom))
 
 
-def _resize(img: Image.Image, max_side: int) -> Image.Image:
-    copy = img.copy()
-    copy.thumbnail((max_side, max_side), Image.Resampling.LANCZOS)
-    return copy
+def _resize_long_edge(img: Image.Image, long_edge: int) -> Image.Image:
+    w, h = img.size
+    scale = long_edge / max(w, h)
+    new_w = max(1, int(w * scale))
+    new_h = max(1, int(h * scale))
+    return img.resize((new_w, new_h), Image.Resampling.LANCZOS)
 
 
 def _save_png(img: Image.Image, path: Path) -> None:
@@ -80,11 +86,11 @@ def main() -> None:
     transparent_full = _make_transparent(source)
     mark = _crop_mark(transparent_full)
 
-    _save_png(_resize(mark, MARK_1X), PUBLIC / "logo-mark.png")
-    _save_png(_resize(mark, MARK_2X), PUBLIC / "logo-mark@2x.png")
-    _save_png(_resize(transparent_full, FULL_1X), PUBLIC / "logo-full-transparent.png")
-    _save_png(_resize(transparent_full, FULL_2X), PUBLIC / "logo-full-transparent@2x.png")
-    _save_png(_resize(transparent_full, FULL_1X), PUBLIC / "logo.png")
+    _save_png(_resize_long_edge(mark, MARK_1X), PUBLIC / "logo-mark.png")
+    _save_png(_resize_long_edge(mark, MARK_2X), PUBLIC / "logo-mark@2x.png")
+    _save_png(_resize_long_edge(transparent_full, FULL_1X), PUBLIC / "logo-full-transparent.png")
+    _save_png(_resize_long_edge(transparent_full, FULL_2X), PUBLIC / "logo-full-transparent@2x.png")
+    _save_png(_resize_long_edge(transparent_full, FULL_1X), PUBLIC / "logo.png")
     print("web branding complete")
 
 

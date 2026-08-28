@@ -90,12 +90,13 @@ body {
 .icon360-spin-wrap {
   perspective: 1200px;
   perspective-origin: center center;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.22))
+    drop-shadow(0 6px 14px rgba(184, 149, 42, 0.32));
 }
 
 .icon360-coin {
-  animation: icon360-spin 24s linear infinite;
+  animation: icon360-spin 16s linear infinite;
   transform-style: preserve-3d;
-  will-change: transform;
 }
 
 .icon360-coin::after {
@@ -106,9 +107,9 @@ body {
   pointer-events: none;
   background: linear-gradient(
     135deg,
-    rgba(255, 248, 220, 0.45) 0%,
+    rgba(255, 248, 220, 0.18) 0%,
     rgba(255, 255, 255, 0) 38%,
-    rgba(0, 0, 0, 0.08) 100%
+    rgba(0, 0, 0, 0.04) 100%
   );
   mix-blend-mode: soft-light;
   transform: translateZ(3px);
@@ -119,22 +120,17 @@ body {
   position: absolute;
   inset: 0;
   backface-visibility: hidden;
-  filter: contrast(1.05) saturate(1.1)
-    drop-shadow(0 2px 4px rgba(0, 0, 0, 0.28))
-    drop-shadow(0 8px 18px rgba(184, 149, 42, 0.42))
-    drop-shadow(0 14px 28px rgba(120, 90, 20, 0.22));
 }
 
 .icon360-face-front {
-  transform: translateZ(2px);
+  transform: translate3d(0, 0, 2px);
 }
 
 .icon360-face-back {
-  transform: rotateY(180deg) translateZ(2px);
+  transform: rotateY(180deg) translate3d(0, 0, 2px);
 }
 
 .icon360-face-static {
-  filter: contrast(1.05) saturate(1.1)
-    drop-shadow(0 2px 4px rgba(0, 0, 0, 0.28))
-    drop-shadow(0 8px 18px rgba(184, 149, 42, 0.42));
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.22))
+    drop-shadow(0 6px 14px rgba(184, 149, 42, 0.32));
 }
