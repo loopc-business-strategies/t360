@@ -45,10 +45,11 @@ test.describe("web smoke", () => {
 
   test("shop by category tiles show images", async ({ page }) => {
     await page.goto("/");
-    const section = page.getByRole("heading", { name: /shop by category/i });
+    const section = page.locator("section").filter({
+      has: page.getByRole("heading", { name: /shop by category/i }),
+    });
     await expect(section).toBeVisible({ timeout: 15000 });
-    const grid = section.locator("xpath=../..");
-    const images = grid.locator("img[src*='unsplash'], img[src*='images.']");
+    const images = section.locator("img");
     await expect(images).toHaveCount(8, { timeout: 15000 });
     await expect(images.first()).toBeVisible();
   });
@@ -65,5 +66,26 @@ test.describe("web smoke", () => {
     if ((await emailInput.count()) > 0) {
       await expect(emailInput).not.toBeDisabled();
     }
+  });
+
+  test("header logo is static (no spin animation)", async ({ page }) => {
+    await page.goto("/");
+    const header = page.locator("header");
+    await expect(header).toBeVisible();
+    const logo = header.locator('img[src*="logo-mark"]');
+    await expect(logo.first()).toBeVisible();
+    const animation = await logo.first().evaluate((el) => {
+      const coin = el.closest(".icon360-coin");
+      if (!coin) return "none";
+      return getComputedStyle(coin).animationName;
+    });
+    expect(animation === "none" || animation === "").toBeTruthy();
+  });
+
+  test("homepage includes recommendations section", async ({ page }) => {
+    await page.goto("/");
+    await expect(
+      page.getByRole("heading", { name: /you may also like/i }),
+    ).toBeVisible({ timeout: 15000 });
   });
 });

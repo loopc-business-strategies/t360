@@ -36,6 +36,9 @@ export type ProductListItem = {
   brand?: { name: string; slug?: string } | null;
   category?: { name: string; slug: string };
   tryOnEnabled?: boolean;
+  isNew?: boolean;
+  isBestseller?: boolean;
+  isTrending?: boolean;
   averageRating?: number | null;
   reviewCount?: number;
   images?: Array<{
@@ -165,7 +168,8 @@ export type StorefrontSection =
       youtubeUrl?: string;
     }
   | { type: "reviewsHighlight"; visible: boolean; order: number; title?: string }
-  | { type: "completeTheLook"; visible: boolean; order: number; title?: string };
+  | { type: "completeTheLook"; visible: boolean; order: number; title?: string }
+  | { type: "recommendations"; visible: boolean; order: number; title?: string };
 
 export type CollectionItem = {
   id: string;

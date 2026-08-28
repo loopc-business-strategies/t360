@@ -16,6 +16,8 @@ export type RenderImageProps = {
 
 export type RenderImage = (props: RenderImageProps) => React.ReactNode;
 
+export type ProductCardBadge = "new" | "sale" | "bestseller" | "trending";
+
 export interface ProductCardProps {
   name: string;
   brand?: string;
@@ -35,6 +37,7 @@ export interface ProductCardProps {
   wishlistLabel?: string;
   onWishlistToggle?: () => void;
   saleBadgeLabel?: string;
+  badges?: ProductCardBadge[];
   colorCount?: number;
   showActions?: boolean;
   className?: string;
@@ -81,6 +84,7 @@ export function ProductCard({
   wishlistLabel = "Save",
   onWishlistToggle,
   saleBadgeLabel = "Sale",
+  badges = [],
   colorCount,
   showActions = true,
   className,
@@ -92,6 +96,17 @@ export function ProductCard({
     onSale && compareAt
       ? Math.max(1, Math.round(((compareAt - price) / compareAt) * 100))
       : null;
+
+  const badgeLabels: Record<ProductCardBadge, string> = {
+    new: "New",
+    sale: salePct != null ? `${salePct}% off` : saleBadgeLabel,
+    bestseller: "Bestseller",
+    trending: "Trending",
+  };
+
+  const visibleBadges = badges.filter((b) => b !== "sale" || onSale);
+  const topLeftBadge = visibleBadges[0];
+  const extraBadges = visibleBadges.slice(1, 3);
 
   return (
     <article
@@ -123,10 +138,27 @@ export function ProductCard({
             className="absolute inset-0 h-full w-full object-cover opacity-0 transition duration-500 ease-out group-hover:scale-[1.06] group-hover:opacity-100"
           />
         ) : null}
-        {onSale ? (
-          <span className="absolute left-3 top-3 rounded-sm bg-wine px-2 py-0.5 text-[10px] font-medium uppercase tracking-wider text-elevated">
-            {salePct != null ? `${salePct}% off` : saleBadgeLabel}
+        {topLeftBadge ? (
+          <span
+            className={cn(
+              "absolute left-3 top-3 rounded-sm px-2 py-0.5 text-[10px] font-medium uppercase tracking-wider text-elevated",
+              topLeftBadge === "sale" ? "bg-wine" : "bg-ink/85",
+            )}
+          >
+            {badgeLabels[topLeftBadge]}
           </span>
+        ) : null}
+        {extraBadges.length ? (
+          <div className="absolute left-3 top-10 flex flex-col gap-1">
+            {extraBadges.map((badge) => (
+              <span
+                key={badge}
+                className="rounded-sm bg-ink/85 px-2 py-0.5 text-[10px] font-medium uppercase tracking-wider text-elevated"
+              >
+                {badgeLabels[badge]}
+              </span>
+            ))}
+          </div>
         ) : null}
         {tryOnEnabled ? (
           <div className="absolute bottom-3 left-3 sm:opacity-0 sm:transition sm:group-hover:opacity-100">

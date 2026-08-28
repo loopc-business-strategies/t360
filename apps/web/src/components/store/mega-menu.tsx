@@ -3,26 +3,16 @@
 import * as React from "react";
 import Link from "next/link";
 import type { CategoryNode, CollectionItem } from "../../lib/catalog-api";
+import {
+  KIDS_MENU_GROUPS,
+  MEN_MENU_GROUPS,
+  WOMEN_MENU_GROUPS,
+  findCategory,
+  resolveGroupLinks,
+  type MenuGroup,
+} from "./mega-menu-groups";
 
 export type MegaPanelId = "new" | "men" | "women" | "kids" | "other" | "collections" | "sale";
-
-function findCategory(categories: CategoryNode[], slug: string): CategoryNode | null {
-  for (const c of categories) {
-    if (c.slug === slug) return c;
-    if (c.children?.length) {
-      const hit = findCategory(c.children, slug);
-      if (hit) return hit;
-    }
-  }
-  return null;
-}
-
-function leafHref(gender: string, child: CategoryNode) {
-  const suffix = child.slug.startsWith(`${gender}-`)
-    ? child.slug.slice(gender.length + 1)
-    : child.slug;
-  return `/${gender}/${suffix}`;
-}
 
 function FeaturedColumn({ gender, onClose }: { gender: string; onClose: () => void }) {
   const links = [
@@ -47,68 +37,65 @@ function FeaturedColumn({ gender, onClose }: { gender: string; onClose: () => vo
   );
 }
 
-function GenderPanel({
+function MenuGroupColumn({
+  group,
+  categories,
+  onClose,
+}: {
+  group: MenuGroup;
+  categories: CategoryNode[];
+  onClose: () => void;
+}) {
+  const links = resolveGroupLinks(categories, group);
+  if (!links.length) return null;
+
+  return (
+    <div>
+      <p className="text-xs font-medium uppercase tracking-wider text-muted">{group.title}</p>
+      <ul className="mt-3 space-y-2">
+        {links.map((link) => (
+          <li key={link.href}>
+            <Link href={link.href} className="text-sm text-muted hover:text-wine" onClick={onClose}>
+              {link.label}
+            </Link>
+          </li>
+        ))}
+        {group.shopAllHref ? (
+          <li>
+            <Link
+              href={group.shopAllHref}
+              className="text-sm font-medium text-wine hover:underline"
+              onClick={onClose}
+            >
+              Shop all →
+            </Link>
+          </li>
+        ) : null}
+      </ul>
+    </div>
+  );
+}
+
+function GroupedGenderPanel({
   gender,
   label,
+  groups,
   categories,
   onClose,
 }: {
   gender: "men" | "women" | "kids";
   label: string;
+  groups: MenuGroup[];
   categories: CategoryNode[];
   onClose: () => void;
 }) {
-  const cat = findCategory(categories, gender);
-  const children = (cat?.children ?? []).filter(
-    (child) => child.slug.startsWith(`${gender}-`),
-  );
-  const mid = Math.ceil(children.length / 2);
-  const colA = children.slice(0, mid);
-  const colB = children.slice(mid);
-
   return (
-    <div className="mx-auto grid max-w-content gap-8 px-6 py-8 sm:grid-cols-2 lg:grid-cols-4">
+    <div className="mx-auto grid max-w-content gap-8 px-6 py-8 sm:grid-cols-2 lg:grid-cols-5">
       <FeaturedColumn gender={gender} onClose={onClose} />
-      <div>
-        <p className="text-xs font-medium uppercase tracking-wider text-muted">Clothing</p>
-        <ul className="mt-3 space-y-2">
-          {colA.map((child) => (
-            <li key={child.id}>
-              <Link
-                href={leafHref(gender, child)}
-                className="text-sm text-muted hover:text-wine"
-                onClick={onClose}
-              >
-                {child.name}
-              </Link>
-            </li>
-          ))}
-          {!colA.length ? (
-            <li>
-              <Link href={`/${gender}`} className="text-sm text-muted hover:text-wine" onClick={onClose}>
-                Shop all {label}
-              </Link>
-            </li>
-          ) : null}
-        </ul>
-      </div>
-      <div>
-        <p className="text-xs font-medium uppercase tracking-wider text-muted">More styles</p>
-        <ul className="mt-3 space-y-2">
-          {colB.map((child) => (
-            <li key={child.id}>
-              <Link
-                href={leafHref(gender, child)}
-                className="text-sm text-muted hover:text-wine"
-                onClick={onClose}
-              >
-                {child.name}
-              </Link>
-            </li>
-          ))}
-        </ul>
-      </div>
-      <div className="rounded-md bg-linen/80 p-5">
+      {groups.map((group) => (
+        <MenuGroupColumn key={group.title} group={group} categories={categories} onClose={onClose} />
+      ))}
+      <div className="rounded-md bg-linen/80 p-5 sm:col-span-2 lg:col-span-1">
         <p className="font-display text-lg text-ink">Shop {label}</p>
         <p className="mt-2 text-sm text-muted">Explore the full {label.toLowerCase()} edit.</p>
         <Link
@@ -228,13 +215,31 @@ export function MegaMenu({
       ) : null}
 
       {panel === "men" ? (
-        <GenderPanel gender="men" label="Men" categories={categories} onClose={onClose} />
+        <GroupedGenderPanel
+          gender="men"
+          label="Men"
+          groups={MEN_MENU_GROUPS}
+          categories={categories}
+          onClose={onClose}
+        />
       ) : null}
       {panel === "women" ? (
-        <GenderPanel gender="women" label="Women" categories={categories} onClose={onClose} />
+        <GroupedGenderPanel
+          gender="women"
+          label="Women"
+          groups={WOMEN_MENU_GROUPS}
+          categories={categories}
+          onClose={onClose}
+        />
       ) : null}
       {panel === "kids" ? (
-        <GenderPanel gender="kids" label="Kids" categories={categories} onClose={onClose} />
+        <GroupedGenderPanel
+          gender="kids"
+          label="Kids"
+          groups={KIDS_MENU_GROUPS}
+          categories={categories}
+          onClose={onClose}
+        />
       ) : null}
 
       {panel === "other" ? (

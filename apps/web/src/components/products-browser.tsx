@@ -46,6 +46,10 @@ export function ProductsBrowser({
   const [inStockOnly, setInStockOnly] = React.useState(initialParams.availability === "in_stock");
   const [tryOnOnly, setTryOnOnly] = React.useState(initialParams.tryOnEnabled === "true");
   const [collection, setCollection] = React.useState(initialParams.collection ?? "");
+  const [fabric, setFabric] = React.useState(initialParams.fabric ?? "");
+  const [occasion, setOccasion] = React.useState(initialParams.occasion ?? "");
+  const [pattern, setPattern] = React.useState(initialParams.pattern ?? "");
+  const [minRating, setMinRating] = React.useState(initialParams.minRating ?? "");
   const [quickView, setQuickView] = React.useState<ProductListItem | null>(null);
   const [page, setPage] = React.useState(Number(initialParams.page ?? initialMeta?.page ?? 1));
   const [products, setProducts] = React.useState(initialProducts);
@@ -70,6 +74,169 @@ export function ProductsBrowser({
 
   const catOptions = flattenCategories(categories);
 
+  const filterFields = (
+    <>
+      <Input label={t.search} value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search sarees, kurtis, shirts…" />
+      <Select
+        label={t.sort}
+        value={sort}
+        onValueChange={setSort}
+        options={[
+          { value: "newest", label: t.sortNewest },
+          { value: "relevance", label: t.sortRelevance },
+          { value: "featured", label: "Featured" },
+          { value: "trending", label: "Trending" },
+          { value: "rating", label: "Top rated" },
+          { value: "bestselling", label: "Best selling" },
+          { value: "price_asc", label: t.sortPriceAsc },
+          { value: "price_desc", label: t.sortPriceDesc },
+        ]}
+      />
+      {collections.length ? (
+        <Select
+          label="Collection"
+          value={collection || "__"}
+          onValueChange={(v) => setCollection(v === "__" ? "" : v)}
+          options={[
+            { value: "__", label: "—" },
+            ...collections.map((c) => ({ value: c.slug, label: c.name })),
+          ]}
+        />
+      ) : null}
+      <Select
+        label={t.category}
+        value={category || "__"}
+        onValueChange={(v) => setCategory(v === "__" ? "" : v)}
+        options={[
+          { value: "__", label: "—" },
+          ...catOptions.map((c) => ({ value: c.slug, label: c.name })),
+        ]}
+      />
+      <Select
+        label={t.brandLabel}
+        value={brand || "__"}
+        onValueChange={(v) => setBrand(v === "__" ? "" : v)}
+        options={[
+          { value: "__", label: "—" },
+          ...brands.map((b) => ({ value: b.slug, label: b.name })),
+        ]}
+      />
+      <Input label={t.size} value={size} onChange={(e) => setSize(e.target.value)} />
+      <Input label={t.colour} value={colour} onChange={(e) => setColour(e.target.value)} />
+      <Select
+        label="Fabric"
+        value={fabric || "__"}
+        onValueChange={(v) => setFabric(v === "__" ? "" : v)}
+        options={[
+          { value: "__", label: "—" },
+          { value: "cotton", label: "Cotton" },
+          { value: "silk", label: "Silk" },
+          { value: "linen", label: "Linen" },
+          { value: "georgette", label: "Georgette" },
+          { value: "denim", label: "Denim" },
+          { value: "polyester", label: "Polyester" },
+        ]}
+      />
+      <Select
+        label="Occasion"
+        value={occasion || "__"}
+        onValueChange={(v) => setOccasion(v === "__" ? "" : v)}
+        options={[
+          { value: "__", label: "—" },
+          { value: "wedding", label: "Wedding" },
+          { value: "festival", label: "Festival" },
+          { value: "party", label: "Party" },
+          { value: "everyday", label: "Everyday" },
+          { value: "office", label: "Office" },
+        ]}
+      />
+      <Select
+        label="Pattern"
+        value={pattern || "__"}
+        onValueChange={(v) => setPattern(v === "__" ? "" : v)}
+        options={[
+          { value: "__", label: "—" },
+          { value: "solid", label: "Solid" },
+          { value: "printed", label: "Printed" },
+          { value: "embroidered", label: "Embroidered" },
+          { value: "checked", label: "Checked" },
+        ]}
+      />
+      <Select
+        label="Minimum rating"
+        value={minRating || "__"}
+        onValueChange={(v) => setMinRating(v === "__" ? "" : v)}
+        options={[
+          { value: "__", label: "—" },
+          { value: "4", label: "4★ & up" },
+          { value: "3", label: "3★ & up" },
+        ]}
+      />
+      <Input
+        label={t.minPrice}
+        type="number"
+        value={minPrice}
+        onChange={(e) => setMinPrice(e.target.value)}
+      />
+      <Input
+        label={t.maxPrice}
+        type="number"
+        value={maxPrice}
+        onChange={(e) => setMaxPrice(e.target.value)}
+      />
+      <label className="flex items-center gap-2 text-sm">
+        <input
+          type="checkbox"
+          checked={inStockOnly}
+          onChange={(e) => setInStockOnly(e.target.checked)}
+        />
+        {t.inStockOnly}
+      </label>
+      <label className="flex items-center gap-2 text-sm">
+        <input type="checkbox" checked={tryOnOnly} onChange={(e) => setTryOnOnly(e.target.checked)} />
+        {t.tryMeFilter ?? "TRY ME available"}
+      </label>
+    </>
+  );
+
+  function clearFilters() {
+    setQ("");
+    setCategory("");
+    setBrand("");
+    setSize("");
+    setColour("");
+    setFabric("");
+    setOccasion("");
+    setPattern("");
+    setMinRating("");
+    setMinPrice("");
+    setMaxPrice("");
+    setInStockOnly(false);
+    setTryOnOnly(false);
+    setCollection("");
+    setSort("newest");
+    void runSearch(
+      {
+        q: "",
+        category: "",
+        brand: "",
+        collection: "",
+        size: "",
+        colour: "",
+        fabric: "",
+        occasion: "",
+        pattern: "",
+        minRating: "",
+        minPrice: "",
+        maxPrice: "",
+        availability: "",
+        tryOnEnabled: "",
+        sort: "newest",
+      },
+      1,
+    );
+  }
+
   async function runSearch(overrides: Record<string, string> = {}, nextPage = page) {
     const seq = ++requestSeq.current;
     setLoading(true);
@@ -87,6 +254,10 @@ export function ProductsBrowser({
       if (inStockOnly) params.set("availability", "in_stock");
       if (tryOnOnly) params.set("tryOnEnabled", "true");
       if (collection) params.set("collection", collection);
+      if (fabric) params.set("fabric", fabric);
+      if (occasion) params.set("occasion", occasion);
+      if (pattern) params.set("pattern", pattern);
+      if (minRating) params.set("minRating", minRating);
       if (initialParams.isNew) params.set("isNew", initialParams.isNew);
       if (initialParams.isBestseller) params.set("isBestseller", initialParams.isBestseller);
       if (initialParams.isTrending) params.set("isTrending", initialParams.isTrending);
@@ -125,7 +296,7 @@ export function ProductsBrowser({
 
       <Drawer open={filtersOpen} onOpenChange={setFiltersOpen} title={t.filters}>
         <div className="space-y-4 p-4">
-          <p className="text-sm text-muted">Use filters on desktop sidebar or apply here.</p>
+          {filterFields}
           <Button type="button" onClick={() => { void runSearch({}, 1); setFiltersOpen(false); }}>
             {t.applyFilters}
           </Button>
@@ -140,107 +311,9 @@ export function ProductsBrowser({
           clearLabel={t.clearFilters}
           loading={loading}
           onApply={() => void runSearch({}, 1)}
-          onClear={() => {
-            setQ("");
-            setCategory("");
-            setBrand("");
-            setSize("");
-            setColour("");
-            setMinPrice("");
-            setMaxPrice("");
-            setInStockOnly(false);
-            setTryOnOnly(false);
-            setCollection("");
-            setSort("newest");
-            void runSearch(
-              {
-                q: "",
-                category: "",
-                brand: "",
-                collection: "",
-                size: "",
-                colour: "",
-                minPrice: "",
-                maxPrice: "",
-                availability: "",
-                tryOnEnabled: "",
-                sort: "newest",
-              },
-              1,
-            );
-          }}
+          onClear={clearFilters}
         >
-          <Input label={t.search} value={q} onChange={(e) => setQ(e.target.value)} />
-          <Select
-            label={t.sort}
-            value={sort}
-            onValueChange={setSort}
-            options={[
-              { value: "newest", label: t.sortNewest },
-              { value: "relevance", label: t.sortRelevance },
-              { value: "featured", label: "Featured" },
-              { value: "trending", label: "Trending" },
-              { value: "rating", label: "Top rated" },
-              { value: "bestselling", label: "Best selling" },
-              { value: "price_asc", label: t.sortPriceAsc },
-              { value: "price_desc", label: t.sortPriceDesc },
-            ]}
-          />
-          {collections.length ? (
-            <Select
-              label="Collection"
-              value={collection || "__"}
-              onValueChange={(v) => setCollection(v === "__" ? "" : v)}
-              options={[
-                { value: "__", label: "—" },
-                ...collections.map((c) => ({ value: c.slug, label: c.name })),
-              ]}
-            />
-          ) : null}
-          <Select
-            label={t.category}
-            value={category || "__"}
-            onValueChange={(v) => setCategory(v === "__" ? "" : v)}
-            options={[
-              { value: "__", label: "—" },
-              ...catOptions.map((c) => ({ value: c.slug, label: c.name })),
-            ]}
-          />
-          <Select
-            label={t.brandLabel}
-            value={brand || "__"}
-            onValueChange={(v) => setBrand(v === "__" ? "" : v)}
-            options={[
-              { value: "__", label: "—" },
-              ...brands.map((b) => ({ value: b.slug, label: b.name })),
-            ]}
-          />
-          <Input label={t.size} value={size} onChange={(e) => setSize(e.target.value)} />
-          <Input label={t.colour} value={colour} onChange={(e) => setColour(e.target.value)} />
-          <Input
-            label={t.minPrice}
-            type="number"
-            value={minPrice}
-            onChange={(e) => setMinPrice(e.target.value)}
-          />
-          <Input
-            label={t.maxPrice}
-            type="number"
-            value={maxPrice}
-            onChange={(e) => setMaxPrice(e.target.value)}
-          />
-          <label className="flex items-center gap-2 text-sm">
-            <input
-              type="checkbox"
-              checked={inStockOnly}
-              onChange={(e) => setInStockOnly(e.target.checked)}
-            />
-            {t.inStockOnly}
-          </label>
-          <label className="flex items-center gap-2 text-sm">
-            <input type="checkbox" checked={tryOnOnly} onChange={(e) => setTryOnOnly(e.target.checked)} />
-            {t.tryMeFilter ?? "TRY ME available"}
-          </label>
+          {filterFields}
         </FilterSidebar>
         </div>
 

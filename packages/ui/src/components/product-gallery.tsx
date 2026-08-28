@@ -62,6 +62,7 @@ export function ProductGallery({
   const [index, setIndex] = React.useState(0);
   const [videoFailed, setVideoFailed] = React.useState(false);
   const [mainFailed, setMainFailed] = React.useState(false);
+  const touchStartX = React.useRef<number | null>(null);
   const current = unique[index] ?? unique[0];
   const MainImg = renderImage ?? DefaultImg;
   const ThumbImg = renderThumbImage ?? renderImage ?? DefaultImg;
@@ -84,7 +85,22 @@ export function ProductGallery({
 
   return (
     <div className={cn("grid gap-3", className)}>
-      <div className="relative aspect-[4/5] min-h-[12rem] overflow-hidden rounded-lg bg-linen">
+      <div
+        className="relative aspect-[4/5] min-h-[12rem] overflow-hidden rounded-lg bg-linen"
+        onTouchStart={(e) => {
+          touchStartX.current = e.changedTouches[0]?.clientX ?? null;
+        }}
+        onTouchEnd={(e) => {
+          const start = touchStartX.current;
+          touchStartX.current = null;
+          if (start == null || unique.length < 2) return;
+          const end = e.changedTouches[0]?.clientX ?? start;
+          const delta = end - start;
+          if (Math.abs(delta) < 40) return;
+          if (delta < 0) setIndex((i) => Math.min(i + 1, unique.length - 1));
+          else setIndex((i) => Math.max(i - 1, 0));
+        }}
+      >
         {isVideo ? (
           <video
             key={current.src}

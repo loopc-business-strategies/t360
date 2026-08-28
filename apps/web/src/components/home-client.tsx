@@ -22,6 +22,7 @@ import {
   EnhancedTryMePromo,
   HeroCampaignSection,
   NewsletterSection,
+  RecommendationsSection,
   ReviewsHighlightSection,
   ShopByCategorySection,
   ShopByOccasionSection,
@@ -379,6 +380,14 @@ export function HomeClient({
           <CompleteTheLookSection
             key={`ctl-${index}`}
             section={section as Extract<StorefrontSection, { type: "completeTheLook" }>}
+            reduceMotion={reduceMotion}
+          />
+        );
+      case "recommendations":
+        return (
+          <RecommendationsSection
+            key={`reco-${index}`}
+            section={section as Extract<StorefrontSection, { type: "recommendations" }>}
             reduceMotion={reduceMotion}
           />
         );

@@ -15,8 +15,10 @@ const POPULAR = [
   "T-Shirts",
   "Kids Wear",
   "saree",
-  "chudidar",
   "selai",
+  "சேலை",
+  "chudidar",
+  "சுடிதார்",
 ];
 
 function loadRecent(): string[] {

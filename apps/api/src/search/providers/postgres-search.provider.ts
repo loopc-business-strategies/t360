@@ -109,6 +109,29 @@ export class PostgresSearchProvider implements SearchProvider {
       );
     }
 
+    const attributeFilter = (code: string, value: string | undefined) => {
+      if (!value?.trim()) return;
+      params.push(code, value.trim().toLowerCase());
+      where.push(`EXISTS (
+        SELECT 1 FROM "ProductAttributeValue" pav
+        JOIN "AttributeDefinition" ad ON ad.id = pav."attributeId"
+        WHERE pav."productId" = p.id
+          AND ad.code = $${params.length - 1}
+          AND LOWER(pav.value) = $${params.length}
+      )`);
+    };
+    attributeFilter("fabric", query.fabric);
+    attributeFilter("occasion", query.occasion);
+    attributeFilter("pattern", query.pattern);
+
+    if (query.minRating != null) {
+      params.push(query.minRating);
+      where.push(`(
+        SELECT COALESCE(AVG(r.rating), 0) FROM "ProductReview" r
+        WHERE r."productId" = p.id AND r.status = 'approved'
+      ) >= $${params.length}`);
+    }
+
     // Hide demo catalog in production unless explicitly enabled
     const includeDemo =
       process.env.DEMO_CATALOG_ENABLED === "true" || process.env.NODE_ENV !== "production";

@@ -228,7 +228,16 @@ async function main() {
   }
 
   const email = process.env.SEED_ADMIN_EMAIL ?? "owner@tharagai.local";
-  const password = process.env.SEED_ADMIN_PASSWORD ?? "TharagaiOwner!123";
+  const isProduction = process.env.NODE_ENV === "production";
+  const defaultPassword = "TharagaiOwner!123";
+  const password = process.env.SEED_ADMIN_PASSWORD ?? (isProduction ? "" : defaultPassword);
+
+  if (isProduction && !password) {
+    throw new Error(
+      "SEED_ADMIN_PASSWORD is required in production. Refusing to seed with a default admin password.",
+    );
+  }
+
   const passwordHash = await argon2.hash(password);
 
   const user = await prisma.user.upsert({
@@ -274,6 +283,9 @@ async function main() {
     ["business.currency", "INR"],
     ["business.language", "en"],
     ["media.maxUploadBytes", 12_000_000],
+    ["social.instagram", process.env.SEED_SOCIAL_INSTAGRAM ?? ""],
+    ["social.facebook", process.env.SEED_SOCIAL_FACEBOOK ?? ""],
+    ["social.youtube", process.env.SEED_SOCIAL_YOUTUBE ?? ""],
   ] as const) {
     await prisma.systemSetting.upsert({
       where: { key },
@@ -281,6 +293,19 @@ async function main() {
       update: {},
     });
   }
+
+  await prisma.branch.upsert({
+    where: { code: "PDK01" },
+    create: {
+      code: "PDK01",
+      name: "Tharagai Pudukkottai",
+      address: "Pudukkottai, Tamil Nadu, India",
+      phone: "+914322000000",
+      hours: { monFri: "10:00-21:00", satSun: "10:00-22:00" },
+      status: "active",
+    },
+    update: { status: "active", deletedAt: null, name: "Tharagai Pudukkottai" },
+  });
 
   await prisma.systemSetting.upsert({
     where: { key: "storefront.hero" },
@@ -642,21 +667,51 @@ async function main() {
     where: { term: "saree" },
     create: {
       term: "saree",
-      aliases: ["sari", "புடவை", "pudavai"],
+      aliases: ["sari", "selai", "சேலை", "pudavai", "புடவை"],
       locale: "en",
       active: true,
     },
-    update: { aliases: ["sari", "புடவை", "pudavai"], active: true },
+    update: { aliases: ["sari", "selai", "சேலை", "pudavai", "புடவை"], active: true },
+  });
+  await prisma.searchSynonym.upsert({
+    where: { term: "chudidar" },
+    create: {
+      term: "chudidar",
+      aliases: ["chudi", "churidar", "சுடிதார்", "salwar"],
+      locale: "en",
+      active: true,
+    },
+    update: { aliases: ["chudi", "churidar", "சுடிதார்", "salwar"], active: true },
+  });
+  await prisma.searchSynonym.upsert({
+    where: { term: "kurti" },
+    create: {
+      term: "kurti",
+      aliases: ["kurthi", "குர்த்தி", "kurtis"],
+      locale: "en",
+      active: true,
+    },
+    update: { aliases: ["kurthi", "குர்த்தி", "kurtis"], active: true },
   });
   await prisma.searchSynonym.upsert({
     where: { term: "shirt" },
     create: {
       term: "shirt",
-      aliases: ["shirts", "சட்டை"],
+      aliases: ["shirts", "சட்டை", "formal shirt", "casual shirt"],
       locale: "en",
       active: true,
     },
-    update: { aliases: ["shirts", "சட்டை"], active: true },
+    update: { aliases: ["shirts", "சட்டை", "formal shirt", "casual shirt"], active: true },
+  });
+  await prisma.searchSynonym.upsert({
+    where: { term: "kids wear" },
+    create: {
+      term: "kids wear",
+      aliases: ["kids", "children", "boys", "girls", "குழந்தை"],
+      locale: "en",
+      active: true,
+    },
+    update: { aliases: ["kids", "children", "boys", "girls", "குழந்தை"], active: true },
   });
 
   const { seedDemoCatalog } = await import("../../apps/api/src/demo-data/engine/seed");
@@ -668,7 +723,9 @@ async function main() {
 
   console.log("Seed complete.");
   console.log(`SuperAdmin: ${email}`);
-  console.log(`Password: ${password} (local/dev only — change in production)`);
+  if (!isProduction) {
+    console.log("Password: (dev seed — set SEED_ADMIN_PASSWORD and change before production)");
+  }
 }
 
 main()

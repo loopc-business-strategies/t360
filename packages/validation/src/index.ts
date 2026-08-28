@@ -158,6 +158,10 @@ export const productListQuerySchema = z.object({
   isTrending: z.coerce.boolean().optional(),
   isFeatured: z.coerce.boolean().optional(),
   onSale: z.coerce.boolean().optional(),
+  fabric: z.string().optional(),
+  occasion: z.string().optional(),
+  pattern: z.string().optional(),
+  minRating: z.coerce.number().min(1).max(5).optional(),
 });
 
 export const collectionCreateSchema = z.object({

@@ -9,6 +9,8 @@ type BrandLogoProps = {
   variant: BrandLogoVariant;
   alt: string;
   className?: string;
+  /** Enable 3D spin animation for icon360 (splash/loading only — header stays static). */
+  spin?: boolean;
 };
 
 const VARIANTS: Record<
@@ -20,7 +22,6 @@ const VARIANTS: Record<
     className: string;
     width: number;
     height: number;
-    spin?: boolean;
   }
 > = {
   icon360: {
@@ -30,7 +31,6 @@ const VARIANTS: Record<
     className: "h-[3.5rem] w-auto aspect-[495/512] sm:h-[4rem] md:h-[4.75rem]",
     width: 180,
     height: 72,
-    spin: true,
   },
   hero: {
     src: "/logo-full-transparent.png",
@@ -78,7 +78,7 @@ function LogoImg({
   );
 }
 
-export function BrandLogo({ variant, alt, className }: BrandLogoProps) {
+export function BrandLogo({ variant, alt, className, spin: spinProp = false }: BrandLogoProps) {
   const config = VARIANTS[variant];
   const [reduceMotion, setReduceMotion] = React.useState(false);
 
@@ -90,7 +90,7 @@ export function BrandLogo({ variant, alt, className }: BrandLogoProps) {
     return () => media.removeEventListener("change", sync);
   }, []);
 
-  const spin = config.spin === true && !reduceMotion;
+  const spin = variant === "icon360" && spinProp === true && !reduceMotion;
 
   if (variant === "icon360" && spin) {
     return (

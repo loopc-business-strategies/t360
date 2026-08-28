@@ -66,7 +66,45 @@ function normalizeStorefrontHero(
 }
 
 function normalizeStorefrontSections(sections: unknown[]): unknown[] {
-  return sections.map((s) => normalizeHeroCampaignSection(s as Record<string, unknown>));
+  const normalized = sections.map((s) => {
+    const sec = normalizeHeroCampaignSection(s as Record<string, unknown>);
+    if (sec.type === "socialFollow") {
+      return {
+        ...sec,
+        instagramUrl:
+          sec.instagramUrl ||
+          process.env.STOREFRONT_INSTAGRAM_URL ||
+          undefined,
+        facebookUrl:
+          sec.facebookUrl ||
+          process.env.STOREFRONT_FACEBOOK_URL ||
+          undefined,
+        youtubeUrl:
+          sec.youtubeUrl ||
+          process.env.STOREFRONT_YOUTUBE_URL ||
+          undefined,
+      };
+    }
+    return sec;
+  });
+
+  const hasRecommendations = normalized.some(
+    (s) => (s as Record<string, unknown>).type === "recommendations",
+  );
+  if (!hasRecommendations) {
+    const ctlIdx = normalized.findIndex(
+      (s) => (s as Record<string, unknown>).type === "completeTheLook",
+    );
+    const insertAt = ctlIdx >= 0 ? ctlIdx + 1 : normalized.length;
+    normalized.splice(insertAt, 0, {
+      type: "recommendations",
+      visible: true,
+      order: 11,
+      title: "You May Also Like",
+    });
+  }
+
+  return normalized;
 }
 
 export const DEFAULT_STOREFRONT_SECTIONS = [
@@ -142,11 +180,19 @@ export const DEFAULT_STOREFRONT_SECTIONS = [
     ctaLabel: "VIEW OFFERS",
   },
   { type: "completeTheLook" as const, visible: true, order: 10, title: "Complete the Look" },
-  { type: "whyTharagai" as const, visible: true, order: 11 },
-  { type: "reviewsHighlight" as const, visible: true, order: 12, title: "Customer Reviews" },
-  { type: "visitStore" as const, visible: true, order: 13 },
-  { type: "socialFollow" as const, visible: true, order: 14 },
-  { type: "newsletter" as const, visible: true, order: 15 },
+  { type: "recommendations" as const, visible: true, order: 11, title: "You May Also Like" },
+  { type: "whyTharagai" as const, visible: true, order: 12 },
+  { type: "reviewsHighlight" as const, visible: true, order: 13, title: "Customer Reviews" },
+  { type: "visitStore" as const, visible: true, order: 14 },
+  {
+    type: "socialFollow" as const,
+    visible: true,
+    order: 15,
+    instagramUrl: process.env.STOREFRONT_INSTAGRAM_URL || undefined,
+    facebookUrl: process.env.STOREFRONT_FACEBOOK_URL || undefined,
+    youtubeUrl: process.env.STOREFRONT_YOUTUBE_URL || undefined,
+  },
+  { type: "newsletter" as const, visible: true, order: 16 },
 ];
 
 type FieldDef = {

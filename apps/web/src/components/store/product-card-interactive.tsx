@@ -3,7 +3,7 @@
 import * as React from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ProductCard, Button } from "@t360/ui";
+import { ProductCard, Button, type ProductCardBadge } from "@t360/ui";
 import { apiFetch, getCustomerToken } from "../../lib/api";
 import type { ProductListItem } from "../../lib/catalog-api";
 import { productPrice } from "../../lib/catalog-api";
@@ -13,6 +13,15 @@ import { renderCardImage } from "./optimized-image";
 
 const PLACEHOLDER =
   "https://images.unsplash.com/photo-1596755094514-f87e34085b2c?auto=format&fit=crop&w=800&q=80";
+
+function productCardBadges(product: ProductListItem, onSale: boolean): ProductCardBadge[] {
+  const badges: ProductCardBadge[] = [];
+  if (product.isNew) badges.push("new");
+  if (onSale) badges.push("sale");
+  if (product.isBestseller) badges.push("bestseller");
+  if (product.isTrending) badges.push("trending");
+  return badges;
+}
 
 export function ProductCardInteractive({
   product,
@@ -24,6 +33,9 @@ export function ProductCardInteractive({
   const { t } = useLocale();
   const router = useRouter();
   const price = productPrice(product);
+  const onSale =
+    price.compareAt != null && price.compareAt > price.amount;
+  const badges = productCardBadges(product, onSale);
   const { imageUrl, secondImageUrl } = selectProductCardImages(product.images);
   const inStock = product.inStock ?? (product.availableQty ?? 0) > 0;
   const variantId = product.variants?.[0]?.id;
@@ -110,6 +122,7 @@ export function ProductCardInteractive({
         wishlisted={variantId ? wishIds.includes(variantId) : false}
         wishlistLabel={t.wishlistAdd}
         onWishlistToggle={() => void toggleWishlist()}
+        badges={badges}
         renderImage={renderCardImage}
       />
       <p className={`mt-2 text-xs ${inStock ? "text-teal" : "text-muted"}`}>

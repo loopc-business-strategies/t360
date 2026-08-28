@@ -65,7 +65,7 @@ export function HeroCampaignSection({
 
   return (
     <motion.section
-      className="relative min-h-[85svh] overflow-hidden bg-ink text-elevated lg:min-h-[90svh]"
+      className="relative min-h-[72svh] overflow-hidden bg-ink text-elevated lg:min-h-[78vh]"
       initial={reduceMotion ? false : { opacity: 0 }}
       animate={{ opacity: 1 }}
     >
@@ -410,16 +410,56 @@ export function CompleteTheLookSection({
   section: Extract<StorefrontSection, { type: "completeTheLook" }>;
   reduceMotion: boolean | null;
 }) {
-  const [products, setProducts] = React.useState<ProductListItem[]>([]);
+  type LookRow = { label: string; products: ProductListItem[] };
+
+  const [looks, setLooks] = React.useState<LookRow[]>([]);
+
+  const LOOK_CURATIONS = React.useMemo(
+    () => [
+      {
+        label: "Festive saree ensemble",
+        categories: ["sarees-silk", "women-blouses", "women-ethnic-sets"],
+      },
+      {
+        label: "Smart casual for him",
+        categories: ["men-casual-shirts", "men-jeans", "men-polos"],
+      },
+      {
+        label: "Kids celebration ready",
+        categories: ["kids-frocks", "kids-ethnic", "kids-dresses"],
+      },
+    ],
+    [],
+  );
 
   React.useEffect(() => {
-    void fetch(`${API_URL}/products?pageSize=4&sort=featured&isFeatured=true`)
-      .then((r) => r.json())
-      .then((j) => setProducts(j.data ?? []))
-      .catch(() => setProducts([]));
-  }, []);
+    void (async () => {
+      try {
+        const rows = await Promise.all(
+          LOOK_CURATIONS.map(async (look) => {
+            const products = await Promise.all(
+              look.categories.map(async (cat) => {
+                const res = await fetch(
+                  `${API_URL}/products?category=${encodeURIComponent(cat)}&pageSize=1&sort=featured`,
+                );
+                const json = (await res.json()) as { data?: ProductListItem[] };
+                return json.data?.[0] ?? null;
+              }),
+            );
+            return {
+              label: look.label,
+              products: products.filter(Boolean) as ProductListItem[],
+            };
+          }),
+        );
+        setLooks(rows.filter((r) => r.products.length >= 2));
+      } catch {
+        setLooks([]);
+      }
+    })();
+  }, [LOOK_CURATIONS]);
 
-  if (!products.length) return null;
+  if (!looks.length) return null;
 
   return (
     <motion.section
@@ -431,10 +471,71 @@ export function CompleteTheLookSection({
       <h2 className="font-display text-[var(--font-section-scale)]">
         {section.title ?? "Complete the Look"}
       </h2>
-      <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        {products.map((p) => (
-          <ProductCardInteractive key={p.id} product={p} />
+      <div className="mt-10 space-y-12">
+        {looks.map((look) => (
+          <div key={look.label}>
+            <p className="text-xs font-medium uppercase tracking-[0.2em] text-muted">{look.label}</p>
+            <div className="mt-4 flex flex-wrap items-center gap-3 sm:gap-4">
+              {look.products.map((p, i) => (
+                <React.Fragment key={p.id}>
+                  {i > 0 ? (
+                    <span className="hidden text-2xl font-light text-brass sm:inline" aria-hidden>
+                      +
+                    </span>
+                  ) : null}
+                  <div className="w-[calc(50%-0.375rem)] min-w-[9rem] flex-1 sm:w-48 sm:flex-none">
+                    <ProductCardInteractive product={p} />
+                  </div>
+                </React.Fragment>
+              ))}
+            </div>
+          </div>
         ))}
+      </div>
+    </motion.section>
+  );
+}
+
+export function RecommendationsSection({
+  section,
+  reduceMotion,
+}: {
+  section: Extract<StorefrontSection, { type: "recommendations" }>;
+  reduceMotion: boolean | null;
+}) {
+  const [products, setProducts] = React.useState<ProductListItem[]>([]);
+
+  React.useEffect(() => {
+    void fetch(`${API_URL}/products?pageSize=8&sort=featured&isFeatured=true`)
+      .then((r) => r.json())
+      .then((j) => setProducts(j.data ?? []))
+      .catch(() => setProducts([]));
+  }, []);
+
+  if (!products.length) return null;
+
+  return (
+    <motion.section
+      className="border-t border-border bg-linen/30 px-6 py-[var(--section-py)]"
+      initial={reduceMotion ? false : { opacity: 0, y: 24 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true }}
+    >
+      <div className="mx-auto max-w-content">
+        <h2 className="font-display text-[var(--font-section-scale)]">
+          {section.title ?? "You May Also Like"}
+        </h2>
+        <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          {products.map((p) => (
+            <ProductCardInteractive key={p.id} product={p} />
+          ))}
+        </div>
+        <Link
+          href="/products?sort=featured"
+          className="mt-8 inline-block text-sm font-medium text-wine hover:underline"
+        >
+          View all recommendations →
+        </Link>
       </div>
     </motion.section>
   );

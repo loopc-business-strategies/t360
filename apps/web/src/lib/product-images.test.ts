@@ -3,13 +3,13 @@ import { describe, it } from "node:test";
 import { selectProductCardImages } from "./product-images";
 
 describe("selectProductCardImages", () => {
-  it("disables hover swap for demo multi-image galleries", () => {
+  it("enables hover swap when a second still exists", () => {
     const result = selectProductCardImages([
       { url: "https://cdn.example/a.jpg", publicId: "demo/batch/slug/0" },
       { url: "https://cdn.example/b.jpg", publicId: "demo/batch/slug/1" },
     ]);
     assert.equal(result.imageUrl, "https://cdn.example/a.jpg");
-    assert.equal(result.secondImageUrl, undefined);
+    assert.equal(result.secondImageUrl, "https://cdn.example/b.jpg");
   });
 
   it("enables hover swap for merchant products with a second still", () => {
