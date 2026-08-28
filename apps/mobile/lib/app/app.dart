@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_native_splash/flutter_native_splash.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../core/deep_link_listener.dart';
-import '../core/providers.dart';
+import '../core/splash_gate.dart';
 import '../design_system/tharagai_theme.dart';
 import 'router.dart';
 
@@ -21,14 +21,8 @@ class _TharagaiAppState extends ConsumerState<TharagaiApp> {
   @override
   void initState() {
     super.initState();
-    ref.listenManual(authStateProvider, (prev, next) {
-      if (prev?.booting == true && !next.booting) {
-        _removeNativeSplash();
-      }
-    });
-    // Already finished booting by first frame (e.g. fast restore).
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (!ref.read(authStateProvider).booting) {
+    ref.listenManual(splashGateProvider, (prev, next) {
+      if (prev?.ready != true && next.ready) {
         _removeNativeSplash();
       }
     });
@@ -43,9 +37,9 @@ class _TharagaiAppState extends ConsumerState<TharagaiApp> {
   @override
   Widget build(BuildContext context) {
     final router = ref.watch(goRouterProvider);
-    final auth = ref.watch(authStateProvider);
+    final splashGate = ref.watch(splashGateProvider);
 
-    if (auth.booting) {
+    if (!splashGate.ready) {
       return MaterialApp(
         debugShowCheckedModeBanner: false,
         theme: TharagaiTheme.light(),
