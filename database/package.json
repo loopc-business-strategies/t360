@@ -8,6 +8,7 @@
     "migrate:dev": "prisma migrate dev --schema=./prisma/schema.prisma",
     "seed": "tsx prisma/seed.ts",
     "hide:sarees": "tsx prisma/hide-sarees-cli.ts",
+    "seed:demo": "tsx prisma/seed-demo-cli.ts",
     "studio": "prisma studio --schema=./prisma/schema.prisma"
   },
   "prisma": {
