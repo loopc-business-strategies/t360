@@ -313,7 +313,11 @@ async function main() {
       key: "storefront.hero",
       value: {
         imageUrl:
-          "https://images.unsplash.com/photo-1610030469983-98e550d6193c?auto=format&fit=crop&w=1800&h=1200&q=80",
+          "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?auto=format&fit=crop&w=1800&h=1200&q=80",
+        desktopImageUrl:
+          "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?auto=format&fit=crop&w=1800&h=1200&q=80",
+        mobileImageUrl:
+          "https://images.unsplash.com/photo-1496747611176-843222e1e57c?auto=format&fit=crop&w=800&h=1200&q=80",
         en: {
           headline: "Readymades for every celebration",
           support:
@@ -326,7 +330,26 @@ async function main() {
         },
       },
     },
-    update: {},
+    update: {
+      value: {
+        imageUrl:
+          "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?auto=format&fit=crop&w=1800&h=1200&q=80",
+        desktopImageUrl:
+          "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?auto=format&fit=crop&w=1800&h=1200&q=80",
+        mobileImageUrl:
+          "https://images.unsplash.com/photo-1496747611176-843222e1e57c?auto=format&fit=crop&w=800&h=1200&q=80",
+        en: {
+          headline: "Readymades for every celebration",
+          support:
+            "Premium family fashion from Pudukkottai — wedding wear, ethnic sets, and everyday elegance.",
+        },
+        ta: {
+          headline: "எல்லா கொண்டாட்டங்களுக்கும் ரெடிமேட்ஸ்",
+          support:
+            "புதுக்கோட்டையிலிருந்து உயர்தர குடும்ப ஆடைகள் — திருமண உடைகள், எத்னிக் செட்கள், அன்றாட நேர்த்தி.",
+        },
+      },
+    },
   });
 
   for (const [key, value] of [

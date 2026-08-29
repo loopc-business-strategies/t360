@@ -11,7 +11,7 @@ export const SEGMENT_NEUTRAL_IMAGES: Record<CategorySegment, string> = {
   men: u("photo-1596755094514-f87e34085b2c", 900, 1125),
   kids: u("photo-1515488042361-ee00e0ddd4e4", 900, 1125),
   wedding: u("photo-1583391733956-3750e0ff4e8b", 900, 1125),
-  festival: u("photo-1610030469983-98e550d6193c", 900, 1125),
+  festival: u("photo-1515886657613-9f3515b0c78f", 900, 1125),
 };
 
 /** Curated slug → image (aligned with demo media pools where possible). */
@@ -94,13 +94,13 @@ const SIBLING_FALLBACK: Record<string, string> = {
   "kids-ethnic": "kids-dresses",
 };
 
-/** Full-length fashion hero — desktop (wide). */
+/** Full-length fashion hero — desktop (wide). Non-saree ethnic/fashion still. */
 export const HERO_DESKTOP_IMAGE =
-  "https://images.unsplash.com/photo-1610030469983-98e550d6193c?auto=format&fit=crop&w=1800&h=1200&q=80";
+  "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?auto=format&fit=crop&w=1800&h=1200&q=80";
 
 /** Portrait hero for mobile (2:3). */
 export const HERO_MOBILE_IMAGE =
-  "https://images.unsplash.com/photo-1490481651871-ab68de25d43d?auto=format&fit=crop&w=800&h=1200&q=80";
+  "https://images.unsplash.com/photo-1496747611176-843222e1e57c?auto=format&fit=crop&w=800&h=1200&q=80";
 
 export const DEFAULT_SHOP_CATEGORY_SLUGS = [
   "women-chudidars",

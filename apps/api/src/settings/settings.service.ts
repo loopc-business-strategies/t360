@@ -17,13 +17,22 @@ const SECTIONS_KEY = "storefront.sections";
 const SECTIONS_DRAFT_KEY = "storefront.sections.draft";
 const BUSINESS_NAME_KEY = "business.name";
 
-const LEGACY_HERO_IMAGE_IDS = ["photo-1583391733956-3750e0ff4e8b"];
-const LEGACY_MOBILE_IMAGE_IDS = ["photo-1490481651871-ab68de25d43d"];
+const LEGACY_HERO_IMAGE_IDS = [
+  "photo-1583391733956-3750e0ff4e8b",
+  "photo-1610030469983-98e550d6193c",
+  "photo-1694406175780-38470288c925",
+];
+const LEGACY_MOBILE_IMAGE_IDS = [
+  "photo-1490481651871-ab68de25d43d",
+  "photo-1694406175780-38470288c925",
+  "photo-1610030469983-98e550d6193c",
+];
 
+/** Non-saree ethnic / fashion hero stills (chudidar-friendly storefront). */
 const HERO_DESKTOP_IMAGE =
-  "https://images.unsplash.com/photo-1610030469983-98e550d6193c?auto=format&fit=crop&w=1800&h=1200&q=80";
+  "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?auto=format&fit=crop&w=1800&h=1200&q=80";
 const HERO_MOBILE_IMAGE =
-  "https://images.unsplash.com/photo-1694406175780-38470288c925?auto=format&fit=crop&w=800&h=1200&q=80";
+  "https://images.unsplash.com/photo-1496747611176-843222e1e57c?auto=format&fit=crop&w=800&h=1200&q=80";
 
 function isLegacyHeroUrl(url: string | undefined): boolean {
   if (!url) return false;
