@@ -94,7 +94,7 @@ def _brighten_readymates_band(img: Image.Image) -> Image.Image:
     out = img.convert("RGBA")
     px = out.load()
     w, h = out.size
-    brass = (220, 185, 105, 255)
+    brass = (235, 200, 120, 255)
     y_start, y_end = int(h * 0.55), int(h * 0.78)
     bar_ys: list[int] = []
     for y in range(y_start, y_end):
@@ -118,7 +118,7 @@ def _brighten_readymates_band(img: Image.Image) -> Image.Image:
                 if r > 130 and r > g + 45 and r > b + 45:
                     continue
                 luma = 0.2126 * r + 0.7152 * g + 0.0722 * b
-                if luma < 170:
+                if luma < 200:
                     px[x, y] = brass
     else:
         for y in range(int(h * 0.62), int(h * 0.72)):
@@ -129,7 +129,7 @@ def _brighten_readymates_band(img: Image.Image) -> Image.Image:
                 if r > 130 and r > g + 45:
                     continue
                 luma = 0.2126 * r + 0.7152 * g + 0.0722 * b
-                if luma < 160:
+                if luma < 200:
                     px[x, y] = brass
     return out
 

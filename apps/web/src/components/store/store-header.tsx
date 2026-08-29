@@ -171,10 +171,16 @@ export function StoreHeader({
             </button>
             <Link
               href="/"
-              className="flex shrink-0 items-center transition-opacity hover:opacity-90"
+              className="flex shrink-0 flex-col items-center leading-none transition-opacity hover:opacity-90"
               aria-label={t.brand}
             >
-              <BrandLogo variant="header" alt={t.brand} />
+              <BrandLogo variant="header" alt="" />
+              <span
+                className="mt-0.5 text-[9px] font-semibold uppercase tracking-[0.28em] text-brass sm:text-[10px]"
+                aria-hidden
+              >
+                READYMATES
+              </span>
             </Link>
           </div>
 

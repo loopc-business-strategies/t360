@@ -35,11 +35,11 @@ const VARIANTS: Record<
   header: {
     src: "/logo-full.png",
     srcSet: "/logo-full.png 1x, /logo-full@2x.png 2x",
-    sizes: "(min-width: 768px) 200px, 140px",
+    sizes: "(min-width: 768px) 180px, 130px",
     className:
-      "h-11 w-auto aspect-[1024/682] drop-shadow-[0_2px_8px_rgba(0,0,0,0.25)] sm:h-12 md:h-14",
-    width: 200,
-    height: 133,
+      "h-10 w-auto aspect-[1024/682] drop-shadow-[0_2px_8px_rgba(0,0,0,0.25)] sm:h-11 md:h-12",
+    width: 180,
+    height: 120,
   },
   hero: {
     src: "/logo-full.png",
