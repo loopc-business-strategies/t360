@@ -44,13 +44,13 @@ flutter:
     - assets/branding/
 
 flutter_native_splash:
-  color: "#F3EEE6"
+  color: "#070000"
   background_image: assets/branding/tharagai_splash.png
   fullscreen: true
   android: true
   ios: true
   android_12:
-    color: "#F3EEE6"
+    color: "#070000"
     image: assets/branding/tharagai_splash_android12.png
   android_gravity: center
   ios_content_mode: scaleAspectFit
@@ -59,6 +59,6 @@ flutter_launcher_icons:
   android: true
   ios: true
   image_path: assets/branding/tharagai_icon.png
-  adaptive_icon_background: "#F3EEE6"
+  adaptive_icon_background: "#000000"
   adaptive_icon_foreground: assets/branding/tharagai_icon.png
   remove_alpha_ios: true

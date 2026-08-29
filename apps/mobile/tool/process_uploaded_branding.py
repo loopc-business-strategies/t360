@@ -1,10 +1,4 @@
-"""Process uploaded designer branding into apps/mobile/assets/branding/.
-
-Fixes:
-- Converts JPG uploads to PNG
-- Removes LOADING bar from bottom of full splash
-- Builds Android 12 square icon from app icon (not phone mockup)
-"""
+"""Process the THARAGAI READYMATES logo into apps/mobile/assets/branding/."""
 from __future__ import annotations
 
 from pathlib import Path
@@ -13,20 +7,13 @@ from PIL import Image
 
 ROOT = Path(__file__).resolve().parent.parent
 OUT = ROOT / "assets" / "branding"
-CURSOR_ASSETS = Path(
+SOURCE = Path(
     r"C:\Users\USER\.cursor\projects\c-Users-USER-Desktop-t360\assets"
+    r"\c__Users_USER_AppData_Roaming_Cursor_User_workspaceStorage_8323a401266c71e73997a3e0239e9d48_images"
+    r"_ChatGPT_Image_Aug_29__2026__11_20_55_AM-b244bd27-b14d-4088-b88d-e7c56aab46a3.jpg"
 )
 
-UPLOADS = {
-    "tharagai_splash": CURSOR_ASSETS
-    / "c__Users_USER_AppData_Roaming_Cursor_User_workspaceStorage_8323a401266c71e73997a3e0239e9d48_images_tharagai_splash-0511a318-d229-4e3f-abc7-8c1cc9c00885.jpg",
-    "tharagai_icon": CURSOR_ASSETS
-    / "c__Users_USER_AppData_Roaming_Cursor_User_workspaceStorage_8323a401266c71e73997a3e0239e9d48_images_tharagai_icon-65ab924f-8d1a-4a4c-a586-dcfa2cfc6598.jpg",
-    "tharagai_logo": CURSOR_ASSETS
-    / "c__Users_USER_AppData_Roaming_Cursor_User_workspaceStorage_8323a401266c71e73997a3e0239e9d48_images_tharagai_logo-da96befa-b071-420b-b0c8-c07512eb7808.png",
-}
-
-CREAM = (243, 238, 230)
+BLACK = (0, 0, 0, 255)
 
 
 def _load(path: Path) -> Image.Image:
@@ -35,69 +22,60 @@ def _load(path: Path) -> Image.Image:
     return Image.open(path).convert("RGBA")
 
 
-def _crop_loading_footer(img: Image.Image) -> Image.Image:
-    """Remove LOADING... + progress bar + bottom fabric from splash."""
-    w, h = img.size
-    cut = int(h * 0.82)
-    return img.crop((0, 0, w, cut))
-
-
-def _make_transparent_logo(img: Image.Image, threshold: int = 245) -> Image.Image:
-    """Strip near-white background pixels for dark UI surfaces."""
-    rgba = img.convert("RGBA")
-    pixels = rgba.load()
-    width, height = rgba.size
-    for y in range(height):
-        for x in range(width):
-            r, g, b, a = pixels[x, y]
-            if r >= threshold and g >= threshold and b >= threshold:
-                pixels[x, y] = (r, g, b, 0)
-    return rgba
-
-
-def _android12_from_icon(icon: Image.Image) -> Image.Image:
-    """Square centered mark for Android 12+ system splash."""
-    size = 1152
-    canvas = Image.new("RGBA", (size, size), (*CREAM, 255))
-    iw, ih = icon.size
-    top = int(ih * 0.02)
-    bottom = int(ih * 0.72)
-    left = int(iw * 0.08)
-    right = int(iw * 0.92)
-    mark = icon.crop((left, top, right, bottom))
-    mark.thumbnail((int(size * 0.72), int(size * 0.72)), Image.Resampling.LANCZOS)
-    mx = (size - mark.width) // 2
-    my = (size - mark.height) // 2
-    canvas.paste(mark, (mx, my), mark)
+def _fit_on_black(img: Image.Image, size: tuple[int, int], scale: float = 0.86) -> Image.Image:
+    canvas = Image.new("RGBA", size, BLACK)
+    copy = img.copy()
+    copy.thumbnail((int(size[0] * scale), int(size[1] * scale)), Image.Resampling.LANCZOS)
+    x = (size[0] - copy.width) // 2
+    y = (size[1] - copy.height) // 2
+    canvas.paste(copy, (x, y), copy)
     return canvas
+
+
+def _crop_mark(img: Image.Image) -> Image.Image:
+    iw, ih = img.size
+    top = int(ih * 0.02)
+    bottom = int(ih * 0.62)
+    band = img.crop((0, top, iw, bottom))
+    bw, bh = band.size
+    side = min(bw, bh)
+    left = (bw - side) // 2
+    return band.crop((left, 0, left + side, side))
 
 
 def main() -> None:
     OUT.mkdir(parents=True, exist_ok=True)
+    src = _load(SOURCE)
 
-    splash_src = _load(UPLOADS["tharagai_splash"])
-    icon_src = _load(UPLOADS["tharagai_icon"])
-    logo_src = _load(UPLOADS["tharagai_logo"])
+    # Canonical source copy inside branding folder
+    src.convert("RGB").save(OUT / "source.jpg", "JPEG", quality=95, optimize=True)
+    print(f"wrote {OUT / 'source.jpg'}")
 
+    logo = _fit_on_black(src, (1024, 1024), scale=0.92)
+    logo_rgb = logo.convert("RGB")
+    logo_path = OUT / "tharagai_logo.png"
+    logo_rgb.save(logo_path, "PNG", optimize=True)
+    print(f"wrote {logo_path} ({logo_path.stat().st_size} bytes)")
+
+    # Keep filename for BrandedLogo; artwork stays black-backed (no knock-out)
+    transparent_path = OUT / "tharagai_logo_transparent.png"
+    logo_rgb.save(transparent_path, "PNG", optimize=True)
+    print(f"wrote {transparent_path} ({transparent_path.stat().st_size} bytes)")
+
+    mark = _crop_mark(src)
+    icon = _fit_on_black(mark, (1024, 1024), scale=0.9).convert("RGB")
+    icon_path = OUT / "tharagai_icon.png"
+    icon.save(icon_path, "PNG", optimize=True)
+    print(f"wrote {icon_path} ({icon_path.stat().st_size} bytes)")
+
+    splash = _fit_on_black(src, (1080, 1920), scale=0.82).convert("RGB")
     splash_path = OUT / "tharagai_splash.png"
-    splash = _crop_loading_footer(splash_src).convert("RGB")
     splash.save(splash_path, "PNG", optimize=True)
     print(f"wrote {splash_path} ({splash_path.stat().st_size} bytes)")
 
-    icon_path = OUT / "tharagai_icon.png"
-    icon_src.convert("RGB").save(icon_path, "PNG", optimize=True)
-    print(f"wrote {icon_path} ({icon_path.stat().st_size} bytes)")
-
-    logo_path = OUT / "tharagai_logo.png"
-    logo_src.save(logo_path, "PNG", optimize=True)
-    print(f"wrote {logo_path} ({logo_path.stat().st_size} bytes)")
-
-    transparent_path = OUT / "tharagai_logo_transparent.png"
-    _make_transparent_logo(logo_src).save(transparent_path, "PNG", optimize=True)
-    print(f"wrote {transparent_path} ({transparent_path.stat().st_size} bytes)")
-
+    a12 = _fit_on_black(mark, (1152, 1152), scale=0.72).convert("RGB")
     a12_path = OUT / "tharagai_splash_android12.png"
-    _android12_from_icon(icon_src).convert("RGB").save(a12_path, "PNG", optimize=True)
+    a12.save(a12_path, "PNG", optimize=True)
     print(f"wrote {a12_path} ({a12_path.stat().st_size} bytes)")
     print("upload processing complete")
 

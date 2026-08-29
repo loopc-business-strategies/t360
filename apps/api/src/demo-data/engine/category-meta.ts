@@ -12,7 +12,8 @@ export type PriceBand =
   | "dress"
   | "ethnic"
   | "bridal"
-  | "kids";
+  | "kids"
+  | "inner";
 
 export type CategoryMeta = {
   slug: string;
@@ -42,7 +43,7 @@ function m(
   return { ...partial, nameTokens, descTokens };
 }
 
-/** Per-leaf quotas sum to 702 (apparel only; overlapping kurta lines removed). */
+/** Per-leaf quotas (apparel only; no sarees). */
 export const CATEGORY_META: Record<string, CategoryMeta> = {
   // â€”â€” Men (~222) â€”â€”
   "men-t-shirts": m({
@@ -328,7 +329,7 @@ export const CATEGORY_META: Record<string, CategoryMeta> = {
     nameTokens: ["kurta"],
     skuType: "MKT",
     brandSlug: "t360-ethnic",
-    quota: 0,
+    quota: 8,
   }),
   "men-kurta-sets": m({
     slug: "men-kurta-sets",
@@ -361,7 +362,53 @@ export const CATEGORY_META: Record<string, CategoryMeta> = {
     quota: 6,
   }),
 
-  // â€”â€” Women (~250) â€”â€”
+  "men-boxers": m({
+    slug: "men-boxers",
+    segment: "men",
+    gender: "men",
+    productType: "innerwear",
+    subType: "boxers",
+    tryOnSupported: false,
+    compatibleRelated: ["men-briefs", "men-vests"],
+    sizeProfile: "adult",
+    priceBand: "inner",
+    nameTokens: ["boxer"],
+    skuType: "MBX",
+    brandSlug: "t360-essentials",
+    quota: 10,
+  }),
+  "men-briefs": m({
+    slug: "men-briefs",
+    segment: "men",
+    gender: "men",
+    productType: "innerwear",
+    subType: "briefs",
+    tryOnSupported: false,
+    compatibleRelated: ["men-boxers", "men-vests"],
+    sizeProfile: "adult",
+    priceBand: "inner",
+    nameTokens: ["brief"],
+    skuType: "MBR",
+    brandSlug: "t360-essentials",
+    quota: 8,
+  }),
+  "men-vests": m({
+    slug: "men-vests",
+    segment: "men",
+    gender: "men",
+    productType: "innerwear",
+    subType: "vest",
+    tryOnSupported: false,
+    compatibleRelated: ["men-boxers", "men-briefs"],
+    sizeProfile: "adult",
+    priceBand: "inner",
+    nameTokens: ["vest", "undershirt"],
+    skuType: "MVT",
+    brandSlug: "t360-essentials",
+    quota: 6,
+  }),
+
+  // — Women —
   "women-t-shirts": m({
     slug: "women-t-shirts",
     segment: "women",
@@ -738,7 +785,68 @@ export const CATEGORY_META: Record<string, CategoryMeta> = {
     quota: 6,
   }),
 
-  // â€”â€” Kids (~90) â€”â€”
+  "women-bras": m({
+    slug: "women-bras",
+    segment: "women",
+    gender: "women",
+    productType: "innerwear",
+    subType: "bra",
+    tryOnSupported: false,
+    compatibleRelated: ["women-panties", "women-camisoles", "women-shapewear"],
+    sizeProfile: "adult",
+    priceBand: "inner",
+    nameTokens: ["bra"],
+    skuType: "WBR",
+    brandSlug: "t360-essentials",
+    quota: 12,
+  }),
+  "women-panties": m({
+    slug: "women-panties",
+    segment: "women",
+    gender: "women",
+    productType: "innerwear",
+    subType: "panty",
+    tryOnSupported: false,
+    compatibleRelated: ["women-bras", "women-camisoles"],
+    sizeProfile: "adult",
+    priceBand: "inner",
+    nameTokens: ["panty", "panties"],
+    skuType: "WPN",
+    brandSlug: "t360-essentials",
+    quota: 12,
+  }),
+  "women-camisoles": m({
+    slug: "women-camisoles",
+    segment: "women",
+    gender: "women",
+    productType: "innerwear",
+    subType: "camisole",
+    tryOnSupported: false,
+    compatibleRelated: ["women-bras", "women-panties"],
+    sizeProfile: "adult",
+    priceBand: "inner",
+    nameTokens: ["camisole", "slip"],
+    skuType: "WCM",
+    brandSlug: "t360-essentials",
+    quota: 8,
+  }),
+  "women-shapewear": m({
+    slug: "women-shapewear",
+    segment: "women",
+    gender: "women",
+    productType: "innerwear",
+    subType: "shapewear",
+    tryOnSupported: false,
+    compatibleRelated: ["women-bras", "women-panties"],
+    sizeProfile: "adult",
+    priceBand: "inner",
+    nameTokens: ["shapewear"],
+    skuType: "WSH",
+    brandSlug: "t360-essentials",
+    quota: 6,
+  }),
+
+  // — Kids —
   "kids-boys": m({
     slug: "kids-boys",
     segment: "kids",
@@ -827,7 +935,7 @@ export const CATEGORY_META: Record<string, CategoryMeta> = {
     nameTokens: ["shirt"],
     skuType: "KSH",
     brandSlug: "t360-kids",
-    quota: 5,
+    quota: 8,
   }),
   "kids-hoodies": m({
     slug: "kids-hoodies",
@@ -872,7 +980,7 @@ export const CATEGORY_META: Record<string, CategoryMeta> = {
     nameTokens: ["jacket"],
     skuType: "KJK",
     brandSlug: "t360-kids",
-    quota: 4,
+    quota: 8,
   }),
   "kids-jeans": m({
     slug: "kids-jeans",
@@ -995,7 +1103,23 @@ export const CATEGORY_META: Record<string, CategoryMeta> = {
     quota: 4,
   }),
 
-  // â€”â€” Wedding (~36) â€”â€”
+  "kids-innerwear": m({
+    slug: "kids-innerwear",
+    segment: "kids",
+    gender: "kids",
+    productType: "innerwear",
+    subType: "innerwear",
+    tryOnSupported: false,
+    compatibleRelated: ["kids-sleepwear"],
+    sizeProfile: "kids",
+    priceBand: "kids",
+    nameTokens: ["innerwear", "vest"],
+    skuType: "KIN",
+    brandSlug: "t360-kids",
+    quota: 6,
+  }),
+
+  // — Wedding —
   "wedding-lehengas": m({
     slug: "wedding-lehengas",
     segment: "wedding",
@@ -1039,7 +1163,7 @@ export const CATEGORY_META: Record<string, CategoryMeta> = {
     nameTokens: ["kurta"],
     skuType: "WKS",
     brandSlug: "t360-ethnic",
-    quota: 0,
+    quota: 6,
   }),
   "wedding-reception": m({
     slug: "wedding-reception",
@@ -1071,7 +1195,7 @@ export const CATEGORY_META: Record<string, CategoryMeta> = {
     nameTokens: ["kurta"],
     skuType: "FKT",
     brandSlug: "t360-festive",
-    quota: 0,
+    quota: 6,
   }),
   "festival-dresses": m({
     slug: "festival-dresses",
@@ -1148,6 +1272,7 @@ export function priceForBand(band: PriceBand, i: number): { price: number; saleP
     ethnic: 899 + (i % 8) * 500,
     bridal: 3999 + (i % 8) * 2500,
     kids: 399 + (i % 7) * 250,
+    inner: 249 + (i % 8) * 100,
   };
   const price = table[band] ?? 999;
   const onSale = i % 4 === 0;

@@ -10,11 +10,11 @@ void main() {
   FlutterNativeSplash.preserve(widgetsBinding: binding);
   SystemChrome.setSystemUIOverlayStyle(
     const SystemUiOverlayStyle(
-      statusBarColor: Color(0xFFF3EEE6),
-      statusBarIconBrightness: Brightness.dark,
-      statusBarBrightness: Brightness.light,
-      systemNavigationBarColor: Color(0xFFF3EEE6),
-      systemNavigationBarIconBrightness: Brightness.dark,
+      statusBarColor: Color(0xFF070000),
+      statusBarIconBrightness: Brightness.light,
+      statusBarBrightness: Brightness.dark,
+      systemNavigationBarColor: Color(0xFF070000),
+      systemNavigationBarIconBrightness: Brightness.light,
     ),
   );
   AppEnv.assertReleaseApiUrl();

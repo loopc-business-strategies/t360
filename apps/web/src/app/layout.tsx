@@ -83,7 +83,7 @@ export const metadata: Metadata = {
     title: "THARAGAI Readymades — Pudukkottai",
     description:
       "Official family fashion storefront from Pudukkottai. Shop wedding wear, ethnic sets, and everyday elegance.",
-    images: [{ url: "/og-image.png", width: 1200, height: 630, alt: "THARAGAI Fashion" }],
+    images: [{ url: "/og-image.png", width: 1200, height: 630, alt: "THARAGAI READYMATES" }],
   },
   twitter: {
     card: "summary_large_image",

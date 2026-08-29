@@ -23,11 +23,18 @@ export const WOMEN_MENU_GROUPS: MenuGroup[] = [
     title: "Western",
     shopAllHref: "/women",
     slugs: [
-      "women-casual-dresses",
+      "women-t-shirts",
       "women-tops",
+      "women-casual-dresses",
       "women-jeans",
       "women-leggings",
+      "women-jackets",
     ],
+  },
+  {
+    title: "Innerwear",
+    shopAllHref: "/women?category=women-bras",
+    slugs: ["women-bras", "women-panties", "women-camisoles", "women-shapewear"],
   },
 ];
 
@@ -43,6 +50,11 @@ export const MEN_MENU_GROUPS: MenuGroup[] = [
     slugs: ["men-casual-shirts", "men-formal-shirts", "men-linen-shirts"],
   },
   {
+    title: "Outerwear",
+    shopAllHref: "/men?category=men-jackets",
+    slugs: ["men-jackets", "men-bombers", "men-denim-jackets", "men-hoodies"],
+  },
+  {
     title: "Bottoms",
     shopAllHref: "/men?category=men-jeans",
     slugs: ["men-jeans", "men-chinos", "men-cargos", "men-joggers"],
@@ -51,6 +63,11 @@ export const MEN_MENU_GROUPS: MenuGroup[] = [
     title: "Ethnic",
     shopAllHref: "/men?category=men-kurtas",
     slugs: ["men-kurtas", "men-kurta-sets", "men-nehru-jackets"],
+  },
+  {
+    title: "Innerwear",
+    shopAllHref: "/men?category=men-boxers",
+    slugs: ["men-boxers", "men-briefs", "men-vests"],
   },
 ];
 
@@ -74,10 +91,14 @@ export const KIDS_MENU_GROUPS: MenuGroup[] = [
       "kids-girls",
       "kids-frocks",
       "kids-dresses",
-      "kids-tops",
-      "kids-leggings",
       "kids-ethnic",
+      "kids-jackets",
     ],
+  },
+  {
+    title: "Essentials",
+    shopAllHref: "/kids?category=kids-innerwear",
+    slugs: ["kids-innerwear", "kids-sleepwear", "kids-activewear"],
   },
 ];
 

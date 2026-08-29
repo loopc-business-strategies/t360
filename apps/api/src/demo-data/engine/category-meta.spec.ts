@@ -10,7 +10,7 @@ import {
 
 describe("category-meta", () => {
   it("targets clothing-only demo products without sarees", () => {
-    expect(totalDemoQuota()).toBe(594);
+    expect(totalDemoQuota()).toBe(689);
   });
 
   it("related resolver prefers same leaf then compatible", () => {
@@ -26,9 +26,13 @@ describe("category-meta", () => {
     expect(related.some((s) => s.startsWith("men-"))).toBe(false);
   });
 
-  it("supports try-on on every leaf", () => {
+  it("supports try-on on apparel leaves (innerwear excluded)", () => {
     for (const meta of Object.values(CATEGORY_META)) {
-      expect(meta.tryOnSupported).toBe(true);
+      if (meta.productType === "innerwear") {
+        expect(meta.tryOnSupported).toBe(false);
+      } else {
+        expect(meta.tryOnSupported).toBe(true);
+      }
     }
   });
 });

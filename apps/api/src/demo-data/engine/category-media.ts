@@ -309,6 +309,10 @@ const POOLS = {
     u("photo-1471286174890-9c112ffca5b4"),
     u("photo-1519457431-44ccd64a579b"),
     u("photo-1515488042361-ee00e0ddd4e4"),
+    u("photo-1518831959646-742c3a14ebf7"),
+    u("photo-1622290291468-a28f7a7dc6a8"),
+    u("photo-1547496727-11c450fe4e7f"),
+    u("photo-1605597208799-453b6dbc8f50"),
   ],
   kidsBottoms: [
     u("photo-1519457431-44ccd64a579b"),
@@ -347,6 +351,106 @@ const POOLS = {
     u("photo-1518831959646-742c3a14ebf7"),
     u("photo-1489710437720-ebb67ec84dd2"),
     u("photo-1519457431-44ccd64a579b"),
+  ],
+  womenBras: [
+    u("photo-1566150905458-1bf1fc113f0d"),
+    u("photo-1571513722275-4b41940f54b8"),
+    u("photo-1583846783214-7229a91b20ed"),
+    u("photo-1596755094514-f87e34085b2c"),
+    u("photo-1554568218-0f1715e72254"),
+    u("photo-1515886657613-9f3515b0c78f"),
+    u("photo-1469334031218-e382a71b716b"),
+    u("photo-1490481651871-ab68de25d43d"),
+    u("photo-1483985988355-763728e1935b"),
+    u("photo-1496747611176-843222e1e57c"),
+    u("photo-1581044777550-4cfa60707c03"),
+    u("photo-1509631179647-0177331693ae"),
+    u("photo-1434389677669-e08b4cac3105"),
+    u("photo-1445205170230-053b83016050"),
+  ],
+  womenPanties: [
+    u("photo-1583846783214-7229a91b20ed"),
+    u("photo-1566150905458-1bf1fc113f0d"),
+    u("photo-1571513722275-4b41940f54b8"),
+    u("photo-1554568218-0f1715e72254"),
+    u("photo-1515886657613-9f3515b0c78f"),
+    u("photo-1469334031218-e382a71b716b"),
+    u("photo-1490481651871-ab68de25d43d"),
+    u("photo-1483985988355-763728e1935b"),
+    u("photo-1496747611176-843222e1e57c"),
+    u("photo-1581044777550-4cfa60707c03"),
+    u("photo-1509631179647-0177331693ae"),
+    u("photo-1434389677669-e08b4cac3105"),
+    u("photo-1445205170230-053b83016050"),
+    u("photo-1596755094514-f87e34085b2c"),
+  ],
+  womenCamisoles: [
+    u("photo-1554568218-0f1715e72254"),
+    u("photo-1515886657613-9f3515b0c78f"),
+    u("photo-1469334031218-e382a71b716b"),
+    u("photo-1490481651871-ab68de25d43d"),
+    u("photo-1483985988355-763728e1935b"),
+    u("photo-1576566588028-4147f3842f27"),
+    u("photo-1521572163474-6864f9cf17ab"),
+    u("photo-1583743814966-8936f5b7be1a"),
+    u("photo-1562157873-818bc0726f68"),
+    u("photo-1434389677669-e08b4cac3105"),
+  ],
+  womenShapewear: [
+    u("photo-1571513722275-4b41940f54b8"),
+    u("photo-1566150905458-1bf1fc113f0d"),
+    u("photo-1554568218-0f1715e72254"),
+    u("photo-1515886657613-9f3515b0c78f"),
+    u("photo-1469334031218-e382a71b716b"),
+    u("photo-1490481651871-ab68de25d43d"),
+    u("photo-1483985988355-763728e1935b"),
+    u("photo-1581044777550-4cfa60707c03"),
+  ],
+  menBoxers: [
+    u("photo-1627225924765-552d49cf47ad"),
+    u("photo-1581655353564-df123a1eb820"),
+    u("photo-1562157873-818bc0726f68"),
+    u("photo-1521572163474-6864f9cf17ab"),
+    u("photo-1576566588028-4147f3842f27"),
+    u("photo-1583743814966-8936f5b7be1a"),
+    u("photo-1529374255404-311a2a4f1fd9"),
+    u("photo-1618354691373-d851c5c3c990"),
+    u("photo-1544441893-675973e31985"),
+    u("photo-1503341504253-dff4815485f1"),
+    u("photo-1596755094514-f87e34085b2c"),
+    u("photo-1552374196-1ab2a1c593e8"),
+  ],
+  menBriefs: [
+    u("photo-1581655353564-df123a1eb820"),
+    u("photo-1627225924765-552d49cf47ad"),
+    u("photo-1562157873-818bc0726f68"),
+    u("photo-1521572163474-6864f9cf17ab"),
+    u("photo-1576566588028-4147f3842f27"),
+    u("photo-1583743814966-8936f5b7be1a"),
+    u("photo-1529374255404-311a2a4f1fd9"),
+    u("photo-1618354691373-d851c5c3c990"),
+    u("photo-1544441893-675973e31985"),
+    u("photo-1503341504253-dff4815485f1"),
+  ],
+  menVests: [
+    u("photo-1521572163474-6864f9cf17ab"),
+    u("photo-1562157873-818bc0726f68"),
+    u("photo-1576566588028-4147f3842f27"),
+    u("photo-1583743814966-8936f5b7be1a"),
+    u("photo-1529374255404-311a2a4f1fd9"),
+    u("photo-1618354691373-d851c5c3c990"),
+    u("photo-1596755094514-f87e34085b2c"),
+    u("photo-1552374196-1ab2a1c593e8"),
+  ],
+  kidsInnerwear: [
+    u("photo-1515488042361-ee00e0ddd4e4"),
+    u("photo-1503454537195-1dcabb73ffb9"),
+    u("photo-1471286174890-9c112ffca5b4"),
+    u("photo-1518831959646-742c3a14ebf7"),
+    u("photo-1489710437720-ebb67ec84dd2"),
+    u("photo-1519457431-44ccd64a579b"),
+    u("photo-1519238263530-99bdd11df2ea"),
+    u("photo-1622290291468-a28f7a7dc6a8"),
   ],
   lehengas: [
     u("photo-1583391733956-3750e0ff4e8b"),
@@ -389,6 +493,8 @@ const POOLS = {
     u("photo-1617127365659-c47fa864d8bc"),
     u("photo-1617137968427-85924c800a22"),
     u("photo-1598033129183-c4f50c736f10"),
+    u("photo-1612660012369-11012309a36b"),
+    u("photo-1553633524-ff55f80e2ede"),
   ],
   festivalSets: [
     u("photo-1583391733956-3750e0ff4e8b"),
@@ -479,6 +585,13 @@ const LEAF_POOL: Record<string, PoolKey> = {
   "women-shorts": "womenShorts",
   "women-skirts": "womenSkirts",
   "women-activewear": "womenActive",
+  "women-bras": "womenBras",
+  "women-panties": "womenPanties",
+  "women-camisoles": "womenCamisoles",
+  "women-shapewear": "womenShapewear",
+  "men-boxers": "menBoxers",
+  "men-briefs": "menBriefs",
+  "men-vests": "menVests",
   "men-kurtas": "kurtas",
   "men-kurta-sets": "kurtas",
   "men-nehru-jackets": "sherwanis",
@@ -499,6 +612,7 @@ const LEAF_POOL: Record<string, PoolKey> = {
   "kids-ethnic": "kidsEthnic",
   "kids-activewear": "kidsTees",
   "kids-sleepwear": "kidsSleep",
+  "kids-innerwear": "kidsInnerwear",
   "wedding-lehengas": "lehengas",
   "wedding-sherwanis": "sherwanis",
   "wedding-kurta-sets": "kurtas",
@@ -528,6 +642,11 @@ const FALLBACK_LEAF: Record<string, string> = {
   "kids-graphic-tees": "kids-t-shirts",
   "kids-frocks": "kids-dresses",
   "kids-ethnic": "kids-dresses",
+  "kids-innerwear": "kids-sleepwear",
+  "women-camisoles": "women-bras",
+  "women-shapewear": "women-bras",
+  "men-briefs": "men-boxers",
+  "men-vests": "men-boxers",
 };
 
 const SEGMENT_POOL: Record<string, PoolKey> = {
@@ -549,6 +668,8 @@ const TYPE_VIDEOS: Record<string, string[]> = {
   bottoms: ["https://videos.pexels.com/video-files/3045163/3045163-sd_640_360_30fps.mp4"],
   outerwear: ["https://videos.pexels.com/video-files/3129957/3129957-sd_640_360_30fps.mp4"],
   active: ["https://videos.pexels.com/video-files/3045163/3045163-sd_640_360_30fps.mp4"],
+  innerwear: ["https://videos.pexels.com/video-files/3129957/3129957-sd_640_360_30fps.mp4"],
+  sleep: ["https://videos.pexels.com/video-files/3045163/3045163-sd_640_360_30fps.mp4"],
 };
 
 const SEGMENT_VIDEOS: Record<string, string[]> = {
@@ -716,6 +837,14 @@ export function validateProductMedia(product: {
 
 /** Expected keyword tokens for integrity checks (any match OK). */
 export function expectedNameTokens(categorySlug: string): string[] {
+  if (categorySlug.includes("bra")) return ["bra"];
+  if (categorySlug.includes("pant")) return ["panty", "panties"];
+  if (categorySlug.includes("camisole") || categorySlug.includes("slip")) return ["camisole", "slip"];
+  if (categorySlug.includes("shapewear")) return ["shapewear"];
+  if (categorySlug.includes("boxer")) return ["boxer"];
+  if (categorySlug.includes("brief")) return ["brief"];
+  if (categorySlug.includes("vest") || categorySlug.includes("undershirt")) return ["vest", "undershirt"];
+  if (categorySlug.includes("innerwear")) return ["innerwear", "vest"];
   if (categorySlug.includes("chudidar") || categorySlug.includes("churidar")) {
     return ["chudidar", "churidar"];
   }
@@ -793,6 +922,14 @@ export function buildDemoProductName(
               : "";
 
   if (leafSlug.includes("chudidar")) return `T360 ${adj} Embroidered Chudidar Set ${n + 1}`;
+  if (leafSlug.includes("bra")) return `T360 ${adj} Women's Bra ${n + 1}`;
+  if (leafSlug.includes("pant")) return `T360 ${adj} Women's Panty ${n + 1}`;
+  if (leafSlug.includes("camisole")) return `T360 ${adj} Women's Camisole ${n + 1}`;
+  if (leafSlug.includes("shapewear")) return `T360 ${adj} Women's Shapewear ${n + 1}`;
+  if (leafSlug.includes("boxer")) return `T360 ${adj} Men's Boxers ${n + 1}`;
+  if (leafSlug.includes("brief")) return `T360 ${adj} Men's Briefs ${n + 1}`;
+  if (leafSlug.includes("vest")) return `T360 ${adj} Men's Vest ${n + 1}`;
+  if (leafSlug.includes("innerwear")) return `T360 ${adj} Kids Innerwear ${n + 1}`;
   if (leafSlug.includes("kurti")) return `T360 ${adj} Women's Kurti ${n + 1}`;
   if (leafSlug.includes("salwar")) return `T360 ${adj} Salwar Set ${n + 1}`;
   if (leafSlug.includes("anarkali")) return `T360 ${adj} Anarkali Suit ${n + 1}`;
@@ -823,6 +960,22 @@ export function buildDemoDescription(leafSlug: string, segment: string, name: st
   if (leafSlug.includes("chudidar")) {
     body =
       "Women's embroidered chudidar set designed for festive and traditional occasions.";
+  } else if (leafSlug.includes("bra")) {
+    body = "Everyday women's bra with soft support and comfortable fit.";
+  } else if (leafSlug.includes("pant")) {
+    body = "Soft women's panty designed for everyday comfort.";
+  } else if (leafSlug.includes("camisole")) {
+    body = "Lightweight women's camisole for layering and everyday wear.";
+  } else if (leafSlug.includes("shapewear")) {
+    body = "Smooth shapewear designed for a clean silhouette under outfits.";
+  } else if (leafSlug.includes("boxer")) {
+    body = "Comfortable men's boxers for everyday wear.";
+  } else if (leafSlug.includes("brief")) {
+    body = "Supportive men's briefs designed for all-day comfort.";
+  } else if (leafSlug.includes("vest")) {
+    body = "Classic men's undershirt vest for everyday layering.";
+  } else if (leafSlug.includes("innerwear")) {
+    body = "Soft kids innerwear essentials for everyday comfort.";
   } else if (leafSlug.includes("kurti")) {
     body = "Elegant women's kurti designed for everyday ethnic and festive wear.";
   } else if (leafSlug.includes("salwar")) {

@@ -6,7 +6,7 @@ import '../core/splash_gate.dart';
 import '../design_system/tharagai_theme.dart';
 import 'router.dart';
 
-const _splashCream = Color(0xFFF3EEE6);
+const _splashFill = Color(0xFF070000);
 
 class TharagaiApp extends ConsumerStatefulWidget {
   const TharagaiApp({super.key});
@@ -65,9 +65,9 @@ class _BootSplashScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return const Scaffold(
-      backgroundColor: _splashCream,
+      backgroundColor: _splashFill,
       body: ColoredBox(
-        color: _splashCream,
+        color: _splashFill,
         child: Center(
           child: Image(
             image: AssetImage('assets/branding/tharagai_splash.png'),

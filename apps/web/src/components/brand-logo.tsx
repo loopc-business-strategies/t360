@@ -27,25 +27,25 @@ const VARIANTS: Record<
   icon360: {
     src: "/logo-mark.png",
     srcSet: "/logo-mark.png 1x, /logo-mark@2x.png 2x",
-    sizes: "(min-width: 768px) 120px, 72px",
-    className: "h-[3.5rem] w-auto aspect-[495/512] sm:h-[4rem] md:h-[4.75rem]",
-    width: 180,
+    sizes: "(min-width: 768px) 88px, 64px",
+    className: "h-14 w-auto aspect-square sm:h-16 md:h-[4.5rem]",
+    width: 72,
     height: 72,
   },
   hero: {
-    src: "/logo-full-transparent.png",
-    srcSet: "/logo-full-transparent.png 1x, /logo-full-transparent@2x.png 2x",
+    src: "/logo-full.png",
+    srcSet: "/logo-full.png 1x, /logo-full@2x.png 2x",
     className:
-      "h-32 w-auto max-w-[min(100%,22rem)] drop-shadow-[0_10px_28px_rgba(0,0,0,0.45)] sm:h-40 sm:max-w-[26rem] md:h-48 md:max-w-[28rem] lg:h-52",
-    width: 448,
-    height: 208,
+      "h-auto w-full max-w-[min(100%,22rem)] aspect-[1024/682] drop-shadow-[0_10px_28px_rgba(0,0,0,0.45)] sm:max-w-[26rem] md:max-w-[28rem] lg:max-w-[32rem]",
+    width: 1024,
+    height: 682,
   },
   footer: {
-    src: "/logo-full-transparent.png",
-    srcSet: "/logo-full-transparent.png 1x, /logo-full-transparent@2x.png 2x",
-    className: "h-16 w-auto sm:h-20",
+    src: "/logo-full.png",
+    srcSet: "/logo-full.png 1x, /logo-full@2x.png 2x",
+    className: "h-auto w-40 aspect-[1024/682] sm:w-48",
     width: 256,
-    height: 80,
+    height: 170,
   },
 };
 
