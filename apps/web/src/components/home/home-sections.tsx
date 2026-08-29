@@ -44,6 +44,20 @@ function flattenCategories(nodes: CategoryNode[]): CategoryNode[] {
   return out;
 }
 
+type HeroSlide = { desktop: string; mobile: string };
+
+function HeroChevron({ dir }: { dir: "left" | "right" }) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="h-5 w-5" aria-hidden>
+      {dir === "left" ? (
+        <path d="M15 6l-6 6 6 6" strokeLinecap="round" strokeLinejoin="round" />
+      ) : (
+        <path d="M9 6l6 6-6 6" strokeLinecap="round" strokeLinejoin="round" />
+      )}
+    </svg>
+  );
+}
+
 export function HeroCampaignSection({
   section,
   hero,
@@ -55,56 +69,166 @@ export function HeroCampaignSection({
   reduceMotion: boolean | null;
   t: Record<string, string | undefined>;
 }) {
-  const desktop =
+  const campaignDesktop =
     section.imageUrl ?? hero?.desktopImageUrl ?? hero?.imageUrl ?? HERO_DESKTOP_IMAGE;
-  const mobile =
-    section.mobileImageUrl ?? hero?.mobileImageUrl ?? HERO_MOBILE_IMAGE ?? desktop;
+  const campaignMobile =
+    section.mobileImageUrl ?? hero?.mobileImageUrl ?? HERO_MOBILE_IMAGE ?? campaignDesktop;
   const headline = section.headline ?? "DRESS EVERY MOMENT BEAUTIFULLY";
   const subtitle = section.subtitle ?? "Discover fashion for women, men & kids at THARAGAI.";
   const kenBurns = reduceMotion ? "" : "hero-kenburns-plus";
   const textTransition = reduceMotion ? { duration: 0 } : { duration: 0.7, ease: [0.22, 1, 0.36, 1] as const };
+
+  const [productSlides, setProductSlides] = React.useState<HeroSlide[]>([]);
+  const [index, setIndex] = React.useState(0);
+  const touchStartX = React.useRef<number | null>(null);
+
+  React.useEffect(() => {
+    let cancelled = false;
+    async function loadSlides() {
+      const collect = (items: ProductListItem[]): HeroSlide[] => {
+        const out: HeroSlide[] = [];
+        for (const p of items) {
+          const url = p.images?.find((img) => img.mediaType !== "video")?.url ?? p.images?.[0]?.url;
+          if (!url) continue;
+          out.push({ desktop: url, mobile: url });
+        }
+        return out;
+      };
+      try {
+        const featuredRes = await fetch(`${API_URL}/products?isFeatured=true&pageSize=8`);
+        const featuredJson = await featuredRes.json();
+        let rows = collect((featuredJson.data ?? []) as ProductListItem[]);
+        if (rows.length < 1) {
+          const newRes = await fetch(`${API_URL}/products?isNew=true&pageSize=8`);
+          const newJson = await newRes.json();
+          rows = collect((newJson.data ?? []) as ProductListItem[]);
+        }
+        if (!cancelled) setProductSlides(rows);
+      } catch {
+        if (!cancelled) setProductSlides([]);
+      }
+    }
+    void loadSlides();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const slides = React.useMemo(() => {
+    const base: HeroSlide[] = campaignDesktop
+      ? [{ desktop: campaignDesktop, mobile: campaignMobile || campaignDesktop }]
+      : [];
+    const seen = new Set(base.map((s) => s.desktop));
+    for (const s of productSlides) {
+      if (seen.has(s.desktop)) continue;
+      seen.add(s.desktop);
+      base.push(s);
+    }
+    return base;
+  }, [campaignDesktop, campaignMobile, productSlides]);
+
+  const safeIndex = slides.length ? index % slides.length : 0;
+  const active = slides[safeIndex];
+  const showControls = slides.length >= 2;
+
+  React.useEffect(() => {
+    if (index >= slides.length && slides.length > 0) setIndex(0);
+  }, [index, slides.length]);
+
+  const goPrev = () => {
+    setIndex((i) => (slides.length ? (i - 1 + slides.length) % slides.length : 0));
+  };
+
+  const goNext = () => {
+    setIndex((i) => (slides.length ? (i + 1) % slides.length : 0));
+  };
 
   return (
     <motion.section
       className="relative min-h-[72svh] overflow-hidden bg-ink text-elevated lg:min-h-[78vh]"
       initial={reduceMotion ? false : { opacity: 0 }}
       animate={{ opacity: 1 }}
+      onTouchStart={(e) => {
+        touchStartX.current = e.changedTouches[0]?.clientX ?? null;
+      }}
+      onTouchEnd={(e) => {
+        const start = touchStartX.current;
+        touchStartX.current = null;
+        if (start == null || !showControls) return;
+        const end = e.changedTouches[0]?.clientX ?? start;
+        const delta = end - start;
+        if (Math.abs(delta) < 40) return;
+        if (delta < 0) goNext();
+        else goPrev();
+      }}
     >
-      {desktop ? (
-        <>
+      {active ? (
+        <div
+          key={`${active.desktop}-${safeIndex}`}
+          className={`absolute inset-0 ${reduceMotion ? "" : "animate-fade-in"}`}
+        >
           <div className={`absolute inset-0 hidden sm:block ${kenBurns}`}>
             <OptimizedImage
-              src={desktop}
+              src={active.desktop}
               alt=""
               className="h-full w-full object-cover object-center"
               sizes="100vw"
-              priority
+              priority={safeIndex === 0}
             />
           </div>
-          {mobile && mobile !== desktop ? (
-            <div className={`absolute inset-0 sm:hidden ${kenBurns}`}>
-              <OptimizedImage
-                src={mobile}
-                alt=""
-                className="h-full w-full object-cover object-top"
-                sizes="100vw"
-                priority
-              />
-            </div>
-          ) : (
-            <div className={`absolute inset-0 sm:hidden ${kenBurns}`}>
-              <OptimizedImage
-                src={desktop}
-                alt=""
-                className="h-full w-full object-cover object-top"
-                sizes="100vw"
-                priority
-              />
-            </div>
-          )}
-        </>
+          <div className={`absolute inset-0 sm:hidden ${kenBurns}`}>
+            <OptimizedImage
+              src={active.mobile}
+              alt=""
+              className="h-full w-full object-cover object-top"
+              sizes="100vw"
+              priority={safeIndex === 0}
+            />
+          </div>
+        </div>
       ) : null}
       <div className="absolute inset-0 bg-gradient-to-t from-ink/80 via-ink/30 to-ink/20" />
+
+      {showControls ? (
+        <>
+          <button
+            type="button"
+            aria-label="Previous slide"
+            onClick={goPrev}
+            className="absolute left-3 top-1/2 z-20 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full bg-elevated/95 text-ink shadow-md transition hover:bg-elevated sm:left-5"
+          >
+            <HeroChevron dir="left" />
+          </button>
+          <button
+            type="button"
+            aria-label="Next slide"
+            onClick={goNext}
+            className="absolute right-3 top-1/2 z-20 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full bg-elevated/95 text-ink shadow-md transition hover:bg-elevated sm:right-5"
+          >
+            <HeroChevron dir="right" />
+          </button>
+          <div
+            className="absolute bottom-28 left-1/2 z-20 flex -translate-x-1/2 gap-2 sm:bottom-32"
+            role="tablist"
+            aria-label="Hero slides"
+          >
+            {slides.map((_, i) => (
+              <button
+                key={i}
+                type="button"
+                role="tab"
+                aria-selected={i === safeIndex}
+                aria-label={`Go to slide ${i + 1}`}
+                onClick={() => setIndex(i)}
+                className={`h-2 rounded-full transition-all ${
+                  i === safeIndex ? "w-6 bg-brass" : "w-2 bg-elevated/50 hover:bg-elevated/80"
+                }`}
+              />
+            ))}
+          </div>
+        </>
+      ) : null}
+
       <div className="relative z-10 mx-auto flex min-h-[85svh] max-w-content flex-col justify-end px-6 pb-16 pt-28 lg:min-h-[90svh]">
         <motion.p
           className="text-xs uppercase tracking-[0.25em] text-brass"
