@@ -43,10 +43,10 @@ def _fit_on_black(img: Image.Image, size: tuple[int, int], scale: float = 0.86) 
 
 
 def _crop_mark(img: Image.Image) -> Image.Image:
-    """Square crop focused on the star+T mark (upper-center of the lockup)."""
+    """Square crop of the star+T emblem only (exclude THARAGAI / READYMATES text)."""
     iw, ih = img.size
     top = int(ih * 0.02)
-    bottom = int(ih * 0.62)
+    bottom = int(ih * 0.48)
     band = img.crop((0, top, iw, bottom))
     bw, bh = band.size
     side = min(bw, bh)
