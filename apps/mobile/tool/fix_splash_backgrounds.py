@@ -11,7 +11,8 @@ from PIL import Image
 ROOT = Path(__file__).resolve().parent.parent
 SRC = ROOT / "assets" / "branding" / "tharagai_splash.png"
 ANDROID12_SRC = ROOT / "assets" / "branding" / "tharagai_splash_android12.png"
-CREAM_RGB = (243 / 255, 238 / 255, 230 / 255)
+# Match pubspec flutter_native_splash color and Dart _splashFill (#070000).
+SPLASH_BG_RGB = (7 / 255, 0 / 255, 0 / 255)
 
 BACKGROUND_TARGETS = [
     ROOT / "android" / "app" / "src" / "main" / "res" / "drawable" / "background.png",
@@ -90,12 +91,12 @@ def patch_storyboard() -> None:
         return
     text = STORYBOARD.read_text(encoding="utf-8")
 
-    # Cream background instead of white flash.
+    # Dark brand background instead of white flash.
     text = re.sub(
         r'<color key="backgroundColor" red="1" green="1" blue="1" alpha="1" '
         r'colorSpace="custom" customColorSpace="sRGB"/>',
-        f'<color key="backgroundColor" red="{CREAM_RGB[0]}" green="{CREAM_RGB[1]}" '
-        f'blue="{CREAM_RGB[2]}" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>',
+        f'<color key="backgroundColor" red="{SPLASH_BG_RGB[0]}" green="{SPLASH_BG_RGB[1]}" '
+        f'blue="{SPLASH_BG_RGB[2]}" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>',
         text,
     )
 
