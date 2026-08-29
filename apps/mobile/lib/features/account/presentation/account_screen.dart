@@ -132,6 +132,8 @@ class _AccountScreenState extends ConsumerState<AccountScreen> {
                   variant: TharagaiButtonVariant.outline,
                   onPressed: () => context.push('/admin/login'),
                 ),
+                const SizedBox(height: 28),
+                const SocialConnectRow(),
                 const SizedBox(height: 24),
                 Text(
                   'Quick demo (remove before production)',
@@ -178,6 +180,9 @@ class _AccountScreenState extends ConsumerState<AccountScreen> {
               padding: const EdgeInsets.symmetric(vertical: 8),
               child: Text('${t.loyaltyBalance}: $_loyalty ${t.loyaltyPoints}'),
             ),
+          const SizedBox(height: 8),
+          const SocialConnectRow(),
+          const SizedBox(height: 16),
           TharagaiButton(
             label: t.loyaltyHub,
             variant: TharagaiButtonVariant.outline,

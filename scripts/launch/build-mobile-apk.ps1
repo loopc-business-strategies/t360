@@ -20,6 +20,8 @@ $ApiBase = if ($env:API_BASE_URL) {
 }
 
 $RazorpayKey = if ($env:RAZORPAY_KEY_ID) { $env:RAZORPAY_KEY_ID.Trim() } else { "" }
+$WhatsAppE164 = if ($env:WHATSAPP_E164) { $env:WHATSAPP_E164.Trim() } else { "917373725604" }
+$InstagramUrl = if ($env:INSTAGRAM_URL) { $env:INSTAGRAM_URL.Trim() } else { "https://www.instagram.com/tharagai_readymades/" }
 
 if (-not (Get-Command flutter -ErrorAction SilentlyContinue)) {
   Write-Error "flutter not found on PATH. Install Flutter SDK and retry."
@@ -30,6 +32,8 @@ Set-Location $MobileDir
 
 Write-Host "Building release APK"
 Write-Host "  API_BASE_URL=$ApiBase"
+Write-Host "  WHATSAPP_E164=$WhatsAppE164"
+Write-Host "  INSTAGRAM_URL=$InstagramUrl"
 if ($RazorpayKey) {
   Write-Host "  RAZORPAY_KEY_ID=(set)"
 } else {
@@ -41,6 +45,8 @@ if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 
 $defines = @(
   "--dart-define=API_BASE_URL=$ApiBase"
+  "--dart-define=WHATSAPP_E164=$WhatsAppE164"
+  "--dart-define=INSTAGRAM_URL=$InstagramUrl"
 )
 if ($RazorpayKey) {
   $defines += "--dart-define=RAZORPAY_KEY_ID=$RazorpayKey"

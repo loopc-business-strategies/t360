@@ -8,6 +8,7 @@ import { API_URL, SITE_URL, productPrice } from "../lib/catalog-api";
 import { apiFetch, getCustomerToken } from "../lib/api";
 import { useLocale } from "../lib/locale";
 import { buildWhatsAppEnquiryUrl } from "../lib/whatsapp";
+import { getWhatsAppE164 } from "../lib/social";
 import { TryOnModal } from "./try-on/try-on-modal";
 import { ProductReviews } from "./product-reviews";
 import { ProductCardInteractive } from "./store/product-card-interactive";
@@ -60,7 +61,7 @@ export function ProductDetailClient({
   ) as string[];
   const inStock = variant?.inStock ?? product.inStock;
   const price = Number(variant?.salePrice ?? variant?.price ?? productPrice(product).amount);
-  const waNumber = process.env.NEXT_PUBLIC_WHATSAPP_E164 ?? "919876543210";
+  const waNumber = getWhatsAppE164();
 
   React.useEffect(() => {
     const token = getCustomerToken();
@@ -119,13 +120,15 @@ export function ProductDetailClient({
     }
   }
 
-  const waUrl = buildWhatsAppEnquiryUrl({
-    e164: waNumber,
-    productName: product.name,
-    sku: variant?.sku ?? "",
-    price,
-    url: `${SITE_URL}/products/${product.slug}`,
-  });
+  const waUrl = waNumber
+    ? buildWhatsAppEnquiryUrl({
+        e164: waNumber,
+        productName: product.name,
+        sku: variant?.sku ?? "",
+        price,
+        url: `${SITE_URL}/products/${product.slug}`,
+      })
+    : null;
 
   const jsonLd = {
     "@context": "https://schema.org",
@@ -288,11 +291,13 @@ export function ProductDetailClient({
           <Link href="/policies/shipping" className="self-center text-sm text-wine hover:underline">
             Fit &amp; shipping
           </Link>
-          <a href={waUrl} target="_blank" rel="noopener noreferrer">
-            <Button variant="outline" type="button">
-              {t.ctaWhatsapp}
-            </Button>
-          </a>
+          {waUrl ? (
+            <a href={waUrl} target="_blank" rel="noopener noreferrer">
+              <Button variant="outline" type="button">
+                {t.ctaWhatsapp}
+              </Button>
+            </a>
+          ) : null}
         </div>
         <TryOnModal
           open={tryOnOpen}

@@ -83,7 +83,7 @@ function normalizeStorefrontSections(sections: unknown[]): unknown[] {
         instagramUrl:
           sec.instagramUrl ||
           process.env.STOREFRONT_INSTAGRAM_URL ||
-          undefined,
+          "https://www.instagram.com/tharagai_readymades/",
         facebookUrl:
           sec.facebookUrl ||
           process.env.STOREFRONT_FACEBOOK_URL ||
@@ -197,7 +197,7 @@ export const DEFAULT_STOREFRONT_SECTIONS = [
     type: "socialFollow" as const,
     visible: true,
     order: 15,
-    instagramUrl: process.env.STOREFRONT_INSTAGRAM_URL || undefined,
+    instagramUrl: process.env.STOREFRONT_INSTAGRAM_URL || "https://www.instagram.com/tharagai_readymades/",
     facebookUrl: process.env.STOREFRONT_FACEBOOK_URL || undefined,
     youtubeUrl: process.env.STOREFRONT_YOUTUBE_URL || undefined,
   },

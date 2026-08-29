@@ -8,7 +8,8 @@ import type { Branch, CategoryNode, CollectionItem } from "../lib/catalog-api";
 import { StoreHeader } from "./store/store-header";
 import { BrandLogo } from "./brand-logo";
 import { MobileBottomNav } from "./store/mobile-bottom-nav";
-import { WhatsAppFab } from "./store/whatsapp-fab";
+import { SocialFabs } from "./store/social-fabs";
+import { getInstagramUrl, getWhatsAppE164 } from "../lib/social";
 
 export function SiteHeader() {
   const [categories, setCategories] = React.useState<CategoryNode[]>([]);
@@ -52,7 +53,7 @@ export function SiteHeader() {
         onSearchOpenChange={setSearchOpen}
       />
       <MobileBottomNav onSearchOpen={() => setSearchOpen(true)} />
-      <WhatsAppFab />
+      <SocialFabs />
     </>
   );
 }
@@ -70,7 +71,8 @@ export function SiteFooter() {
       .catch(() => undefined);
   }, []);
 
-  const waNumber = process.env.NEXT_PUBLIC_WHATSAPP_E164;
+  const waNumber = getWhatsAppE164();
+  const igUrl = getInstagramUrl();
 
   return (
     <footer className="mt-auto border-t border-border bg-ink text-elevated">
@@ -79,6 +81,30 @@ export function SiteFooter() {
           <BrandLogo variant="footer" alt={t.brand} />
           <p className="mt-3 text-sm text-elevated/70">{t.footerTagline}</p>
           <p className="mt-2 text-xs text-elevated/50">© 2026 THARAGAI Readymades</p>
+          {(waNumber || igUrl) && (
+            <div className="mt-4 flex gap-3">
+              {waNumber ? (
+                <a
+                  href={`https://wa.me/${waNumber}`}
+                  className="text-sm text-brass hover:underline"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  WhatsApp
+                </a>
+              ) : null}
+              {igUrl ? (
+                <a
+                  href={igUrl}
+                  className="text-sm text-brass hover:underline"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  Instagram
+                </a>
+              ) : null}
+            </div>
+          )}
         </div>
         <div>
           <p className="text-xs uppercase tracking-wider text-brass">Shop</p>
@@ -105,9 +131,14 @@ export function SiteFooter() {
         <div>
           <p className="text-xs uppercase tracking-wider text-brass">Help</p>
           <nav className="mt-4 flex flex-col gap-2 text-sm">
-            {waNumber && waNumber !== "919876543210" ? (
-              <a href={`https://wa.me/${waNumber.replace(/\D/g, "")}`} className="hover:text-brass" target="_blank" rel="noopener noreferrer">
+            {waNumber ? (
+              <a href={`https://wa.me/${waNumber}`} className="hover:text-brass" target="_blank" rel="noopener noreferrer">
                 WhatsApp
+              </a>
+            ) : null}
+            {igUrl ? (
+              <a href={igUrl} className="hover:text-brass" target="_blank" rel="noopener noreferrer">
+                Instagram
               </a>
             ) : null}
             <Link href="/account" className="hover:text-brass">Account</Link>

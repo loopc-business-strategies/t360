@@ -37,6 +37,9 @@ Use the escape hatch only for emergency staging/hotfix sandboxes — never as a 
 |----------|----------|-------|
 | `NEXT_PUBLIC_API_URL` | yes | `https://api…/api/v1` |
 | `NEXT_PUBLIC_SITE_URL` | web | Canonical URL |
+| `NEXT_PUBLIC_WHATSAPP_E164` | web | Digits + country code; FAB/footer hidden if unset or `919876543210` |
+| `NEXT_PUBLIC_INSTAGRAM_URL` | web | Instagram profile URL; FAB/footer hidden if unset |
+| `STOREFRONT_INSTAGRAM_URL` | API | Fills home `socialFollow` Instagram link |
 | `NEXT_PUBLIC_SENTRY_DSN` | no | Enables client Sentry stub wiring |
 | `NEXT_PUBLIC_RAZORPAY_KEY_ID` | checkout | Public key |
 

@@ -13,6 +13,37 @@ class AppEnv {
     defaultValue: false,
   );
 
+  /// Digits with country code. Empty or placeholder uses Tharagai default.
+  static const whatsappE164 = String.fromEnvironment(
+    'WHATSAPP_E164',
+    defaultValue: '917373725604',
+  );
+
+  /// Instagram profile URL. Empty uses Tharagai default.
+  static const instagramUrl = String.fromEnvironment(
+    'INSTAGRAM_URL',
+    defaultValue: 'https://www.instagram.com/tharagai_readymades/',
+  );
+
+  static const _whatsappPlaceholder = '919876543210';
+
+  static String? get configuredWhatsAppE164 {
+    final digits = whatsappE164.replaceAll(RegExp(r'\D'), '');
+    if (digits.isEmpty || digits == _whatsappPlaceholder) return null;
+    if (digits.length < 10) return null;
+    return digits;
+  }
+
+  static String? get configuredInstagramUrl {
+    final raw = instagramUrl.trim();
+    if (raw.isEmpty) return null;
+    final uri = Uri.tryParse(raw);
+    if (uri == null || !(uri.isScheme('http') || uri.isScheme('https'))) {
+      return null;
+    }
+    return uri.toString();
+  }
+
   /// Call once at app start in release builds.
   static void assertReleaseApiUrl() {
     if (!kReleaseMode) return;

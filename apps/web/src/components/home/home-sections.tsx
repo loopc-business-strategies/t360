@@ -15,6 +15,7 @@ import {
   HERO_DESKTOP_IMAGE,
   HERO_MOBILE_IMAGE,
 } from "../../lib/category-images";
+import { getWhatsAppE164 } from "../../lib/social";
 
 const OCCASION_CARDS = [
   { label: "Wedding", href: "/collections/wedding-edit", slug: "wedding-lehengas" },
@@ -368,11 +369,16 @@ export function SocialFollowSection({
   section: Extract<StorefrontSection, { type: "socialFollow" }>;
   reduceMotion: boolean | null;
 }) {
+  const waDigits = getWhatsAppE164();
   const links = [
     { label: "Instagram", url: section.instagramUrl },
+    {
+      label: "WhatsApp",
+      url: waDigits ? `https://wa.me/${waDigits}` : undefined,
+    },
     { label: "Facebook", url: section.facebookUrl },
     { label: "YouTube", url: section.youtubeUrl },
-  ].filter((l) => l.url);
+  ].filter((l): l is { label: string; url: string } => Boolean(l.url));
 
   if (!links.length) return null;
 
