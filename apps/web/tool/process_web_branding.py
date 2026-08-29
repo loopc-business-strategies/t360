@@ -60,8 +60,8 @@ def _resize_long_edge(img: Image.Image, long_edge: int) -> Image.Image:
     return img.resize((max(1, int(w * scale)), max(1, int(h * scale))), Image.Resampling.LANCZOS)
 
 
-def _knock_out_black(img: Image.Image, threshold: int = 18) -> Image.Image:
-    """Set near-black pixels to fully transparent."""
+def _knock_out_black(img: Image.Image, threshold: int = 20) -> Image.Image:
+    """Set near-black plate pixels to fully transparent."""
     out = img.convert("RGBA")
     px = out.load()
     w, h = out.size
@@ -75,40 +75,63 @@ def _knock_out_black(img: Image.Image, threshold: int = 18) -> Image.Image:
     return out
 
 
-def _brighten_readymates_band(img: Image.Image) -> Image.Image:
-    """
-    READYMATES sits under THARAGAI as near-black type. Remap dark pixels in that
-    horizontal band toward brass/gold so the word stays readable on dark footers.
-    """
-    out = img.convert("RGBA")
-    px = out.load()
-    w, h = out.size
-    y0 = int(h * 0.60)
-    y1 = int(h * 0.80)
-    brass = (212, 175, 95)
-    for y in range(y0, min(y1, h)):
-        for x in range(w):
-            r, g, b, a = px[x, y]
-            if a < 8:
-                continue
-            luma = 0.2126 * r + 0.7152 * g + 0.0722 * b
-            is_strong_red = r > 120 and r > g + 40 and r > b + 40
-            is_gold = g > 100 and r > 140 and b < 120
-            if is_strong_red or is_gold:
-                continue
-            if luma < 130:
-                t = max(0.75, min(1.0, 1.0 - (luma / 130.0)))
-                nr = int(r * (1 - t) + brass[0] * t)
-                ng = int(g * (1 - t) + brass[1] * t)
-                nb = int(b * (1 - t) + brass[2] * t)
-                px[x, y] = (nr, ng, nb, 255)
-    return out
+def _is_gold(r: int, g: int, b: int, a: int) -> bool:
+    return a > 200 and g > 105 and r > 145 and b < 125 and g > b + 25
 
 
 def _prepare_full_lockup(source: Image.Image, long_edge: int) -> Image.Image:
     resized = _resize_long_edge(source, long_edge)
-    knocked = _knock_out_black(resized)
-    return _brighten_readymates_band(knocked)
+    # Paint READYMATES to brass while still opaque black-backed, then knock out plate.
+    brightened = _brighten_readymates_band(resized)
+    return _knock_out_black(brightened)
+
+
+def _brighten_readymates_band(img: Image.Image) -> Image.Image:
+    """
+    READYMATES sits between two thin gold rules. Force dark letter fills to brass
+    BEFORE knock-out (near-black glyphs would otherwise be deleted as background).
+    """
+    out = img.convert("RGBA")
+    px = out.load()
+    w, h = out.size
+    brass = (220, 185, 105, 255)
+    y_start, y_end = int(h * 0.55), int(h * 0.78)
+    bar_ys: list[int] = []
+    for y in range(y_start, y_end):
+        gc = sum(
+            1
+            for x in range(int(w * 0.15), int(w * 0.85))
+            if _is_gold(*px[x, y])
+        )
+        if gc > w * 0.12:
+            bar_ys.append(y)
+
+    upper = bar_ys[0] if bar_ys else -1
+    lower = next((y for y in bar_ys[1:] if y > upper + 8), -1)
+
+    if upper > 0 and lower > upper + 6 and (lower - upper) < h * 0.12:
+        for y in range(upper + 1, lower):
+            for x in range(int(w * 0.18), int(w * 0.82)):
+                r, g, b, a = px[x, y]
+                if _is_gold(r, g, b, a):
+                    continue
+                if r > 130 and r > g + 45 and r > b + 45:
+                    continue
+                luma = 0.2126 * r + 0.7152 * g + 0.0722 * b
+                if luma < 170:
+                    px[x, y] = brass
+    else:
+        for y in range(int(h * 0.62), int(h * 0.72)):
+            for x in range(int(w * 0.22), int(w * 0.78)):
+                r, g, b, a = px[x, y]
+                if a < 8 or _is_gold(r, g, b, a):
+                    continue
+                if r > 130 and r > g + 45:
+                    continue
+                luma = 0.2126 * r + 0.7152 * g + 0.0722 * b
+                if luma < 160:
+                    px[x, y] = brass
+    return out
 
 
 def _save_png_rgba(img: Image.Image, path: Path) -> None:

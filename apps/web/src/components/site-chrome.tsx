@@ -79,8 +79,11 @@ export function SiteFooter() {
       <div className="mx-auto grid max-w-content gap-10 px-6 py-14 sm:grid-cols-2 lg:grid-cols-4">
         <div>
           <BrandLogo variant="footer" alt={t.brand} />
+          <p className="mt-1 text-[11px] font-semibold uppercase tracking-[0.32em] text-brass">
+            READYMATES
+          </p>
           <p className="mt-3 text-sm text-elevated/70">{t.footerTagline}</p>
-          <p className="mt-2 text-xs text-elevated/50">© 2026 THARAGAI Readymades</p>
+          <p className="mt-2 text-xs text-elevated/80">© 2026 THARAGAI Readymades</p>
           {(waNumber || igUrl) && (
             <div className="mt-4 flex gap-3">
               {waNumber ? (
