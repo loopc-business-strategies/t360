@@ -68,12 +68,16 @@ Railway: set Dockerfile path to `apps/api/Dockerfile`; create two services (api 
 | Workflow | Role |
 |----------|------|
 | [`.github/workflows/ci.yml`](../../.github/workflows/ci.yml) | PR / push → install, typecheck, api tests, build api/web/admin |
-| [`.github/workflows/deploy.yml`](../../.github/workflows/deploy.yml) | Secret-gated staging (main + dispatch) / production (dispatch + approval) |
+| [`.github/workflows/deploy.yml`](../../.github/workflows/deploy.yml) | Secret-gated staging (push = Railway only; dispatch = Vercel+Railway) / production (dispatch + approval) |
 
 ```
-PR / push main → pnpm install → prisma generate → typecheck → api tests → build api/web/admin
-Deploy (when secrets set) → Vercel web+admin + Railway api+worker → smoke
+PR / push main → CI (typecheck, api tests, build)
+Push main (Deploy) → Railway staging api+worker only (no Vercel CLI)
+Manual Deploy staging → Vercel preview web+admin + Railway → smoke
+Manual Deploy production → scoped Vercel + Railway (see deploy_scope) → smoke
 ```
+
+Vercel Hobby rate limit (`api-deployments-free-per-day`): see [STAGING.md](./STAGING.md). Quota errors soft-fail so Railway still deploys.
 
 Full operator setup: [STAGING.md](./STAGING.md). Production is never auto-deployed without `workflow_dispatch` + GitHub Environment approval.
 

@@ -2,6 +2,10 @@
 # RAILWAY_TOKEN must be an Account/Workspace token (Account → Tokens).
 # The workflow maps it to RAILWAY_API_TOKEN (CLI rejects account tokens as RAILWAY_TOKEN).
 # ORG/PROJECT IDs and Railway service names come from repository vars (see STAGING.md).
+#
+# Push to main → Railway staging only (avoids burning Vercel free-tier deploy quota).
+# Manual staging dispatch → Vercel preview + Railway.
+# Production → workflow_dispatch only; use deploy_scope to limit Vercel usage.
 
 name: Deploy
 
@@ -17,7 +21,7 @@ on:
           - production
         default: staging
       deploy_scope:
-        description: Production scope (ignored for staging push/dispatch)
+        description: Production scope (staging dispatch always deploys Vercel+Railway when selected)
         required: false
         type: choice
         options:
@@ -50,9 +54,12 @@ jobs:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
           RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
         run: |
-          if [ -z "$VERCEL_TOKEN" ] || [ -z "$RAILWAY_TOKEN" ]; then
+          if [ -z "$RAILWAY_TOKEN" ]; then
             echo "skip=true" >> "$GITHUB_OUTPUT"
-            echo "VERCEL_TOKEN and/or RAILWAY_TOKEN missing — skipping staging deploy."
+            echo "RAILWAY_TOKEN missing — skipping staging deploy."
+          elif [ "${{ github.event_name }}" = "workflow_dispatch" ] && [ -z "$VERCEL_TOKEN" ]; then
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+            echo "VERCEL_TOKEN missing — skipping staging dispatch (needs Vercel)."
           else
             echo "skip=false" >> "$GITHUB_OUTPUT"
           fi
@@ -60,33 +67,47 @@ jobs:
       - uses: actions/checkout@v4
         if: steps.gate.outputs.skip == 'false'
 
-      - uses: pnpm/action-setup@v4
+      - name: Resolve staging scope
+        id: scope
         if: steps.gate.outputs.skip == 'false'
+        run: |
+          if [ "${{ github.event_name }}" = "push" ]; then
+            echo "deploy_vercel=false" >> "$GITHUB_OUTPUT"
+            echo "deploy_railway=true" >> "$GITHUB_OUTPUT"
+            echo "Staging scope: railway-only (push)"
+          else
+            echo "deploy_vercel=true" >> "$GITHUB_OUTPUT"
+            echo "deploy_railway=true" >> "$GITHUB_OUTPUT"
+            echo "Staging scope: vercel+railway (workflow_dispatch)"
+          fi
+
+      - uses: pnpm/action-setup@v4
+        if: steps.gate.outputs.skip == 'false' && steps.scope.outputs.deploy_vercel == 'true'
         with:
           version: 9.15.0
 
       - uses: actions/setup-node@v4
-        if: steps.gate.outputs.skip == 'false'
+        if: steps.gate.outputs.skip == 'false' && steps.scope.outputs.deploy_vercel == 'true'
         with:
           node-version: 20
           cache: pnpm
 
       - name: Install
-        if: steps.gate.outputs.skip == 'false'
+        if: steps.gate.outputs.skip == 'false' && steps.scope.outputs.deploy_vercel == 'true'
         run: pnpm install --frozen-lockfile
 
       - name: Prisma generate
-        if: steps.gate.outputs.skip == 'false'
+        if: steps.gate.outputs.skip == 'false' && steps.scope.outputs.deploy_vercel == 'true'
         run: pnpm --filter @t360/database generate
 
       - name: Build web + admin
-        if: steps.gate.outputs.skip == 'false'
+        if: steps.gate.outputs.skip == 'false' && steps.scope.outputs.deploy_vercel == 'true'
         run: |
           pnpm --filter @t360/web build
           pnpm --filter @t360/admin build
 
       - name: Deploy web to Vercel (staging)
-        if: steps.gate.outputs.skip == 'false'
+        if: steps.gate.outputs.skip == 'false' && steps.scope.outputs.deploy_vercel == 'true'
         env:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
           VERCEL_ORG_ID: ${{ vars.VERCEL_ORG_ID }}
@@ -97,10 +118,20 @@ jobs:
           # Run from repo root — project Root Directory is already apps/web.
           npx vercel@latest pull --yes --environment=preview --token="$VERCEL_TOKEN"
           npx vercel@latest build --token="$VERCEL_TOKEN"
-          npx vercel@latest deploy --prebuilt --archive=tgz --token="$VERCEL_TOKEN"
+          set +e
+          OUT=$(npx vercel@latest deploy --prebuilt --archive=tgz --token="$VERCEL_TOKEN" 2>&1)
+          STATUS=$?
+          echo "$OUT"
+          if [ "$STATUS" -ne 0 ]; then
+            if echo "$OUT" | grep -qE 'api-deployments-free-per-day|Resource is limited'; then
+              echo "::warning::Vercel free-tier deploy quota exceeded (web staging). Continuing with Railway."
+              exit 0
+            fi
+            exit "$STATUS"
+          fi
 
       - name: Deploy admin to Vercel (staging)
-        if: steps.gate.outputs.skip == 'false'
+        if: steps.gate.outputs.skip == 'false' && steps.scope.outputs.deploy_vercel == 'true'
         env:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
           VERCEL_ORG_ID: ${{ vars.VERCEL_ORG_ID }}
@@ -109,10 +140,20 @@ jobs:
         run: |
           npx vercel@latest pull --yes --environment=preview --token="$VERCEL_TOKEN"
           npx vercel@latest build --token="$VERCEL_TOKEN"
-          npx vercel@latest deploy --prebuilt --archive=tgz --token="$VERCEL_TOKEN"
+          set +e
+          OUT=$(npx vercel@latest deploy --prebuilt --archive=tgz --token="$VERCEL_TOKEN" 2>&1)
+          STATUS=$?
+          echo "$OUT"
+          if [ "$STATUS" -ne 0 ]; then
+            if echo "$OUT" | grep -qE 'api-deployments-free-per-day|Resource is limited'; then
+              echo "::warning::Vercel free-tier deploy quota exceeded (admin staging). Continuing with Railway."
+              exit 0
+            fi
+            exit "$STATUS"
+          fi
 
       - name: Deploy API to Railway (staging)
-        if: steps.gate.outputs.skip == 'false'
+        if: steps.gate.outputs.skip == 'false' && steps.scope.outputs.deploy_railway == 'true'
         env:
           RAILWAY_API_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
         run: |
@@ -122,7 +163,7 @@ jobs:
             --environment staging --detach
 
       - name: Deploy worker to Railway (staging)
-        if: steps.gate.outputs.skip == 'false'
+        if: steps.gate.outputs.skip == 'false' && steps.scope.outputs.deploy_railway == 'true'
         env:
           RAILWAY_API_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
         run: |
@@ -131,7 +172,7 @@ jobs:
             --environment staging --detach
 
       - name: Post-deploy smoke
-        if: steps.gate.outputs.skip == 'false' && vars.STAGING_API_BASE != ''
+        if: steps.gate.outputs.skip == 'false' && steps.scope.outputs.deploy_railway == 'true' && vars.STAGING_API_BASE != ''
         env:
           API_BASE: ${{ vars.STAGING_API_BASE }}
         run: bash scripts/launch/smoke.sh
@@ -205,22 +246,22 @@ jobs:
           echo "Deploy scope: $DEPLOY_SCOPE"
 
       - uses: pnpm/action-setup@v4
-        if: steps.gate.outputs.skip == 'false'
+        if: steps.gate.outputs.skip == 'false' && (steps.scope.outputs.build_web == 'true' || steps.scope.outputs.build_admin == 'true')
         with:
           version: 9.15.0
 
       - uses: actions/setup-node@v4
-        if: steps.gate.outputs.skip == 'false'
+        if: steps.gate.outputs.skip == 'false' && (steps.scope.outputs.build_web == 'true' || steps.scope.outputs.build_admin == 'true' || steps.scope.outputs.deploy_railway == 'true')
         with:
           node-version: 20
           cache: pnpm
 
       - name: Install
-        if: steps.gate.outputs.skip == 'false' && (steps.scope.outputs.build_web == 'true' || steps.scope.outputs.build_admin == 'true' || steps.scope.outputs.deploy_railway == 'true')
+        if: steps.gate.outputs.skip == 'false' && (steps.scope.outputs.build_web == 'true' || steps.scope.outputs.build_admin == 'true')
         run: pnpm install --frozen-lockfile
 
       - name: Prisma generate
-        if: steps.gate.outputs.skip == 'false' && (steps.scope.outputs.build_web == 'true' || steps.scope.outputs.build_admin == 'true' || steps.scope.outputs.deploy_railway == 'true')
+        if: steps.gate.outputs.skip == 'false' && (steps.scope.outputs.build_web == 'true' || steps.scope.outputs.build_admin == 'true')
         run: pnpm --filter @t360/database generate
 
       - name: Build web
@@ -242,7 +283,17 @@ jobs:
         run: |
           npx vercel@latest pull --yes --environment=production --token="$VERCEL_TOKEN"
           npx vercel@latest build --prod --token="$VERCEL_TOKEN"
-          npx vercel@latest deploy --prebuilt --prod --archive=tgz --token="$VERCEL_TOKEN"
+          set +e
+          OUT=$(npx vercel@latest deploy --prebuilt --prod --archive=tgz --token="$VERCEL_TOKEN" 2>&1)
+          STATUS=$?
+          echo "$OUT"
+          if [ "$STATUS" -ne 0 ]; then
+            if echo "$OUT" | grep -qE 'api-deployments-free-per-day|Resource is limited'; then
+              echo "::warning::Vercel free-tier deploy quota exceeded (web production). Continuing with remaining steps."
+              exit 0
+            fi
+            exit "$STATUS"
+          fi
 
       - name: Deploy admin to Vercel (production)
         if: steps.gate.outputs.skip == 'false' && steps.scope.outputs.deploy_admin == 'true'
@@ -254,7 +305,17 @@ jobs:
         run: |
           npx vercel@latest pull --yes --environment=production --token="$VERCEL_TOKEN"
           npx vercel@latest build --prod --token="$VERCEL_TOKEN"
-          npx vercel@latest deploy --prebuilt --prod --archive=tgz --token="$VERCEL_TOKEN"
+          set +e
+          OUT=$(npx vercel@latest deploy --prebuilt --prod --archive=tgz --token="$VERCEL_TOKEN" 2>&1)
+          STATUS=$?
+          echo "$OUT"
+          if [ "$STATUS" -ne 0 ]; then
+            if echo "$OUT" | grep -qE 'api-deployments-free-per-day|Resource is limited'; then
+              echo "::warning::Vercel free-tier deploy quota exceeded (admin production). Continuing with remaining steps."
+              exit 0
+            fi
+            exit "$STATUS"
+          fi
 
       - name: Deploy API to Railway (production)
         if: steps.gate.outputs.skip == 'false' && steps.scope.outputs.deploy_railway == 'true'

@@ -24,7 +24,7 @@ gh secret set VERCEL_TOKEN -R loopc-business-strategies/t360
 
 | `RAILWAY_TOKEN` | Railway **Account/Workspace** token (Account → Tokens). Workflow maps it to `RAILWAY_API_TOKEN` for the CLI. Do not use a Project token here unless you change the workflow to set `RAILWAY_TOKEN` instead. |
 
-If `VERCEL_TOKEN` or `RAILWAY_TOKEN` is missing, deploy jobs **skip** (exit success) so default CI stays green.
+If `RAILWAY_TOKEN` is missing, staging push deploys **skip**. Staging/production **dispatch** that needs Vercel also requires `VERCEL_TOKEN`.
 
 ## Variables (repository)
 
@@ -48,8 +48,27 @@ Canonical Vercel apps: **`t360-web`** and **`t360-admin`** (Git-linked to this r
 
 | Target | How |
 |--------|-----|
-| Staging | Push to `main`/`master`, or Actions → **Deploy** → `workflow_dispatch` → target `staging` |
-| Production | Actions → **Deploy** → target `production`, optional **deploy_scope** (`web-only`, `web-and-railway`, etc.) |
+| Staging (push) | Push to `main`/`master` → **Railway api + worker only** (no Vercel CLI; conserves free-tier deploy quota) |
+| Staging (manual) | Actions → **Deploy** → `workflow_dispatch` → target `staging` → Vercel preview (web+admin) + Railway |
+| Production | Actions → **Deploy** → target `production`, optional **deploy_scope** (`web-only`, `web-and-railway`, `railway-only`, etc.) |
+
+### Vercel free-tier deploy quota
+
+Hobby accounts cap at **~100 deployments / 24 hours** (`api-deployments-free-per-day`). Every Actions CLI deploy and every Vercel Git auto-deploy counts toward that limit.
+
+Mitigations in [`deploy.yml`](../../.github/workflows/deploy.yml):
+
+- Push to `main` does **not** run Vercel CLI (Railway staging only).
+- Vercel deploy steps **soft-fail** on the quota error and still run Railway / remaining scopes.
+- Prefer production `deploy_scope: web-and-railway` (or `web-only`) instead of `all` when admin is unchanged.
+
+After a quota window resets:
+
+```bash
+gh workflow run deploy.yml -f target=production -f deploy_scope=web-and-railway
+```
+
+If Vercel projects are also **Git-linked**, disable duplicate auto-deploy in the Vercel dashboard when Actions is the source of truth—otherwise Git pushes still burn quota outside Actions.
 
 ## App env on platforms
 
