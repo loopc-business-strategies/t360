@@ -8,17 +8,15 @@ import { API_URL } from "../../lib/catalog-api";
 
 const RECENT_KEY = "t360.recentSearches";
 const POPULAR = [
-  "Silk Saree",
   "Chudidar",
   "Kurti",
   "Men's Shirts",
   "T-Shirts",
   "Kids Wear",
-  "saree",
-  "selai",
-  "சேலை",
+  "Anarkali",
   "chudidar",
   "சுடிதார்",
+  "குர்த்தி",
 ];
 
 function loadRecent(): string[] {

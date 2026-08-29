@@ -42,7 +42,7 @@ type SeedResult = {
   variants: number;
 };
 
-type Segment = "men" | "women" | "kids" | "sarees" | "wedding" | "festival";
+type Segment = "men" | "women" | "kids" | "wedding" | "festival";
 
 function sizesForProfile(profile: SizeProfile): string[] {
   if (profile === "kids") return KIDS_SIZES.slice(0, 6);
@@ -496,9 +496,8 @@ export async function seedDemoCatalog(prisma: PrismaClient): Promise<SeedResult>
     if (b.flags.isFeatured) links.push("t360-originals");
     if (b.flags.onSale) links.push("sale");
     if (b.gender === "men") links.push("mens-edit");
-    if (b.gender === "women" || b.gender === "sarees") links.push("womens-edit");
+    if (b.gender === "women") links.push("womens-edit");
     if (b.gender === "kids") links.push("kids-essentials");
-    if (b.gender === "sarees" || b.leafSlug.includes("saree")) links.push("saree-edit");
     if (b.gender === "wedding" || b.leafSlug.includes("wedding") || b.leafSlug.includes("lehenga") || b.leafSlug.includes("sherwani") || b.leafSlug.includes("reception")) {
       links.push("wedding-edit");
     }
@@ -513,8 +512,7 @@ export async function seedDemoCatalog(prisma: PrismaClient): Promise<SeedResult>
       b.leafSlug.includes("anarkali") ||
       b.leafSlug.includes("palazzo") ||
       b.leafSlug.includes("ethnic") ||
-      b.leafSlug.includes("nehru") ||
-      b.leafSlug.includes("saree")
+      b.leafSlug.includes("nehru")
     ) {
       links.push("ethnic-edit");
     }
@@ -658,13 +656,11 @@ export async function auditDemoCatalog(prisma: PrismaClient): Promise<AuditRow[]
           ? "women"
           : leaf.startsWith("kids-")
             ? "kids"
-            : leaf.startsWith("sarees-")
-              ? "sarees"
-              : leaf.startsWith("wedding-")
-                ? "wedding"
-                : leaf.startsWith("festival-")
-                  ? "festival"
-                  : "men";
+            : leaf.startsWith("wedding-")
+              ? "wedding"
+              : leaf.startsWith("festival-")
+                ? "festival"
+                : "men";
     const stills = p.images.filter((i) => i.mediaType === "image");
     const primary = stills[0]?.url ?? "";
     const hasVideo = p.images.some((i) => i.mediaType === "video");

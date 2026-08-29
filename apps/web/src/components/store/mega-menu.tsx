@@ -243,8 +243,8 @@ export function MegaMenu({
       ) : null}
 
       {panel === "other" ? (
-        <div className="mx-auto grid max-w-content gap-8 px-6 py-8 sm:grid-cols-2 lg:grid-cols-4">
-          {(["sarees", "wedding", "festival"] as const).map((slug) => {
+        <div className="mx-auto grid max-w-content gap-8 px-6 py-8 sm:grid-cols-2 lg:grid-cols-3">
+          {(["wedding", "festival"] as const).map((slug) => {
             const cat = findCategory(categories, slug);
             if (!cat) return null;
             return (
@@ -285,13 +285,13 @@ export function MegaMenu({
           })}
           <div className="rounded-md bg-linen/80 p-5">
             <p className="font-display text-lg text-ink">Ethnic &amp; occasion</p>
-            <p className="mt-2 text-sm text-muted">Sarees, wedding, and festival edits.</p>
+            <p className="mt-2 text-sm text-muted">Wedding and festival edits for the whole family.</p>
             <Link
-              href="/categories/sarees"
+              href="/categories/wedding"
               className="mt-4 inline-block text-sm font-medium text-wine hover:underline"
               onClick={onClose}
             >
-              Shop sarees →
+              Shop wedding →
             </Link>
           </div>
         </div>
@@ -345,15 +345,6 @@ export function MegaMenu({
               </li>
               <li>
                 <Link
-                  href="/collections/saree-edit"
-                  className="text-sm hover:text-wine"
-                  onClick={onClose}
-                >
-                  Saree Edit
-                </Link>
-              </li>
-              <li>
-                <Link
                   href="/collections/wedding-edit"
                   className="text-sm hover:text-wine"
                   onClick={onClose}
@@ -389,7 +380,7 @@ export function MegaMenu({
           <div className="rounded-md bg-linen/80 p-5">
             <p className="font-display text-lg">Ethnic &amp; festive edits</p>
             <p className="mt-2 text-sm text-muted">
-              Sarees, wedding wear, and festive looks curated for the season.
+              Wedding wear and festive looks curated for the season.
             </p>
             <Link
               href="/collections/ethnic-edit"

@@ -317,12 +317,12 @@ async function main() {
         en: {
           headline: "Readymades for every celebration",
           support:
-            "Premium family fashion from Pudukkottai — discover sarees, wedding wear, and everyday elegance.",
+            "Premium family fashion from Pudukkottai — wedding wear, ethnic sets, and everyday elegance.",
         },
         ta: {
           headline: "எல்லா கொண்டாட்டங்களுக்கும் ரெடிமேட்ஸ்",
           support:
-            "புதுக்கோட்டையிலிருந்து உயர்தர குடும்ப ஆடைகள் — புடவைகள், திருமண உடைகள், அன்றாட நேர்த்தி.",
+            "புதுக்கோட்டையிலிருந்து உயர்தர குடும்ப ஆடைகள் — திருமண உடைகள், எத்னிக் செட்கள், அன்றாட நேர்த்தி.",
         },
       },
     },
@@ -663,16 +663,7 @@ async function main() {
     update: { status: "ready" },
   });
 
-  await prisma.searchSynonym.upsert({
-    where: { term: "saree" },
-    create: {
-      term: "saree",
-      aliases: ["sari", "selai", "சேலை", "pudavai", "புடவை"],
-      locale: "en",
-      active: true,
-    },
-    update: { aliases: ["sari", "selai", "சேலை", "pudavai", "புடவை"], active: true },
-  });
+  await prisma.searchSynonym.deleteMany({ where: { term: "saree" } });
   await prisma.searchSynonym.upsert({
     where: { term: "chudidar" },
     create: {
@@ -717,6 +708,11 @@ async function main() {
   const { seedDemoCatalog } = await import("../../apps/api/src/demo-data/engine/seed");
   const demoResult = await seedDemoCatalog(prisma);
   console.log("Demo catalog:", demoResult);
+
+  const { hideSareeCatalog } = await import("./hide-saree-catalog");
+  const sareeHide = await hideSareeCatalog(prisma);
+  console.log("Saree catalog hidden:", sareeHide);
+
   // Keep legacy inventory helper for any non-demo variants still present
   const { seedInventory } = await import("./seed-inventory");
   await seedInventory(prisma);

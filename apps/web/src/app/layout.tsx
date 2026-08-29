@@ -61,7 +61,7 @@ export const metadata: Metadata = {
     template: "%s · THARAGAI",
   },
   description:
-    "Official THARAGAI Readymades storefront from Pudukkottai — sarees, wedding wear, and everyday elegance. Customer accounts use mobile OTP for this store only.",
+    "Official THARAGAI Readymades storefront from Pudukkottai — wedding wear, ethnic fashion, and everyday elegance. Customer accounts use mobile OTP for this store only.",
   applicationName: "THARAGAI Readymades",
   authors: [{ name: "THARAGAI Readymades" }],
   creator: "THARAGAI Readymades",
@@ -82,14 +82,14 @@ export const metadata: Metadata = {
     siteName: "THARAGAI Readymades",
     title: "THARAGAI Readymades — Pudukkottai",
     description:
-      "Official family fashion storefront from Pudukkottai. Shop sarees, wedding wear, and everyday elegance.",
+      "Official family fashion storefront from Pudukkottai. Shop wedding wear, ethnic sets, and everyday elegance.",
     images: [{ url: "/og-image.png", width: 1200, height: 630, alt: "THARAGAI Fashion" }],
   },
   twitter: {
     card: "summary_large_image",
     title: "THARAGAI Readymades — Pudukkottai",
     description:
-      "Official family fashion storefront from Pudukkottai. Shop sarees, wedding wear, and everyday elegance.",
+      "Official family fashion storefront from Pudukkottai. Shop wedding wear, ethnic sets, and everyday elegance.",
     images: ["/og-image.png"],
   },
   robots: {
@@ -108,7 +108,7 @@ const organizationJsonLd = {
   url: siteUrl,
   logo: `${siteUrl}/logo.png`,
   description:
-    "Official THARAGAI Readymades ecommerce storefront from Pudukkottai — sarees, wedding wear, and everyday elegance.",
+    "Official THARAGAI Readymades ecommerce storefront from Pudukkottai — wedding wear, ethnic fashion, and everyday elegance.",
   address: {
     "@type": "PostalAddress",
     addressLocality: "Pudukkottai",

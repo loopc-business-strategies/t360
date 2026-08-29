@@ -4,13 +4,13 @@ import { OpenSearchSearchProvider } from "./providers/opensearch-search.provider
 
 describe("expandSearchQuery", () => {
   const synonyms = [
-    { term: "saree", aliases: ["sari", "pudavai"] },
+    { term: "chudidar", aliases: ["chudi", "salwar"] },
     { term: "shirt", aliases: ["shirts"] },
   ];
 
   it("expands matching tokens", () => {
-    expect(expandSearchQuery("blue saree", synonyms)).toContain("OR");
-    expect(expandSearchQuery("sari", synonyms)).toMatch(/saree|sari|pudavai/);
+    expect(expandSearchQuery("blue chudidar", synonyms)).toContain("OR");
+    expect(expandSearchQuery("chudi", synonyms)).toMatch(/chudidar|chudi|salwar/);
   });
 
   it("leaves unknown tokens alone", () => {

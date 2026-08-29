@@ -143,17 +143,6 @@ export const KIDS_TREE: CatDef = {
 /** Ethnic / occasion roots seeded as demo “Other” categories. */
 export const OTHER_TREES: CatDef[] = [
   {
-    name: "Sarees",
-    slug: "sarees",
-    children: [
-      { name: "Silk Sarees", slug: "sarees-silk" },
-      { name: "Cotton Sarees", slug: "sarees-cotton" },
-      { name: "Party Sarees", slug: "sarees-party" },
-      { name: "Everyday Sarees", slug: "sarees-everyday" },
-      { name: "Festive Sarees", slug: "sarees-festive" },
-    ],
-  },
-  {
     name: "Wedding",
     slug: "wedding",
     children: [
@@ -180,6 +169,12 @@ export const LEGACY_EMPTY_CATEGORY_SLUGS = [
   "womens-kurtis",
   "new-arrivals",
   "offers",
+  "sarees",
+  "sarees-silk",
+  "sarees-cotton",
+  "sarees-party",
+  "sarees-everyday",
+  "sarees-festive",
 ] as const;
 
 /** @deprecated Prefer per-leaf quotas in category-meta.ts */
@@ -192,7 +187,6 @@ export const COLLECTION_DEFS = [
   { name: "New Arrivals", slug: "new-arrivals", featured: true },
   { name: "Bestsellers", slug: "bestsellers", featured: true },
   { name: "Trending", slug: "trending", featured: true },
-  { name: "Saree Edit", slug: "saree-edit", featured: true },
   { name: "Wedding Edit", slug: "wedding-edit", featured: true },
   { name: "Festive Edit", slug: "festive-edit", featured: true },
   { name: "Ethnic Edit", slug: "ethnic-edit", featured: true },

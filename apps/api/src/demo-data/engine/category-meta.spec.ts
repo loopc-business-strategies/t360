@@ -9,15 +9,14 @@ import {
 } from "./category-media";
 
 describe("category-meta", () => {
-  it("targets ~702 clothing-only demo products", () => {
-    expect(totalDemoQuota()).toBe(702);
+  it("targets clothing-only demo products without sarees", () => {
+    expect(totalDemoQuota()).toBe(594);
   });
 
   it("related resolver prefers same leaf then compatible", () => {
     const related = resolveRelatedCategorySlugs("men-t-shirts");
     expect(related[0]).toBe("men-t-shirts");
     expect(related).toEqual(expect.arrayContaining(["men-oversized-tees", "men-graphic-tees"]));
-    expect(related).not.toContain("sarees-silk");
     expect(related).not.toContain("women-casual-dresses");
   });
 
@@ -35,13 +34,13 @@ describe("category-meta", () => {
 });
 
 describe("category-media expansion", () => {
-  it("maps new ethnic and saree leaves", () => {
+  it("maps ethnic and occasion leaves", () => {
     for (const slug of [
       "women-chudidars",
       "women-kurtis",
       "women-anarkali",
       "men-kurtas",
-      "sarees-festive",
+      "wedding-lehengas",
       "kids-frocks",
     ]) {
       expect(__test.LEAF_POOL[slug]).toBeTruthy();
@@ -49,10 +48,10 @@ describe("category-media expansion", () => {
     }
   });
 
-  it("does not leak saree pool into men tees", () => {
+  it("does not leak lehenga pool into men tees", () => {
     const tees = __test.resolvePool("men-t-shirts", "men");
-    const saree = __test.POOLS.sarees;
-    expect(tees.some((u) => (saree as readonly string[]).includes(u))).toBe(false);
+    const lehengas = __test.POOLS.lehengas;
+    expect(tees.some((u) => (lehengas as readonly string[]).includes(u))).toBe(false);
   });
 
   it("validateProductMedia accepts pool images and rejects foreign", () => {
@@ -68,15 +67,15 @@ describe("category-media expansion", () => {
       validateProductMedia({
         categorySlug: "men-t-shirts",
         segment: "men",
-        images: [{ url: __test.POOLS.sarees[0], mediaType: "image" }],
+        images: [{ url: __test.POOLS.lehengas[0], mediaType: "image" }],
       }).status,
     ).toBe("MEDIA_MISMATCH");
   });
 
-  it("video resolution is type-aware for sarees vs men tops", () => {
-    const sareeVid = getDemoVideoForCategory("sarees-silk", "sarees", 0);
+  it("video resolution is type-aware for bridal vs men tops", () => {
+    const bridalVid = getDemoVideoForCategory("wedding-lehengas", "wedding", 0);
     const menVid = getDemoVideoForCategory("men-t-shirts", "men", 0);
-    expect(sareeVid).toBeTruthy();
+    expect(bridalVid).toBeTruthy();
     expect(menVid).toBeTruthy();
   });
 

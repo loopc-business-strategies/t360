@@ -22,7 +22,7 @@ const OCCASION_CARDS = [
   { label: "Party", href: "/women?category=women-party-dresses", slug: "women-party-dresses" },
   { label: "Family Function", href: "/collections/family-celebration", slug: "women-ethnic-sets" },
   { label: "Everyday", href: "/products?sort=newest", slug: "women-kurtis" },
-  { label: "Gifting", href: "/sale", slug: "sarees-silk" },
+  { label: "Gifting", href: "/sale", slug: "women-ethnic-sets" },
 ];
 
 const WHY_PILLARS = [
@@ -417,8 +417,8 @@ export function CompleteTheLookSection({
   const LOOK_CURATIONS = React.useMemo(
     () => [
       {
-        label: "Festive saree ensemble",
-        categories: ["sarees-silk", "women-blouses", "women-ethnic-sets"],
+        label: "Festive ethnic ensemble",
+        categories: ["women-chudidars", "women-blouses", "women-ethnic-sets"],
       },
       {
         label: "Smart casual for him",

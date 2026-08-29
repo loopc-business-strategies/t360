@@ -33,7 +33,6 @@ describe("getDemoImagesForCategory", () => {
       "men-t-shirts",
       "women-casual-dresses",
       "kids-dresses",
-      "sarees-silk",
       "wedding-lehengas",
       "festival-kurtas",
     ];
@@ -80,9 +79,9 @@ describe("buildDemoProductName / description", () => {
     expect(name.toLowerCase()).toMatch(/t-shirt|t shirts/);
   });
 
-  it("names silk sarees with Saree", () => {
-    const name = buildDemoProductName("sarees", "sarees-silk", "Silk Sarees", 0);
-    expect(name.toLowerCase()).toContain("saree");
+  it("names silk wedding lehengas with lehenga", () => {
+    const name = buildDemoProductName("wedding", "wedding-lehengas", "Lehengas", 0);
+    expect(name.toLowerCase()).toContain("lehenga");
   });
 
   it("describes dresses without everyday tee copy", () => {
@@ -97,7 +96,7 @@ describe("buildDemoProductName / description", () => {
       ["men-t-shirts", "men", "T-Shirts"],
       ["women-casual-dresses", "women", "Casual Dresses"],
       ["kids-dresses", "kids", "Dresses"],
-      ["sarees-silk", "sarees", "Silk Sarees"],
+      ["wedding-lehengas", "wedding", "Lehengas"],
     ] as const) {
       const name = buildDemoProductName(segment, slug, leaf, 0);
       const tokens = expectedNameTokens(slug);

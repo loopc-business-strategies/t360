@@ -76,7 +76,7 @@ export function ProductsBrowser({
 
   const filterFields = (
     <>
-      <Input label={t.search} value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search sarees, kurtis, shirts…" />
+      <Input label={t.search} value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search kurtis, shirts, kidswear…" />
       <Select
         label={t.sort}
         value={sort}

@@ -11,7 +11,6 @@ export type PriceBand =
   | "outer"
   | "dress"
   | "ethnic"
-  | "saree"
   | "bridal"
   | "kids";
 
@@ -996,83 +995,6 @@ export const CATEGORY_META: Record<string, CategoryMeta> = {
     quota: 4,
   }),
 
-  // â€”â€” Sarees (~100) â€”â€”
-  "sarees-silk": m({
-    slug: "sarees-silk",
-    segment: "sarees",
-    gender: "women",
-    productType: "saree",
-    subType: "silk-saree",
-    tryOnSupported: true,
-    compatibleRelated: ["sarees-cotton", "sarees-party", "sarees-festive"],
-    sizeProfile: "one",
-    priceBand: "saree",
-    nameTokens: ["saree", "silk"],
-    skuType: "SILK",
-    brandSlug: "t360-heritage",
-    quota: 33,
-  }),
-  "sarees-cotton": m({
-    slug: "sarees-cotton",
-    segment: "sarees",
-    gender: "women",
-    productType: "saree",
-    subType: "cotton-saree",
-    tryOnSupported: true,
-    compatibleRelated: ["sarees-silk", "sarees-everyday"],
-    sizeProfile: "one",
-    priceBand: "saree",
-    nameTokens: ["saree", "cotton"],
-    skuType: "COT",
-    brandSlug: "t360-heritage",
-    quota: 20,
-  }),
-  "sarees-party": m({
-    slug: "sarees-party",
-    segment: "sarees",
-    gender: "women",
-    productType: "saree",
-    subType: "party-saree",
-    tryOnSupported: true,
-    compatibleRelated: ["sarees-silk", "sarees-festive"],
-    sizeProfile: "one",
-    priceBand: "saree",
-    nameTokens: ["saree", "party"],
-    skuType: "PRTY",
-    brandSlug: "t360-festive",
-    quota: 20,
-  }),
-  "sarees-everyday": m({
-    slug: "sarees-everyday",
-    segment: "sarees",
-    gender: "women",
-    productType: "saree",
-    subType: "everyday-saree",
-    tryOnSupported: true,
-    compatibleRelated: ["sarees-cotton", "sarees-silk"],
-    sizeProfile: "one",
-    priceBand: "saree",
-    nameTokens: ["saree"],
-    skuType: "EVRY",
-    brandSlug: "t360-heritage",
-    quota: 15,
-  }),
-  "sarees-festive": m({
-    slug: "sarees-festive",
-    segment: "sarees",
-    gender: "women",
-    productType: "saree",
-    subType: "festive-saree",
-    tryOnSupported: true,
-    compatibleRelated: ["sarees-party", "sarees-silk"],
-    sizeProfile: "one",
-    priceBand: "saree",
-    nameTokens: ["saree", "festive"],
-    skuType: "FSTV",
-    brandSlug: "t360-festive",
-    quota: 20,
-  }),
-
   // â€”â€” Wedding (~36) â€”â€”
   "wedding-lehengas": m({
     slug: "wedding-lehengas",
@@ -1081,7 +1003,7 @@ export const CATEGORY_META: Record<string, CategoryMeta> = {
     productType: "bridal",
     subType: "lehenga",
     tryOnSupported: true,
-    compatibleRelated: ["wedding-reception", "sarees-silk"],
+    compatibleRelated: ["wedding-reception", "festival-sets"],
     sizeProfile: "adult",
     priceBand: "bridal",
     nameTokens: ["lehenga"],
@@ -1224,7 +1146,6 @@ export function priceForBand(band: PriceBand, i: number): { price: number; saleP
     outer: 1499 + (i % 6) * 500,
     dress: 799 + (i % 8) * 500,
     ethnic: 899 + (i % 8) * 500,
-    saree: 1499 + (i % 10) * 1200,
     bridal: 3999 + (i % 8) * 2500,
     kids: 399 + (i % 7) * 250,
   };

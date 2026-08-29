@@ -8,17 +8,6 @@ export type MenuGroup = {
 
 export const WOMEN_MENU_GROUPS: MenuGroup[] = [
   {
-    title: "Sarees",
-    shopAllHref: "/categories/sarees",
-    slugs: [
-      "sarees-silk",
-      "sarees-cotton",
-      "sarees-party",
-      "sarees-everyday",
-      "sarees-festive",
-    ],
-  },
-  {
     title: "Ethnic",
     shopAllHref: "/women?category=women-chudidars",
     slugs: [
@@ -93,7 +82,7 @@ export const KIDS_MENU_GROUPS: MenuGroup[] = [
 ];
 
 export function categoryHref(slug: string): string {
-  if (slug.startsWith("sarees") || slug.startsWith("wedding") || slug.startsWith("festival")) {
+  if (slug.startsWith("wedding") || slug.startsWith("festival")) {
     return `/categories/${slug}`;
   }
   if (slug.startsWith("men-")) return `/men/${slug.slice(4)}`;

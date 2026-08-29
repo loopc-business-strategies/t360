@@ -126,7 +126,6 @@ export const DEFAULT_STOREFRONT_SECTIONS = [
     order: 2,
     title: "Shop by Category",
     categorySlugs: [
-      "sarees-silk",
       "women-chudidars",
       "women-kurtis",
       "women-casual-dresses",
@@ -134,6 +133,7 @@ export const DEFAULT_STOREFRONT_SECTIONS = [
       "men-t-shirts",
       "men-jeans",
       "kids-ethnic",
+      "wedding-lehengas",
     ],
   },
   {
@@ -148,7 +148,7 @@ export const DEFAULT_STOREFRONT_SECTIONS = [
     visible: true,
     order: 4,
     headline: "CELEBRATE IN THARAGAI",
-    subtitle: "Wedding sarees, silk sarees, festive chudidars & ethnic wear for the whole family.",
+    subtitle: "Festive chudidars, kurtas & ethnic wear for the whole family.",
     ctaHref: "/collections/festive-edit",
     ctaLabel: "SHOP FESTIVE COLLECTION",
   },
@@ -157,7 +157,7 @@ export const DEFAULT_STOREFRONT_SECTIONS = [
     visible: true,
     order: 5,
     headline: "ONE FAMILY. ONE CELEBRATION. ONE THARAGAI.",
-    subtitle: "Curated looks for every generation — sarees, kurtas, frocks & more.",
+    subtitle: "Curated looks for every generation — kurtas, frocks & more.",
     ctaHref: "/collections/family-celebration",
     ctaLabel: "SHOP FAMILY COLLECTION",
   },

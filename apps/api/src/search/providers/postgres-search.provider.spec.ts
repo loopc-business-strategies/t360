@@ -62,7 +62,7 @@ describe("PostgresSearchProvider category filter", () => {
   it("leaf category query retains category when q is cross-gender", async () => {
     await create().searchProducts({
       category: "men-t-shirts",
-      q: "saree",
+      q: "kurti",
       page: 1,
       pageSize: 12,
     });

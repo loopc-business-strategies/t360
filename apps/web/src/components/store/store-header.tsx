@@ -145,7 +145,6 @@ export function StoreHeader({
   };
 
   const hasOther =
-    Boolean(findCategory(categories, "sarees")) ||
     Boolean(findCategory(categories, "wedding")) ||
     Boolean(findCategory(categories, "festival"));
   const navItems = NAV.filter((item) => item.id !== "other" || hasOther);
@@ -267,7 +266,7 @@ export function StoreHeader({
                     : null;
                 const otherRoots =
                   item.id === "other"
-                    ? (["sarees", "wedding", "festival"] as const)
+                    ? (["wedding", "festival"] as const)
                         .map((slug) => findCategory(categories, slug))
                         .filter(Boolean)
                     : [];

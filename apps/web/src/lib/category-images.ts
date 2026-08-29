@@ -3,11 +3,10 @@ import { API_URL } from "./catalog-api";
 const u = (id: string, w = 900, h = 1125) =>
   `https://images.unsplash.com/${id}?auto=format&fit=crop&w=${w}&h=${h}&q=80`;
 
-export type CategorySegment = "sarees" | "women" | "men" | "kids" | "wedding" | "festival";
+export type CategorySegment = "women" | "men" | "kids" | "wedding" | "festival";
 
 /** Segment-neutral fallbacks — never cross gender/category semantics. */
 export const SEGMENT_NEUTRAL_IMAGES: Record<CategorySegment, string> = {
-  sarees: u("photo-1694406175780-38470288c925", 900, 1125),
   women: u("photo-1490481651871-ab68de25d43d", 900, 1125),
   men: u("photo-1596755094514-f87e34085b2c", 900, 1125),
   kids: u("photo-1515488042361-ee00e0ddd4e4", 900, 1125),
@@ -18,7 +17,6 @@ export const SEGMENT_NEUTRAL_IMAGES: Record<CategorySegment, string> = {
 /** Curated slug → image (aligned with demo media pools where possible). */
 export const CATEGORY_IMAGE_MAP: Record<string, string> = {
   // Homepage tiles
-  "sarees-silk": SEGMENT_NEUTRAL_IMAGES.sarees,
   "women-chudidars": u("photo-1583391733956-3750e0ff4e8b", 900, 1125),
   "women-kurtis": u("photo-1490481651871-ab68de25d43d", 900, 1125),
   "women-casual-dresses": u("photo-1496747611176-843222e1e57c", 900, 1125),
@@ -26,12 +24,7 @@ export const CATEGORY_IMAGE_MAP: Record<string, string> = {
   "men-t-shirts": u("photo-1521572163474-6864f9cf17ab", 900, 1125),
   "men-jeans": u("photo-1473966968600-fa801b869a1a", 900, 1125),
   "kids-ethnic": u("photo-1515488042361-ee00e0ddd4e4", 900, 1125),
-
-  // Sarees
-  "sarees-cotton": SEGMENT_NEUTRAL_IMAGES.sarees,
-  "sarees-party": SEGMENT_NEUTRAL_IMAGES.sarees,
-  "sarees-everyday": SEGMENT_NEUTRAL_IMAGES.sarees,
-  "sarees-festive": SEGMENT_NEUTRAL_IMAGES.sarees,
+  "wedding-lehengas": SEGMENT_NEUTRAL_IMAGES.wedding,
 
   // Women ethnic
   "women-salwar-sets": u("photo-1583391733956-3750e0ff4e8b", 900, 1125),
@@ -100,22 +93,17 @@ const SIBLING_FALLBACK: Record<string, string> = {
   "kids-graphic-tees": "kids-t-shirts",
   "kids-frocks": "kids-dresses",
   "kids-ethnic": "kids-dresses",
-  "sarees-cotton": "sarees-silk",
-  "sarees-party": "sarees-silk",
-  "sarees-everyday": "sarees-silk",
-  "sarees-festive": "sarees-silk",
 };
 
-/** Full-length fashion hero — desktop (wide, shows full dress/saree). */
+/** Full-length fashion hero — desktop (wide). */
 export const HERO_DESKTOP_IMAGE =
   "https://images.unsplash.com/photo-1610030469983-98e550d6193c?auto=format&fit=crop&w=1800&h=1200&q=80";
 
-/** Portrait hero for mobile (2:3, full saree). */
+/** Portrait hero for mobile (2:3). */
 export const HERO_MOBILE_IMAGE =
-  "https://images.unsplash.com/photo-1694406175780-38470288c925?auto=format&fit=crop&w=800&h=1200&q=80";
+  "https://images.unsplash.com/photo-1490481651871-ab68de25d43d?auto=format&fit=crop&w=800&h=1200&q=80";
 
 export const DEFAULT_SHOP_CATEGORY_SLUGS = [
-  "sarees-silk",
   "women-chudidars",
   "women-kurtis",
   "women-casual-dresses",
@@ -123,10 +111,10 @@ export const DEFAULT_SHOP_CATEGORY_SLUGS = [
   "men-t-shirts",
   "men-jeans",
   "kids-ethnic",
+  "wedding-lehengas",
 ] as const;
 
 export function getCategorySegment(slug: string): CategorySegment {
-  if (slug.startsWith("sarees")) return "sarees";
   if (slug.startsWith("wedding")) return "wedding";
   if (slug.startsWith("festival")) return "festival";
   if (slug.startsWith("men")) return "men";

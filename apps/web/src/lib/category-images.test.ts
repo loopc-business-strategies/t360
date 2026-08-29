@@ -8,33 +8,33 @@ import {
 
 describe("getCategorySegment", () => {
   it("maps slug prefixes to correct segments", () => {
-    assert.equal(getCategorySegment("sarees-silk"), "sarees");
     assert.equal(getCategorySegment("women-kurtis"), "women");
     assert.equal(getCategorySegment("men-t-shirts"), "men");
     assert.equal(getCategorySegment("kids-dresses"), "kids");
     assert.equal(getCategorySegment("wedding-lehengas"), "wedding");
+    assert.equal(getCategorySegment("festival-kurtas"), "festival");
   });
 });
 
 describe("getCategoryImageUrl", () => {
   it("returns curated map for known slugs", () => {
-    const saree = getCategoryImageUrl("sarees-silk");
+    const kurtis = getCategoryImageUrl("women-kurtis");
     const shirt = getCategoryImageUrl("men-casual-shirts");
-    assert.notEqual(saree, shirt);
+    assert.notEqual(kurtis, shirt);
   });
 
   it("uses sibling fallback for unmapped related slugs", () => {
     assert.equal(
-      getCategoryImageUrl("sarees-cotton"),
-      getCategoryImageUrl("sarees-silk"),
+      getCategoryImageUrl("men-chinos"),
+      getCategoryImageUrl("men-jeans"),
     );
   });
 
-  it("never assigns men's image to saree slugs", () => {
+  it("never assigns men's image to wedding slugs", () => {
     const menNeutral = SEGMENT_NEUTRAL_IMAGES.men;
-    const unknownSaree = getCategoryImageUrl("sarees-designer-unknown");
-    assert.notEqual(unknownSaree, menNeutral);
-    assert.equal(unknownSaree, SEGMENT_NEUTRAL_IMAGES.sarees);
+    const unknownWedding = getCategoryImageUrl("wedding-unknown-style");
+    assert.notEqual(unknownWedding, menNeutral);
+    assert.equal(unknownWedding, SEGMENT_NEUTRAL_IMAGES.wedding);
   });
 
   it("never assigns women's image to men's slugs", () => {
@@ -43,9 +43,9 @@ describe("getCategoryImageUrl", () => {
     assert.notEqual(unknownMen, SEGMENT_NEUTRAL_IMAGES.women);
   });
 
-  it("never assigns saree image to kids slugs", () => {
+  it("never assigns wedding image to kids slugs", () => {
     const unknownKids = getCategoryImageUrl("kids-unknown");
     assert.equal(unknownKids, SEGMENT_NEUTRAL_IMAGES.kids);
-    assert.notEqual(unknownKids, SEGMENT_NEUTRAL_IMAGES.sarees);
+    assert.notEqual(unknownKids, SEGMENT_NEUTRAL_IMAGES.wedding);
   });
 });
