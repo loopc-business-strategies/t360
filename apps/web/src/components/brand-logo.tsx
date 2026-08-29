@@ -43,7 +43,8 @@ const VARIANTS: Record<
   footer: {
     src: "/logo-full.png",
     srcSet: "/logo-full.png 1x, /logo-full@2x.png 2x",
-    className: "h-auto w-40 aspect-[1024/682] sm:w-48",
+    className:
+      "h-auto w-40 aspect-[1024/682] drop-shadow-[0_4px_14px_rgba(0,0,0,0.55)] sm:w-48",
     width: 256,
     height: 170,
   },
