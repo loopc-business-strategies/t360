@@ -24,7 +24,6 @@ export const CATEGORY_IMAGE_MAP: Record<string, string> = {
   "men-t-shirts": u("photo-1521572163474-6864f9cf17ab", 900, 1125),
   "men-jeans": u("photo-1473966968600-fa801b869a1a", 900, 1125),
   "kids-ethnic": u("photo-1515488042361-ee00e0ddd4e4", 900, 1125),
-  "wedding-lehengas": SEGMENT_NEUTRAL_IMAGES.wedding,
 
   // Women ethnic
   "women-salwar-sets": u("photo-1583391733956-3750e0ff4e8b", 900, 1125),
