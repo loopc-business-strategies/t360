@@ -174,7 +174,7 @@ export function StoreHeader({
               className="flex shrink-0 items-center transition-opacity hover:opacity-90"
               aria-label={t.brand}
             >
-              <BrandLogo variant="icon360" alt={t.brand} />
+              <BrandLogo variant="header" alt={t.brand} />
             </Link>
           </div>
 

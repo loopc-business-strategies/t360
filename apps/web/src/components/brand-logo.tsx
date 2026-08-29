@@ -3,7 +3,7 @@
 import * as React from "react";
 import { cn } from "@t360/ui";
 
-type BrandLogoVariant = "icon360" | "hero" | "footer";
+type BrandLogoVariant = "icon360" | "header" | "hero" | "footer";
 
 type BrandLogoProps = {
   variant: BrandLogoVariant;
@@ -31,6 +31,15 @@ const VARIANTS: Record<
     className: "h-14 w-auto aspect-square sm:h-16 md:h-[4.5rem]",
     width: 72,
     height: 72,
+  },
+  header: {
+    src: "/logo-full.png",
+    srcSet: "/logo-full.png 1x, /logo-full@2x.png 2x",
+    sizes: "(min-width: 768px) 200px, 140px",
+    className:
+      "h-11 w-auto aspect-[1024/682] drop-shadow-[0_2px_8px_rgba(0,0,0,0.25)] sm:h-12 md:h-14",
+    width: 200,
+    height: 133,
   },
   hero: {
     src: "/logo-full.png",
