@@ -720,7 +720,7 @@ function hashSlug(slug: string): number {
 }
 
 function uniquePool(pool: readonly string[]): string[] {
-  return [...new Set(pool)];
+  return [...new Set(pool)].filter((url) => !isBannedSareeUrl(url));
 }
 
 /**

@@ -68,6 +68,24 @@ describe("getDemoImagesForCategory", () => {
     }
   });
 
+  it("never returns banned saree stock photos in product galleries", () => {
+    const leaves = [
+      "festival-sets",
+      "festival-kurtas",
+      "women-ethnic-sets",
+      "men-kurtas",
+      "men-shirts",
+    ];
+    for (const slug of leaves) {
+      for (let i = 0; i < 12; i++) {
+        const stills = getDemoImagesForCategory(slug, slug.split("-")[0], i);
+        for (const url of stills) {
+          expect(__test.isBannedSareeUrl(url)).toBe(false);
+        }
+      }
+    }
+  });
+
   it("pool size covers each leaf quota with distinct primaries", () => {
     for (const [slug, meta] of Object.entries(CATEGORY_META)) {
       const pool = __test.uniquePool(__test.resolvePool(slug, meta.segment));
