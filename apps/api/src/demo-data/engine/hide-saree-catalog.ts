@@ -1,4 +1,4 @@
-import type { PrismaClient } from "@prisma/client";
+import type { Prisma, PrismaClient } from "@prisma/client";
 import { BANNED_SAREE_IMAGE_IDS } from "./constants";
 
 const SAREE_CATEGORY_SLUGS = [
@@ -48,6 +48,12 @@ export async function hideSareeCatalog(prisma: PrismaClient): Promise<{
   });
   const bannedImageProductIds = [...new Set(bannedImageRows.map((r) => r.productId))];
 
+  await prisma.productImage.deleteMany({
+    where: {
+      OR: BANNED_SAREE_IMAGE_IDS.map((id) => ({ url: { contains: id } })),
+    },
+  });
+
   const productFilter: Array<Record<string, unknown>> = [
     { name: { contains: "Saree", mode: "insensitive" } },
     { slug: { contains: "saree" } },
@@ -85,7 +91,7 @@ export async function hideSareeCatalog(prisma: PrismaClient): Promise<{
     });
     await prisma.systemSetting.update({
       where: { key: "storefront.sections" },
-      data: { value: cleaned },
+      data: { value: cleaned as Prisma.InputJsonValue },
     });
   }
 
@@ -106,7 +112,10 @@ export async function hideSareeCatalog(prisma: PrismaClient): Promise<{
       changed = true;
     }
     if (changed) {
-      await prisma.systemSetting.update({ where: { key: "storefront.hero" }, data: { value } });
+      await prisma.systemSetting.update({
+        where: { key: "storefront.hero" },
+        data: { value: value as Prisma.InputJsonValue },
+      });
     }
   }
 
