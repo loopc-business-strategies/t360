@@ -6,6 +6,7 @@ import 'announcement_section.dart';
 import 'category_grid_section.dart';
 import 'collection_section.dart';
 import 'editorial_section.dart';
+import 'home_campaign_section.dart';
 import 'hero_campaign_section.dart';
 import 'hero_section.dart';
 import 'home_product_grid_section.dart';
@@ -16,6 +17,7 @@ export 'announcement_section.dart';
 export 'category_grid_section.dart';
 export 'collection_section.dart';
 export 'editorial_section.dart';
+export 'home_campaign_section.dart';
 export 'hero_campaign_section.dart';
 export 'hero_section.dart';
 export 'home_product_dedup.dart';
@@ -74,9 +76,10 @@ class HomeSectionRenderer extends ConsumerWidget {
       case 'collection':
         return HomeCollectionSection(section: section);
       case 'editorial':
+        return HomeEditorialSection(section: _editorialSection(section));
       case 'festiveEdit':
       case 'familyCollection':
-        return HomeEditorialSection(section: _editorialSection(section));
+        return HomeCampaignSection(section: section, dedup: dedup);
       case 'tryMePromo':
         return const HomeTryMePromoSection();
       case 'sale':

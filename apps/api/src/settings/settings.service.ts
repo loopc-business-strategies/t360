@@ -160,6 +160,7 @@ export const DEFAULT_STOREFRONT_SECTIONS = [
     subtitle: "Festive chudidars, kurtas & ethnic wear for the whole family.",
     ctaHref: "/collections/festive-edit",
     ctaLabel: "SHOP FESTIVE COLLECTION",
+    collectionSlug: "festive-edit",
   },
   {
     type: "familyCollection" as const,
@@ -169,6 +170,7 @@ export const DEFAULT_STOREFRONT_SECTIONS = [
     subtitle: "Curated looks for every generation — kurtas, frocks & more.",
     ctaHref: "/collections/family-celebration",
     ctaLabel: "SHOP FAMILY COLLECTION",
+    collectionSlug: "family-celebration",
   },
   { type: "tryMePromo" as const, visible: true, order: 6 },
   {

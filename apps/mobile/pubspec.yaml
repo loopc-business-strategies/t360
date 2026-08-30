@@ -27,6 +27,7 @@ dependencies:
   google_fonts: ^6.2.1
   flutter_native_splash: ^2.4.6
   url_launcher: ^6.3.1
+  font_awesome_flutter: ^11.0.0
 
 dev_dependencies:
   flutter_test:

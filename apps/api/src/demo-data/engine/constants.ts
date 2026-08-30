@@ -203,6 +203,7 @@ export const COLLECTION_DEFS = [
   { name: "Trending", slug: "trending", featured: true },
   { name: "Wedding Edit", slug: "wedding-edit", featured: true },
   { name: "Festive Edit", slug: "festive-edit", featured: true },
+  { name: "Family Celebration", slug: "family-celebration", featured: true },
   { name: "Ethnic Edit", slug: "ethnic-edit", featured: true },
   { name: "Essentials", slug: "essentials", featured: false },
   { name: "Summer", slug: "summer", featured: false },

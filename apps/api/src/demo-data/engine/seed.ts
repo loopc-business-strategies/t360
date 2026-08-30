@@ -509,6 +509,21 @@ export async function seedDemoCatalog(prisma: PrismaClient): Promise<SeedResult>
       links.push("festive-edit");
     }
     if (
+      b.gender === "kids" ||
+      b.leafSlug.includes("kids-ethnic") ||
+      b.leafSlug.includes("frock") ||
+      b.leafSlug.includes("kurta") ||
+      b.leafSlug.includes("kurti") ||
+      b.leafSlug.includes("chudidar") ||
+      b.leafSlug.includes("salwar") ||
+      b.leafSlug.includes("anarkali") ||
+      b.leafSlug.includes("palazzo") ||
+      b.leafSlug.includes("ethnic") ||
+      b.leafSlug.includes("nehru")
+    ) {
+      links.push("family-celebration");
+    }
+    if (
       b.leafSlug.includes("kurta") ||
       b.leafSlug.includes("kurti") ||
       b.leafSlug.includes("chudidar") ||

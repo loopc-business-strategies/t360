@@ -83,7 +83,13 @@ def main() -> None:
     icon_path = OUT / "tharagai_icon.png"
     icon.save(icon_path, "PNG", optimize=True)
     print(f"wrote {icon_path} ({icon_path.stat().st_size} bytes, {icon.size[0]}x{icon.size[1]})")
-    print("app icon processing complete (splash assets unchanged)")
+
+    android12 = _fit_on_white(square, (512, 512), scale=0.82).convert("RGB")
+    android12_path = OUT / "tharagai_splash_android12.png"
+    android12.save(android12_path, "PNG", optimize=True)
+    print(f"wrote {android12_path} ({android12_path.stat().st_size} bytes)")
+
+    print("app icon processing complete (splash full-screen unchanged)")
 
 
 if __name__ == "__main__":
