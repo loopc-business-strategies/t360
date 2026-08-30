@@ -10,14 +10,14 @@ export const SEGMENT_NEUTRAL_IMAGES: Record<CategorySegment, string> = {
   women: u("photo-1490481651871-ab68de25d43d", 900, 1125),
   men: u("photo-1596755094514-f87e34085b2c", 900, 1125),
   kids: u("photo-1515488042361-ee00e0ddd4e4", 900, 1125),
-  wedding: u("photo-1583391733956-3750e0ff4e8b", 900, 1125),
+  wedding: u("photo-1515886657613-9f3515b0c78f", 900, 1125),
   festival: u("photo-1515886657613-9f3515b0c78f", 900, 1125),
 };
 
 /** Curated slug → image (aligned with demo media pools where possible). */
 export const CATEGORY_IMAGE_MAP: Record<string, string> = {
   // Homepage tiles
-  "women-chudidars": u("photo-1583391733956-3750e0ff4e8b", 900, 1125),
+  "women-chudidars": u("photo-1581044777550-4cfa60707c03", 900, 1125),
   "women-kurtis": u("photo-1490481651871-ab68de25d43d", 900, 1125),
   "women-casual-dresses": u("photo-1496747611176-843222e1e57c", 900, 1125),
   "men-casual-shirts": u("photo-1596755094514-f87e34085b2c", 900, 1125),
@@ -26,10 +26,10 @@ export const CATEGORY_IMAGE_MAP: Record<string, string> = {
   "kids-ethnic": u("photo-1515488042361-ee00e0ddd4e4", 900, 1125),
 
   // Women ethnic
-  "women-salwar-sets": u("photo-1583391733956-3750e0ff4e8b", 900, 1125),
-  "women-anarkali": u("photo-1583391733956-3750e0ff4e8b", 900, 1125),
-  "women-palazzo-sets": u("photo-1583391733956-3750e0ff4e8b", 900, 1125),
-  "women-ethnic-sets": u("photo-1583391733956-3750e0ff4e8b", 900, 1125),
+  "women-salwar-sets": u("photo-1581044777550-4cfa60707c03", 900, 1125),
+  "women-anarkali": u("photo-1509631179647-0177331693ae", 900, 1125),
+  "women-palazzo-sets": u("photo-1490481651871-ab68de25d43d", 900, 1125),
+  "women-ethnic-sets": u("photo-1469334031218-e382a71b716b", 900, 1125),
 
   // Women western
   "women-tops": u("photo-1490481651871-ab68de25d43d", 900, 1125),

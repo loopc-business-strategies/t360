@@ -16,6 +16,7 @@ import {
   HERO_MOBILE_IMAGE,
 } from "../../lib/category-images";
 import { getWhatsAppE164 } from "../../lib/social";
+import { isBannedSareeUrl, useHomeProductDedup } from "./home-product-dedup";
 
 const OCCASION_CARDS = [
   { label: "Wedding", href: "/collections/wedding-edit", slug: "wedding-lehengas" },
@@ -80,6 +81,7 @@ export function HeroCampaignSection({
 
   const [productSlides, setProductSlides] = React.useState<HeroSlide[]>([]);
   const [index, setIndex] = React.useState(0);
+  const [paused, setPaused] = React.useState(false);
   const touchStartX = React.useRef<number | null>(null);
 
   React.useEffect(() => {
@@ -89,17 +91,17 @@ export function HeroCampaignSection({
         const out: HeroSlide[] = [];
         for (const p of items) {
           const url = p.images?.find((img) => img.mediaType !== "video")?.url ?? p.images?.[0]?.url;
-          if (!url) continue;
+          if (!url || isBannedSareeUrl(url)) continue;
           out.push({ desktop: url, mobile: url });
         }
         return out;
       };
       try {
-        const featuredRes = await fetch(`${API_URL}/products?isFeatured=true&pageSize=8`);
+        const featuredRes = await fetch(`${API_URL}/products?isFeatured=true&pageSize=12`);
         const featuredJson = await featuredRes.json();
         let rows = collect((featuredJson.data ?? []) as ProductListItem[]);
         if (rows.length < 1) {
-          const newRes = await fetch(`${API_URL}/products?isNew=true&pageSize=8`);
+          const newRes = await fetch(`${API_URL}/products?isNew=true&pageSize=12`);
           const newJson = await newRes.json();
           rows = collect((newJson.data ?? []) as ProductListItem[]);
         }
@@ -115,12 +117,13 @@ export function HeroCampaignSection({
   }, []);
 
   const slides = React.useMemo(() => {
-    const base: HeroSlide[] = campaignDesktop
-      ? [{ desktop: campaignDesktop, mobile: campaignMobile || campaignDesktop }]
-      : [];
+    const base: HeroSlide[] = [];
+    if (campaignDesktop && !isBannedSareeUrl(campaignDesktop)) {
+      base.push({ desktop: campaignDesktop, mobile: campaignMobile || campaignDesktop });
+    }
     const seen = new Set(base.map((s) => s.desktop));
     for (const s of productSlides) {
-      if (seen.has(s.desktop)) continue;
+      if (seen.has(s.desktop) || isBannedSareeUrl(s.desktop)) continue;
       seen.add(s.desktop);
       base.push(s);
     }
@@ -143,11 +146,23 @@ export function HeroCampaignSection({
     setIndex((i) => (slides.length ? (i + 1) % slides.length : 0));
   };
 
+  React.useEffect(() => {
+    if (reduceMotion || !showControls || paused) return;
+    const timer = window.setInterval(() => {
+      setIndex((i) => (slides.length ? (i + 1) % slides.length : 0));
+    }, 6000);
+    return () => window.clearInterval(timer);
+  }, [reduceMotion, showControls, paused, slides.length]);
+
   return (
     <motion.section
       className="relative min-h-[72svh] overflow-hidden bg-ink text-elevated lg:min-h-[78vh]"
       initial={reduceMotion ? false : { opacity: 0 }}
       animate={{ opacity: 1 }}
+      onMouseEnter={() => setPaused(true)}
+      onMouseLeave={() => setPaused(false)}
+      onFocusCapture={() => setPaused(true)}
+      onBlurCapture={() => setPaused(false)}
       onTouchStart={(e) => {
         touchStartX.current = e.changedTouches[0]?.clientX ?? null;
       }}
@@ -542,6 +557,7 @@ export function CompleteTheLookSection({
 }) {
   type LookRow = { label: string; products: ProductListItem[] };
 
+  const { claimProducts } = useHomeProductDedup();
   const [looks, setLooks] = React.useState<LookRow[]>([]);
 
   const LOOK_CURATIONS = React.useMemo(
@@ -582,12 +598,23 @@ export function CompleteTheLookSection({
             };
           }),
         );
-        setLooks(rows.filter((r) => r.products.length >= 2));
+        setLooks(
+          rows
+            .map((row) => {
+              const claimed = claimProducts(row.products);
+              const claimedIds = new Set(claimed.map((p) => p.id));
+              return {
+                label: row.label,
+                products: row.products.filter((p) => claimedIds.has(p.id)),
+              };
+            })
+            .filter((r) => r.products.length >= 2),
+        );
       } catch {
         setLooks([]);
       }
     })();
-  }, [LOOK_CURATIONS]);
+  }, [LOOK_CURATIONS, claimProducts]);
 
   if (!looks.length) return null;
 
@@ -633,14 +660,15 @@ export function RecommendationsSection({
   section: Extract<StorefrontSection, { type: "recommendations" }>;
   reduceMotion: boolean | null;
 }) {
+  const { claimProducts } = useHomeProductDedup();
   const [products, setProducts] = React.useState<ProductListItem[]>([]);
 
   React.useEffect(() => {
     void fetch(`${API_URL}/products?pageSize=8&sort=featured&isFeatured=true`)
       .then((r) => r.json())
-      .then((j) => setProducts(j.data ?? []))
+      .then((j) => setProducts(claimProducts(j.data ?? [])))
       .catch(() => setProducts([]));
-  }, []);
+  }, [claimProducts]);
 
   if (!products.length) return null;
 

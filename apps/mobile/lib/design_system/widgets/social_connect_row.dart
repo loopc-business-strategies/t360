@@ -3,6 +3,7 @@ import 'package:url_launcher/url_launcher.dart';
 
 import '../../core/env.dart';
 import '../tharagai_colors.dart';
+import 'brand_social_icon.dart';
 
 /// WhatsApp + Instagram icon buttons that open external apps/browser.
 class SocialConnectRow extends StatelessWidget {
@@ -49,16 +50,32 @@ class SocialConnectRow extends StatelessWidget {
                     'https://wa.me/$wa?text=${Uri.encodeComponent('Hi, I have a question about THARAGAI products.')}',
                   ),
                 ),
-                child: const Icon(Icons.chat, color: Colors.white, size: 26),
+                child: const BrandSocialIcon(
+                  platform: BrandSocialPlatform.whatsapp,
+                  size: 26,
+                ),
               ),
               if (ig != null) const SizedBox(width: 16),
             ],
             if (ig != null)
               _SocialIconButton(
                 tooltip: 'Instagram',
-                background: const Color(0xFFE1306C),
+                gradient: const LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [
+                    Color(0xFFFDF497),
+                    Color(0xFFFD5949),
+                    Color(0xFFD6249F),
+                    Color(0xFF285AEB),
+                  ],
+                  stops: [0.0, 0.45, 0.6, 0.9],
+                ),
                 onPressed: () => _open(context, Uri.parse(ig)),
-                child: const Icon(Icons.camera_alt, color: Colors.white, size: 26),
+                child: const BrandSocialIcon(
+                  platform: BrandSocialPlatform.instagram,
+                  size: 26,
+                ),
               ),
           ],
         ),
@@ -70,13 +87,15 @@ class SocialConnectRow extends StatelessWidget {
 class _SocialIconButton extends StatelessWidget {
   const _SocialIconButton({
     required this.tooltip,
-    required this.background,
     required this.onPressed,
     required this.child,
+    this.background,
+    this.gradient,
   });
 
   final String tooltip;
-  final Color background;
+  final Color? background;
+  final Gradient? gradient;
   final VoidCallback onPressed;
   final Widget child;
 
@@ -85,13 +104,23 @@ class _SocialIconButton extends StatelessWidget {
     return Tooltip(
       message: tooltip,
       child: Material(
-        color: background,
+        color: background ?? Colors.transparent,
         shape: const CircleBorder(),
         elevation: 2,
+        clipBehavior: Clip.antiAlias,
         child: InkWell(
           customBorder: const CircleBorder(),
           onTap: onPressed,
-          child: SizedBox(width: 52, height: 52, child: Center(child: child)),
+          child: Ink(
+            width: 52,
+            height: 52,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              gradient: gradient,
+              color: gradient == null ? background : null,
+            ),
+            child: Center(child: child),
+          ),
         ),
       ),
     );

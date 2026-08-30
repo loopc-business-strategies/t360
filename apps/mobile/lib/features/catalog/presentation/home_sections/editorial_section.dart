@@ -11,7 +11,7 @@ class HomeEditorialSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final headline = '${section['headline'] ?? ''}'.trim();
-    final body = '${section['body'] ?? ''}'.trim();
+    final body = '${section['body'] ?? section['subtitle'] ?? ''}'.trim();
     final imageUrl = '${section['imageUrl'] ?? ''}'.trim();
     final ctaHref = section['ctaHref']?.toString();
     final ctaLabel = '${section['ctaLabel'] ?? 'Shop'}';

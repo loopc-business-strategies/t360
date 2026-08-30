@@ -274,11 +274,14 @@ export async function seedDemoCatalog(prisma: PrismaClient): Promise<SeedResult>
     const tryOn = true;
     const brandSlug = meta?.brandSlug ?? "t360-originals";
     const brandId = brandIds[brandSlug] ?? brandIds["t360-originals"];
+    const isFeatured = globalIndex % 8 === 0;
+    const isNew = !isFeatured && globalIndex % 5 === 0;
+    const isTrending = !isFeatured && !isNew && globalIndex % 6 === 0;
     const flags = {
-      isNew: globalIndex % 5 === 0,
+      isNew,
       isBestseller: globalIndex % 7 === 0,
-      isTrending: globalIndex % 6 === 0,
-      isFeatured: globalIndex % 8 === 0,
+      isTrending,
+      isFeatured,
       onSale: salePrice != null,
     };
     const colors = [

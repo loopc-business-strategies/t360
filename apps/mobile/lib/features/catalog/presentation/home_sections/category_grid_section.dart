@@ -32,7 +32,10 @@ class HomeCategoryGridSection extends ConsumerWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(t.categories, style: Theme.of(context).textTheme.titleLarge),
+          Text(
+            '${section['title'] ?? t.categories}',
+            style: Theme.of(context).textTheme.titleLarge,
+          ),
           const SizedBox(height: 12),
           Wrap(
             spacing: 8,

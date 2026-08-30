@@ -110,6 +110,23 @@ describe("buildDemoProductName / description", () => {
     expect(name.toLowerCase()).toContain("lehenga");
   });
 
+  it("names women-pants as pants not panty", () => {
+    const name = buildDemoProductName("women", "women-pants", "Pants", 0);
+    expect(name.toLowerCase()).toContain("pants");
+    expect(name.toLowerCase()).not.toContain("panty");
+  });
+
+  it("names men-pants as pants not panty", () => {
+    const name = buildDemoProductName("men", "men-pants", "Pants", 0);
+    expect(name.toLowerCase()).toContain("pants");
+    expect(name.toLowerCase()).not.toContain("panty");
+  });
+
+  it("names women-panties as panty", () => {
+    const name = buildDemoProductName("women", "women-panties", "Panties", 0);
+    expect(name.toLowerCase()).toContain("panty");
+  });
+
   it("describes dresses without everyday tee copy", () => {
     const name = buildDemoProductName("women", "women-casual-dresses", "Casual Dresses", 0);
     const desc = buildDemoDescription("women-casual-dresses", "women", name);

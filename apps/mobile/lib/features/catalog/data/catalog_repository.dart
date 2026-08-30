@@ -25,6 +25,12 @@ class CatalogRepository {
     String? collection,
     String? sort,
     bool tryOnEnabled = false,
+    bool? isNew,
+    bool? isTrending,
+    bool? isBestseller,
+    bool? isFeatured,
+    bool? onSale,
+    int page = 1,
     int pageSize = 40,
   }) {
     return _api.get(
@@ -35,6 +41,12 @@ class CatalogRepository {
         if (collection != null && collection.isNotEmpty) 'collection': collection,
         if (sort != null && sort.isNotEmpty) 'sort': sort,
         if (tryOnEnabled) 'tryOnEnabled': 'true',
+        if (isNew == true) 'isNew': 'true',
+        if (isTrending == true) 'isTrending': 'true',
+        if (isBestseller == true) 'isBestseller': 'true',
+        if (isFeatured == true) 'isFeatured': 'true',
+        if (onSale == true) 'onSale': 'true',
+        'page': page,
         'pageSize': pageSize,
       },
       map: (data) {

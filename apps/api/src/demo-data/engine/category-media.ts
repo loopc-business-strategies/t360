@@ -186,29 +186,29 @@ const POOLS = {
     u("photo-1483985988355-763728e1935b"),
   ],
   womenEthnic: [
-    u("photo-1583391733956-3750e0ff4e8b"),
-    u("photo-1610030469983-98e550d6193c"),
+    u("photo-1529139574466-a303027c1d8b"),
+    u("photo-1524504388940-b1c1722653e1"),
     u("photo-1490481651871-ab68de25d43d"),
     u("photo-1469334031218-e382a71b716b"),
     u("photo-1581044777550-4cfa60707c03"),
     u("photo-1509631179647-0177331693ae"),
     u("photo-1483985988355-763728e1935b"),
     u("photo-1496747611176-843222e1e57c"),
-    u("photo-1694406175780-38470288c925"),
+    u("photo-1539109136881-3be0616acf4b"),
     u("photo-1547496727-11c450fe4e7f"),
     u("photo-1566174053879-31528523f8ae"),
     u("photo-1572804013309-59a88b7e92f1"),
   ],
   womenChudidar: [
-    u("photo-1583391733956-3750e0ff4e8b"),
-    u("photo-1610030469983-98e550d6193c"),
+    u("photo-1529139574466-a303027c1d8b"),
+    u("photo-1524504388940-b1c1722653e1"),
     u("photo-1509631179647-0177331693ae"),
     u("photo-1581044777550-4cfa60707c03"),
     u("photo-1490481651871-ab68de25d43d"),
     u("photo-1469334031218-e382a71b716b"),
     u("photo-1483985988355-763728e1935b"),
     u("photo-1572804013309-59a88b7e92f1"),
-    u("photo-1694406175780-38470288c925"),
+    u("photo-1539109136881-3be0616acf4b"),
     u("photo-1547496727-11c450fe4e7f"),
     u("photo-1566174053879-31528523f8ae"),
     u("photo-1595777457583-95e059d581b8"),
@@ -228,10 +228,10 @@ const POOLS = {
     u("photo-1515886657613-9f3515b0c78f"),
     u("photo-1581044777550-4cfa60707c03"),
     u("photo-1509631179647-0177331693ae"),
-    u("photo-1610030469983-98e550d6193c"),
-    u("photo-1583391733956-3750e0ff4e8b"),
+    u("photo-1524504388940-b1c1722653e1"),
+    u("photo-1529139574466-a303027c1d8b"),
     u("photo-1566174053879-31528523f8ae"),
-    u("photo-1694406175780-38470288c925"),
+    u("photo-1539109136881-3be0616acf4b"),
     u("photo-1547496727-11c450fe4e7f"),
     u("photo-1496747611176-843222e1e57c"),
     u("photo-1572804013309-59a88b7e92f1"),
@@ -459,15 +459,15 @@ const POOLS = {
     u("photo-1622290291468-a28f7a7dc6a8"),
   ],
   lehengas: [
-    u("photo-1583391733956-3750e0ff4e8b"),
-    u("photo-1610030469983-98e550d6193c"),
+    u("photo-1529139574466-a303027c1d8b"),
+    u("photo-1524504388940-b1c1722653e1"),
     u("photo-1496747611176-843222e1e57c"),
     u("photo-1572804013309-59a88b7e92f1"),
     u("photo-1490481651871-ab68de25d43d"),
     u("photo-1469334031218-e382a71b716b"),
     u("photo-1566174053879-31528523f8ae"),
     u("photo-1612336307429-8a898d10e223"),
-    u("photo-1694406175780-38470288c925"),
+    u("photo-1539109136881-3be0616acf4b"),
     u("photo-1547496727-11c450fe4e7f"),
     u("photo-1605597208799-453b6dbc8f50"),
     u("photo-1595777457583-95e059d581b8"),
@@ -493,7 +493,7 @@ const POOLS = {
   kurtas: [
     u("photo-1552374196-1ab2a1c593e8"),
     u("photo-1602810318383-e386cc2a3ccf"),
-    u("photo-1583391733956-3750e0ff4e8b"),
+    u("photo-1529139574466-a303027c1d8b"),
     u("photo-1596755094514-f87e34085b2c"),
     u("photo-1617127365659-c47fa864d8bc"),
     u("photo-1617137968427-85924c800a22"),
@@ -502,8 +502,8 @@ const POOLS = {
     u("photo-1553633524-ff55f80e2ede"),
   ],
   festivalSets: [
-    u("photo-1583391733956-3750e0ff4e8b"),
-    u("photo-1610030469983-98e550d6193c"),
+    u("photo-1529139574466-a303027c1d8b"),
+    u("photo-1524504388940-b1c1722653e1"),
     u("photo-1490481651871-ab68de25d43d"),
     u("photo-1469334031218-e382a71b716b"),
     u("photo-1509631179647-0177331693ae"),
@@ -926,8 +926,9 @@ export function buildDemoProductName(
               : "";
 
   if (leafSlug.includes("chudidar")) return `T360 ${adj} Embroidered Chudidar Set ${n + 1}`;
-  if (leafSlug.includes("bra")) return `T360 ${adj} Women's Bra ${n + 1}`;
-  if (leafSlug.includes("pant")) return `T360 ${adj} Women's Panty ${n + 1}`;
+  if (leafSlug === "women-bras" || leafSlug.endsWith("-bras")) return `T360 ${adj} Women's Bra ${n + 1}`;
+  if (leafSlug === "women-panties" || leafSlug.endsWith("-panties"))
+    return `T360 ${adj} Women's Panty ${n + 1}`;
   if (leafSlug.includes("camisole")) return `T360 ${adj} Women's Camisole ${n + 1}`;
   if (leafSlug.includes("shapewear")) return `T360 ${adj} Women's Shapewear ${n + 1}`;
   if (leafSlug.includes("boxer")) return `T360 ${adj} Men's Boxers ${n + 1}`;
@@ -964,9 +965,9 @@ export function buildDemoDescription(leafSlug: string, segment: string, name: st
   if (leafSlug.includes("chudidar")) {
     body =
       "Women's embroidered chudidar set designed for festive and traditional occasions.";
-  } else if (leafSlug.includes("bra")) {
+  } else if (leafSlug === "women-bras" || leafSlug.endsWith("-bras")) {
     body = "Everyday women's bra with soft support and comfortable fit.";
-  } else if (leafSlug.includes("pant")) {
+  } else if (leafSlug === "women-panties" || leafSlug.endsWith("-panties")) {
     body = "Soft women's panty designed for everyday comfort.";
   } else if (leafSlug.includes("camisole")) {
     body = "Lightweight women's camisole for layering and everyday wear.";

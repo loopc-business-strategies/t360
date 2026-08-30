@@ -30,6 +30,7 @@ import {
   VisitStoreSection,
   WhyTharagaiSection,
 } from "./home/home-sections";
+import { HomeProductDedupProvider, useHomeProductDedup } from "./home/home-product-dedup";
 
 const DEFAULT_HERO = HERO_DESKTOP_IMAGE;
 
@@ -50,6 +51,7 @@ function SectionCarousel({
   reduceMotion: boolean | null;
 }) {
   const { t } = useLocale();
+  const { claimProducts } = useHomeProductDedup();
   const [products, setProducts] = React.useState<ProductListItem[]>([]);
 
   React.useEffect(() => {
@@ -69,15 +71,15 @@ function SectionCarousel({
           fetch(`${API_URL}/products/${id}`).then((r) => r.json()).then((j) => j.data),
         ),
       )
-        .then((rows) => setProducts(rows.filter(Boolean)))
+        .then((rows) => setProducts(claimProducts(rows.filter(Boolean))))
         .catch(() => setProducts([]));
       return;
     }
     void fetch(`${API_URL}/products?${params}`)
       .then((r) => r.json())
-      .then((json) => setProducts(json.data ?? []))
+      .then((json) => setProducts(claimProducts(json.data ?? [])))
       .catch(() => setProducts([]));
-  }, [section]);
+  }, [section, claimProducts]);
 
   if (!products.length) return null;
 
@@ -115,6 +117,7 @@ function CollectionSection({
   reduceMotion: boolean | null;
   t: { ctaShop: string };
 }) {
+  const { claimProducts } = useHomeProductDedup();
   const [products, setProducts] = React.useState<ProductListItem[]>([]);
   const slug = section.collectionSlug;
 
@@ -122,9 +125,9 @@ function CollectionSection({
     if (!slug) return;
     void fetch(`${API_URL}/products?collection=${encodeURIComponent(slug)}&pageSize=8`)
       .then((r) => r.json())
-      .then((json) => setProducts(json.data ?? []))
+      .then((json) => setProducts(claimProducts(json.data ?? [])))
       .catch(() => setProducts([]));
-  }, [slug]);
+  }, [slug, claimProducts]);
 
   if (!products.length) return null;
 
@@ -481,10 +484,12 @@ export function HomeClient({
   }
 
   return (
-    <main>
-      {sections.length
-        ? sections.map((section, i) => renderSection(section, i))
-        : renderSection({ type: "hero", visible: true, order: 0 }, 0)}
-    </main>
+    <HomeProductDedupProvider>
+      <main>
+        {sections.length
+          ? sections.map((section, i) => renderSection(section, i))
+          : renderSection({ type: "hero", visible: true, order: 0 }, 0)}
+      </main>
+    </HomeProductDedupProvider>
   );
 }
