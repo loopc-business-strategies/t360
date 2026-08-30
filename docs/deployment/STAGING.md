@@ -70,6 +70,28 @@ gh workflow run deploy.yml -f target=production -f deploy_scope=web-and-railway
 
 If Vercel projects are also **Git-linked**, disable duplicate auto-deploy in the Vercel dashboard when Actions is the source of truth—otherwise Git pushes still burn quota outside Actions.
 
+## Orphan Vercel project cleanup
+
+Use **only** these Vercel project names for this repo:
+
+| Project | Root Directory | Production URL |
+|---------|----------------|----------------|
+| `t360-web` | `apps/web` | https://t360-web.vercel.app |
+| `t360-admin` | `apps/admin` | https://t360-admin.vercel.app |
+
+**Do not** create a generic project named `web`. Running `npx vercel deploy --cwd apps/web` locally creates an orphan project with Root Directory `.` (repo root), which fails with “No Next.js version detected” and burns deploy quota on every Git push if connected.
+
+If an orphan exists:
+
+1. Vercel → project **Settings → Git** → **Disconnect** `loopc-business-strategies/t360`
+2. Confirm no custom domains point only to that project
+3. Copy any unique env vars to `t360-web` / `t360-admin` if needed
+4. **Settings → General → Delete Project**
+
+Or via CLI (non-interactive): `echo y | npx vercel project rm web --non-interactive`
+
+GitHub Actions and repo vars (`VERCEL_PROJECT_ID_WEB`, `VERCEL_PROJECT_ID_ADMIN`) must always reference `t360-web` and `t360-admin` — never the orphan.
+
 ## App env on platforms
 
 Configure Railway/Vercel env vars per [ENV.md](./ENV.md). Before cutover:
