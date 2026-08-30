@@ -604,6 +604,9 @@ export async function seedDemoCatalog(prisma: PrismaClient): Promise<SeedResult>
     throw new Error(`DEMO_CATALOG_AUDIT_FAILED count=${critical.length} sample=${sample}`);
   }
 
+  const { hideSareeCatalog } = await import("../../../../../database/prisma/hide-saree-catalog");
+  await hideSareeCatalog(prisma);
+
   return {
     products: built.length,
     categories: categoryCount,

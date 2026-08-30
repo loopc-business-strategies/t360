@@ -60,6 +60,14 @@ describe("getDemoImagesForCategory", () => {
     expect(primaries.size).toBeGreaterThan(1);
   });
 
+  it("excludes banned saree stock photos from every pool", () => {
+    for (const pool of Object.values(__test.POOLS)) {
+      for (const url of pool) {
+        expect(__test.isBannedSareeUrl(url)).toBe(false);
+      }
+    }
+  });
+
   it("pool size covers each leaf quota with distinct primaries", () => {
     for (const [slug, meta] of Object.entries(CATEGORY_META)) {
       const pool = __test.uniquePool(__test.resolvePool(slug, meta.segment));

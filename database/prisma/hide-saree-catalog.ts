@@ -1,4 +1,5 @@
 import type { PrismaClient } from "@prisma/client";
+import { BANNED_SAREE_IMAGE_IDS } from "../../apps/api/src/demo-data/engine/constants";
 
 const SAREE_CATEGORY_SLUGS = [
   "sarees",
@@ -39,33 +40,33 @@ export async function hideSareeCatalog(prisma: PrismaClient): Promise<{
   });
   const categoryIds = sareeCats.map((c) => c.id);
 
-  let products = 0;
+  const bannedImageRows = await prisma.productImage.findMany({
+    where: {
+      OR: BANNED_SAREE_IMAGE_IDS.map((id) => ({ url: { contains: id } })),
+    },
+    select: { productId: true },
+  });
+  const bannedImageProductIds = [...new Set(bannedImageRows.map((r) => r.productId))];
+
+  const productFilter: Array<Record<string, unknown>> = [
+    { name: { contains: "Saree", mode: "insensitive" } },
+    { slug: { contains: "saree" } },
+  ];
   if (categoryIds.length) {
-    const result = await prisma.product.updateMany({
-      where: {
-        OR: [
-          { categoryId: { in: categoryIds } },
-          { name: { contains: "Saree", mode: "insensitive" } },
-          { slug: { contains: "saree" } },
-        ],
-        deletedAt: null,
-      },
-      data: { status: "archived", deletedAt: new Date() },
-    });
-    products = result.count;
-  } else {
-    const result = await prisma.product.updateMany({
-      where: {
-        OR: [
-          { name: { contains: "Saree", mode: "insensitive" } },
-          { slug: { contains: "saree" } },
-        ],
-        deletedAt: null,
-      },
-      data: { status: "archived", deletedAt: new Date() },
-    });
-    products = result.count;
+    productFilter.unshift({ categoryId: { in: categoryIds } });
   }
+  if (bannedImageProductIds.length) {
+    productFilter.push({ id: { in: bannedImageProductIds } });
+  }
+
+  const result = await prisma.product.updateMany({
+    where: {
+      deletedAt: null,
+      OR: productFilter,
+    },
+    data: { status: "archived", deletedAt: new Date() },
+  });
+  const products = result.count;
 
   const collections = await prisma.collection.updateMany({
     where: { slug: { in: ["saree-edit"] } },

@@ -3,8 +3,14 @@
  * Never rotate a single global pool across unrelated categories.
  */
 
+import { BANNED_SAREE_IMAGE_IDS } from "./constants";
+
 const u = (id: string) =>
   `https://images.unsplash.com/${id}?auto=format&fit=crop&w=900&q=80`;
+
+function isBannedSareeUrl(url: string): boolean {
+  return BANNED_SAREE_IMAGE_IDS.some((id) => url.includes(id));
+}
 
 /** Shared type pools (license-safe Unsplash). Each pool ≥6 unique URLs. */
 const POOLS = {
@@ -41,9 +47,9 @@ const POOLS = {
     u("photo-1598033129183-c4f50c736f10"),
     u("photo-1620012253295-c5d1852f465e"),
     u("photo-1563630423918-b58f07336ac9"),
-    u("photo-1594938298603-c8148c4dae35"),
     u("photo-1552374196-1ab2a1c593e8"),
     u("photo-1509942772901-7630589a4f12"),
+    u("photo-1621973161486-23c49842330a"),
   ],
   menHoodies: [
     u("photo-1556821840-3a63f95609a7"),
@@ -92,7 +98,6 @@ const POOLS = {
     u("photo-1602810318383-e386cc2a3ccf"),
     u("photo-1598033129183-c4f50c736f10"),
     u("photo-1603252109303-2751441dd157"),
-    u("photo-1594938298603-c8148c4dae35"),
     u("photo-1563630423918-b58f07336ac9"),
     u("photo-1521572163474-6864f9cf17ab"),
     u("photo-1617127365659-c47fa864d8bc"),
@@ -104,6 +109,7 @@ const POOLS = {
     u("photo-1612660012369-11012309a36b"),
     u("photo-1553633524-ff55f80e2ede"),
     u("photo-1621973161229-aa0ccfe012bb"),
+    u("photo-1487222477894-8943e31ef7b2"),
   ],
   menShorts: [
     u("photo-1591195853828-11db59a44f6b"),
@@ -473,7 +479,6 @@ const POOLS = {
     u("photo-1630710577163-b49a62cd6ee8"),
   ],
   sherwanis: [
-    u("photo-1594938298603-c8148c4dae35"),
     u("photo-1552374196-1ab2a1c593e8"),
     u("photo-1602810318383-e386cc2a3ccf"),
     u("photo-1596755094514-f87e34085b2c"),
@@ -483,9 +488,9 @@ const POOLS = {
     u("photo-1598140772250-3421a28cd6a9"),
     u("photo-1612660012369-11012309a36b"),
     u("photo-1553633524-ff55f80e2ede"),
+    u("photo-1621973161486-23c49842330a"),
   ],
   kurtas: [
-    u("photo-1594938298603-c8148c4dae35"),
     u("photo-1552374196-1ab2a1c593e8"),
     u("photo-1602810318383-e386cc2a3ccf"),
     u("photo-1583391733956-3750e0ff4e8b"),
@@ -500,7 +505,6 @@ const POOLS = {
     u("photo-1583391733956-3750e0ff4e8b"),
     u("photo-1610030469983-98e550d6193c"),
     u("photo-1490481651871-ab68de25d43d"),
-    u("photo-1594938298603-c8148c4dae35"),
     u("photo-1469334031218-e382a71b716b"),
     u("photo-1509631179647-0177331693ae"),
   ],
@@ -1040,4 +1044,13 @@ export function buildDemoDescription(leafSlug: string, segment: string, name: st
 }
 
 /** Exported for tests. */
-export const __test = { LEAF_POOL, FALLBACK_LEAF, resolvePool, POOLS, TYPE_VIDEOS, uniquePool };
+export const __test = {
+  LEAF_POOL,
+  FALLBACK_LEAF,
+  resolvePool,
+  POOLS,
+  TYPE_VIDEOS,
+  uniquePool,
+  isBannedSareeUrl,
+  BANNED_SAREE_IMAGE_IDS,
+};

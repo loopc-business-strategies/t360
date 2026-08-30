@@ -1,5 +1,8 @@
 export const DEMO_BATCH_ID = "T360_DEMO_001";
 
+/** Unsplash photo IDs that depict sarees — never use in demo pools. */
+export const BANNED_SAREE_IMAGE_IDS = ["photo-1594938298603-c8148c4dae35"] as const;
+
 /** License-safe Unsplash fashion stills (stable photo IDs). */
 export const DEMO_IMAGES = [
   "https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?auto=format&fit=crop&w=900&q=80",
@@ -18,7 +21,6 @@ export const DEMO_IMAGES = [
   "https://images.unsplash.com/photo-1581044777550-4cfa60707c03?auto=format&fit=crop&w=900&q=80",
   "https://images.unsplash.com/photo-1554568218-0f1715e72254?auto=format&fit=crop&w=900&q=80",
   "https://images.unsplash.com/photo-1576566588028-4147f3842f27?auto=format&fit=crop&w=900&q=80",
-  "https://images.unsplash.com/photo-1594938298603-c8148c4dae35?auto=format&fit=crop&w=900&q=80",
   "https://images.unsplash.com/photo-1620799140408-edc6dcb6d633?auto=format&fit=crop&w=900&q=80",
   "https://images.unsplash.com/photo-1596755094514-f87e34085b2c?auto=format&fit=crop&w=900&q=80",
   "https://images.unsplash.com/photo-1583391733956-3750e0ff4e8b?auto=format&fit=crop&w=900&q=80",
