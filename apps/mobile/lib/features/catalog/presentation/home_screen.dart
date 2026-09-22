@@ -34,7 +34,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     final bottomInset = MediaQuery.paddingOf(context).bottom;
 
     return Scaffold(
-      appBar: const TharagaiAppBar(showWordmark: true),
+      appBar: const TharagaiAppBar(showLogo: true),
       body: Stack(
         children: [
           RefreshIndicator(

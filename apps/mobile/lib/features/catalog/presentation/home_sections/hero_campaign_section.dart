@@ -187,6 +187,7 @@ class _HomeHeroCampaignSectionState extends ConsumerState<HomeHeroCampaignSectio
               },
               child: PageView.builder(
                 controller: _pageController,
+                physics: const PageScrollPhysics(),
                 itemCount: _slides.length,
                 onPageChanged: (i) => setState(() => _index = i),
                 itemBuilder: (context, i) {
@@ -199,41 +200,53 @@ class _HomeHeroCampaignSectionState extends ConsumerState<HomeHeroCampaignSectio
                 },
               ),
             ),
-          Container(
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.bottomCenter,
-                end: Alignment.topCenter,
-                colors: [
-                  TharagaiColors.ink.withValues(alpha: 0.92),
-                  TharagaiColors.ink.withValues(alpha: 0.25),
-                ],
+          const Positioned.fill(
+            child: IgnorePointer(
+              child: DecoratedBox(
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.bottomCenter,
+                    end: Alignment.topCenter,
+                    colors: [
+                      Color(0xEB14110F),
+                      Color(0x4014110F),
+                    ],
+                  ),
+                ),
               ),
             ),
           ),
-          Padding(
-            padding: const EdgeInsets.fromLTRB(20, 32, 20, 28),
+          Positioned(
+            left: 20,
+            right: 20,
+            bottom: 28,
             child: Column(
+              mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisAlignment: MainAxisAlignment.end,
               children: [
-                const TharagaiWordmark(fontSize: 14, color: TharagaiColors.brass),
-                const SizedBox(height: 12),
-                Text(
-                  headline,
-                  style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                        color: TharagaiColors.elevated,
-                        fontWeight: FontWeight.w700,
-                        height: 1.15,
+                IgnorePointer(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        headline,
+                        style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                              color: TharagaiColors.elevated,
+                              fontWeight: FontWeight.w700,
+                              height: 1.15,
+                            ),
                       ),
-                ),
-                if (subtitle.isNotEmpty) ...[
-                  const SizedBox(height: 10),
-                  Text(
-                    subtitle,
-                    style: const TextStyle(color: Color(0xD9FFFCF8), height: 1.4),
+                      if (subtitle.isNotEmpty) ...[
+                        const SizedBox(height: 10),
+                        Text(
+                          subtitle,
+                          style: const TextStyle(color: Color(0xD9FFFCF8), height: 1.4),
+                        ),
+                      ],
+                    ],
                   ),
-                ],
+                ),
                 const SizedBox(height: 20),
                 Wrap(
                   spacing: 8,

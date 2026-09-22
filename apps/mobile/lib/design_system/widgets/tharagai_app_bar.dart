@@ -15,7 +15,7 @@ class TharagaiAppBar extends StatelessWidget implements PreferredSizeWidget {
   final bool showLogo;
   final bool showWordmark;
 
-  static const double _logoToolbarHeight = 64;
+  static const double _logoToolbarHeight = 72;
 
   @override
   Size get preferredSize => Size.fromHeight(
@@ -31,7 +31,7 @@ class TharagaiAppBar extends StatelessWidget implements PreferredSizeWidget {
           : showLogo
               ? BrandedLogo(
                   variant: BrandedLogoVariant.appBar,
-                  semanticLabel: title ?? 'Tharagai Fashion',
+                  semanticLabel: title ?? 'THARAGAI READYMATES',
                 )
               : Text(
                   title!,

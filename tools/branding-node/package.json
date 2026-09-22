@@ -1,0 +1,12 @@
+{
+  "name": "branding-node",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "generate": "node generate-branding.mjs"
+  },
+  "dependencies": {
+    "sharp": "0.33.5"
+  }
+}

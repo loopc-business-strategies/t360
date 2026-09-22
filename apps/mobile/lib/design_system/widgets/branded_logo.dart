@@ -17,23 +17,28 @@ class BrandedLogo extends StatelessWidget {
 
   static const _asset = 'assets/branding/tharagai_logo_transparent.png';
 
-  double get _height => switch (variant) {
-        BrandedLogoVariant.appBar => 52,
-        BrandedLogoVariant.hero => 140,
-      };
+  double _heightFor(BuildContext context) {
+    final shortest = MediaQuery.sizeOf(context).shortestSide;
+    final isTablet = shortest >= 600;
+    return switch (variant) {
+      BrandedLogoVariant.appBar => isTablet ? 56.0 : 48.0,
+      BrandedLogoVariant.hero => isTablet ? 160.0 : 120.0,
+    };
+  }
 
   @override
   Widget build(BuildContext context) {
+    final height = _heightFor(context);
     return Image.asset(
       _asset,
-      height: _height,
+      height: height,
       fit: BoxFit.contain,
       alignment: alignment,
       semanticLabel: semanticLabel,
       filterQuality: FilterQuality.high,
       errorBuilder: (context, error, stackTrace) => Image.asset(
         'assets/branding/tharagai_logo.png',
-        height: _height,
+        height: height,
         fit: BoxFit.contain,
         alignment: alignment,
         semanticLabel: semanticLabel,
