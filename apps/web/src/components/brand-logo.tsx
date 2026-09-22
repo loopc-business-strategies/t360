@@ -13,6 +13,9 @@ type BrandLogoProps = {
   spin?: boolean;
 };
 
+/** Cache-bust so browsers pick up regenerated stacked lockup assets. */
+const FULL_V = "20260323";
+
 const VARIANTS: Record<
   BrandLogoVariant,
   {
@@ -28,34 +31,33 @@ const VARIANTS: Record<
     src: "/logo-mark.png",
     srcSet: "/logo-mark.png 1x, /logo-mark@2x.png 2x",
     sizes: "(min-width: 768px) 88px, 64px",
-    className: "h-14 w-auto aspect-square sm:h-16 md:h-[4.5rem]",
+    className: "h-14 w-auto aspect-square object-contain sm:h-16 md:h-[4.5rem]",
     width: 72,
     height: 72,
   },
   header: {
-    src: "/logo-full.png",
-    srcSet: "/logo-full.png 1x, /logo-full@2x.png 2x",
-    sizes: "(min-width: 768px) 180px, 130px",
+    src: `/logo-full.png?v=${FULL_V}`,
+    srcSet: `/logo-full.png?v=${FULL_V} 1x, /logo-full@2x.png?v=${FULL_V} 2x`,
+    sizes: "(min-width: 768px) 72px, 56px",
     className:
-      "h-10 w-auto aspect-[1024/682] drop-shadow-[0_2px_8px_rgba(0,0,0,0.25)] sm:h-11 md:h-12",
-    width: 180,
-    height: 120,
+      "h-12 w-auto object-contain drop-shadow-[0_2px_8px_rgba(0,0,0,0.25)] sm:h-14 md:h-16",
+    width: 1024,
+    height: 1024,
   },
   hero: {
-    src: "/logo-full.png",
-    srcSet: "/logo-full.png 1x, /logo-full@2x.png 2x",
+    src: `/logo-full.png?v=${FULL_V}`,
+    srcSet: `/logo-full.png?v=${FULL_V} 1x, /logo-full@2x.png?v=${FULL_V} 2x`,
     className:
-      "h-auto w-full max-w-[min(100%,22rem)] aspect-[1024/682] drop-shadow-[0_10px_28px_rgba(0,0,0,0.45)] sm:max-w-[26rem] md:max-w-[28rem] lg:max-w-[32rem]",
+      "h-auto w-full max-w-[min(100%,14rem)] object-contain drop-shadow-[0_10px_28px_rgba(0,0,0,0.45)] sm:max-w-[16rem] md:max-w-[18rem] lg:max-w-[20rem]",
     width: 1024,
-    height: 682,
+    height: 1024,
   },
   footer: {
-    src: "/logo-full.png",
-    srcSet: "/logo-full.png 1x, /logo-full@2x.png 2x",
-    className:
-      "h-auto w-40 aspect-[1024/682] drop-shadow-[0_4px_14px_rgba(0,0,0,0.55)] sm:w-48",
-    width: 256,
-    height: 170,
+    src: `/logo-full.png?v=${FULL_V}`,
+    srcSet: `/logo-full.png?v=${FULL_V} 1x, /logo-full@2x.png?v=${FULL_V} 2x`,
+    className: "h-auto w-28 object-contain drop-shadow-[0_4px_14px_rgba(0,0,0,0.55)] sm:w-32",
+    width: 1024,
+    height: 1024,
   },
 };
 
