@@ -14,7 +14,7 @@ type BrandLogoProps = {
 };
 
 /** Cache-bust so browsers pick up regenerated stacked lockup assets. */
-const FULL_V = "20260323";
+const FULL_V = "20260923";
 
 const VARIANTS: Record<
   BrandLogoVariant,
