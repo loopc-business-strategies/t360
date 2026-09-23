@@ -131,7 +131,10 @@ jobs:
           fi
 
       - name: Deploy admin to Vercel (staging)
+        # Admin vercel often hangs on free-tier; time out so Railway is not blocked.
         if: steps.gate.outputs.skip == 'false' && steps.scope.outputs.deploy_vercel == 'true'
+        timeout-minutes: 8
+        continue-on-error: true
         env:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
           VERCEL_ORG_ID: ${{ vars.VERCEL_ORG_ID }}
